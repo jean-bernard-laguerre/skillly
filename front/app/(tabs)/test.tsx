@@ -1,7 +1,8 @@
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import { IconSymbol } from "@/components/ui/IconSymbol";
 import React, { useEffect, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Swiper from "react-native-deck-swiper";
 
 interface Card {
@@ -21,7 +22,24 @@ const Card = ({ card }: { card: Card }) => (
   </View>
 );
 
+const OverlayLabel = ({ color }: { color: string }) => {
+  if (color === "red") {
+    return (
+      <View style={styles.overlayLabel}>
+        <IconSymbol size={50} name="xmark" color={color} />
+      </View>
+    );
+  } else {
+    return (
+      <View style={styles.overlayLabel}>
+        <IconSymbol size={50} name="heart" color={color} />
+      </View>
+    );
+  }
+};
+
 export default function TestScreen() {
+  const swiperRef = React.useRef<Swiper<Card>>(null);
   const [swipped, setSwipped] = useState<SwippedState>({
     left: [],
     right: [],
@@ -71,8 +89,6 @@ export default function TestScreen() {
     },
   ];
 
-  // function handleSwipe qui met dans swipped les cards qu'on a swippe en fonction du côté du swipe
-
   const handleSwipe = (swipe: "left" | "right", card: Card) => {
     setIndex((prev) => prev + 1);
     setSwipped((prev: SwippedState) => ({
@@ -87,68 +103,84 @@ export default function TestScreen() {
 
   return (
     <View style={styles.container}>
-      <Swiper
-        cards={cards}
-        cardIndex={index}
-        renderCard={(card) => <Card card={card} />}
-        onSwipedLeft={(cardIndex) => {
-          handleSwipe("left", cards[cardIndex]);
-        }}
-        onSwipedRight={(cardIndex) => {
-          handleSwipe("right", cards[cardIndex]);
-        }}
-        onSwipedAll={() => {
-          setIsAllSwiped(true);
-        }}
-        showSecondCard={true}
-        stackSize={4}
-        stackScale={10}
-        stackSeparation={15}
-        verticalSwipe={false}
-        animateOverlayLabelsOpacity
-        animateCardOpacity
-        overlayLabels={{
-          left: {
-            title: "NOPE",
-            style: {
-              label: {
-                backgroundColor: "black",
-                borderColor: "black",
-                color: "white",
-                borderWidth: 1,
-              },
-              wrapper: {
-                flexDirection: "column",
-                alignItems: "flex-end",
-                justifyContent: "flex-start",
-                marginTop: 30,
-                marginLeft: -30,
-              },
-            },
-          },
-          right: {
-            title: "LIKE",
-            style: {
-              label: {
-                backgroundColor: "black",
-                borderColor: "black",
-                color: "white",
-                borderWidth: 1,
-              },
-              wrapper: {
-                flexDirection: "column",
-                alignItems: "flex-start",
-                justifyContent: "flex-start",
-                marginTop: 30,
-                marginLeft: 30,
+      <View style={styles.swiperContainer}>
+        <Swiper
+          ref={swiperRef}
+          cards={cards}
+          cardIndex={index}
+          renderCard={(card) => <Card card={card} />}
+          onSwipedLeft={(cardIndex) => {
+            handleSwipe("left", cards[cardIndex]);
+          }}
+          onSwipedRight={(cardIndex) => {
+            handleSwipe("right", cards[cardIndex]);
+          }}
+          onSwipedAll={() => {
+            setIsAllSwiped(true);
+          }}
+          cardVerticalMargin={50}
+          stackSize={4}
+          stackScale={10}
+          stackSeparation={15}
+          verticalSwipe={false}
+          animateOverlayLabelsOpacity
+          animateCardOpacity
+          backgroundColor="transparent"
+          overlayLabels={{
+            left: {
+              element: <OverlayLabel color="red" />,
+              title: "NOPE",
+              style: {
+                label: {
+                  backgroundColor: "black",
+                  borderColor: "black",
+                  color: "white",
+                  borderWidth: 1,
+                },
+                wrapper: {
+                  flexDirection: "column",
+                  alignItems: "flex-end",
+                  justifyContent: "flex-start",
+                  marginTop: 30,
+                  marginLeft: -30,
+                },
               },
             },
-          },
-        }}
-      ></Swiper>
-      {/* si toutes les cartes ont été swipées, afficher les cartes swipées */}
+            right: {
+              element: <OverlayLabel color="blue" />,
+              title: "LIKE",
+              style: {
+                label: {
+                  backgroundColor: "black",
+                  borderColor: "black",
+                  color: "white",
+                  borderWidth: 1,
+                },
+                wrapper: {
+                  flexDirection: "column",
+                  alignItems: "flex-start",
+                  justifyContent: "flex-start",
+                  marginTop: 30,
+                  marginLeft: 30,
+                },
+              },
+            },
+          }}
+        />
+      </View>
+      <View style={styles.bottomContainer}>
+        <View style={styles.info}>
+          <TouchableOpacity onPress={() => swiperRef.current?.swipeLeft()}>
+            <IconSymbol size={28} name="xmark" color="red" />
+          </TouchableOpacity>
+          <ThemedText>Swipez les cartes pour les classer</ThemedText>
+          <TouchableOpacity onPress={() => swiperRef.current?.swipeRight()}>
+            <IconSymbol size={28} name="heart" color="blue" />
+          </TouchableOpacity>
+        </View>
+      </View>
       {isAllSwiped && (
-        <ThemedView style={styles.swipped}>
+        <View style={styles.swipped}>
           <ThemedText>
             Plus aucune carte à swiper, vous avez swipé toutes les cartes
           </ThemedText>
@@ -167,7 +199,18 @@ export default function TestScreen() {
               ))}
             </ThemedView>
           </ThemedView>
-        </ThemedView>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => {
+              setSwipped({ left: [], right: [] });
+              setIsAllSwiped(false);
+              setIndex(0);
+              swiperRef.current?.jumpToCardIndex(0);
+            }}
+          >
+            <ThemedText>Recommencer</ThemedText>
+          </TouchableOpacity>
+        </View>
       )}
     </View>
   );
@@ -175,25 +218,43 @@ export default function TestScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    // flex: 1,
-    display: "flex",
-    backgroundColor: "black",
-    alignItems: "center",
-    justifyContent: "center",
+    flex: 1,
+    // display: "flex",
+    // backgroundColor: "black",
+    // // alignItems: "center",
+    // justifyContent: "center",
   },
-  // swipped doit apparaitre doucement
-  swipped: {
-    display: "flex",
+  swiperContainer: {
+    flex: 0.9,
+  },
+  bottomContainer: {
+    flex: 0.1,
+    alignItems: "center",
+    zIndex: 100,
+  },
 
+  swipped: {
+    position: "relative",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    display: "flex",
     flexDirection: "column",
     justifyContent: "center",
     alignItems: "center",
     color: "white",
-    backgroundColor: "red",
+    backgroundColor: "black",
+  },
+
+  info: {
+    width: "100%",
+    flexDirection: "row",
+    justifyContent: "space-evenly",
   },
 
   card: {
-    flex: 0.45,
+    flex: 0.9,
     borderRadius: 8,
     shadowRadius: 25,
     shadowColor: "#000",
@@ -220,6 +281,7 @@ const styles = StyleSheet.create({
   Table: {
     flexDirection: "row",
     justifyContent: "space-between",
+    width: "50%",
   },
   left: {
     flexDirection: "column",
@@ -230,5 +292,24 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     justifyContent: "center",
     alignItems: "center",
+  },
+
+  overlayLabel: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    position: "absolute",
+    zIndex: 1000,
+  },
+
+  button: {
+    backgroundColor: "black",
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 10,
+    padding: 10,
+    marginTop: 20,
+    borderWidth: 1,
+    borderColor: "white",
   },
 });
