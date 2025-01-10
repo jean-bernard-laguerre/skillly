@@ -1,0 +1,9 @@
+name: Pipeline CI/CD
+on:
+  pull_request:
+    branches:
+      - master
+      - main
+  push:
+    branche:
+      - main
