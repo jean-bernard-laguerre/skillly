@@ -1,11 +1,21 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+
+	"skillly/pkg/db"
+	"skillly/pkg/handlers"
 )
 
 func main() {
+
+	// Init the database
+	DB := db.Init()
+	h := handlers.New(DB)
+	fmt.Println(h)
 
 	// Create a new gin router
 	r := gin.Default()
