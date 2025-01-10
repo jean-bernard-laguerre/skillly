@@ -7,3 +7,20 @@ on:
   push:
     branche:
       - main
+
+jobs:
+  # GET REPO NAME
+  get-repo-name:
+    runs-on: ubuntu-latest
+    outputs:
+      repo-name: ${{ github.repository }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Get repo name
+        run: echo "Repo name is ${{ github.repository }}"
+
+        id: get-repo-name
+        # This is the output variable
+        # We can access this variable in other jobs using `needs.get-repo-name.outputs.repo-name`
