@@ -1,5 +1,7 @@
 package chat
 
+import "fmt"
+
 type Room struct {
 	clients    map[*Client]bool
 	unregister chan *Client
@@ -36,11 +38,14 @@ func (r *Room) Run() {
 			}
 		case messages := <-r.broadcast:
 			for client := range r.clients {
-				select {
-				case client.send <- messages.Content:
-				default:
-					close(client.send)
-					delete(r.clients, client)
+				fmt.Println(messages.Sender, client.conn.RemoteAddr().String())
+				if messages.Sender != client.conn.RemoteAddr().String() {
+					select {
+					case client.send <- messages.Content:
+					default:
+						close(client.send)
+						delete(r.clients, client)
+					}
 				}
 			}
 		}
