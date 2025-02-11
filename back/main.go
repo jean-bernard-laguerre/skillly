@@ -24,8 +24,8 @@ func main() {
 
 	// Create a new gin router
 	r := gin.Default()
-	// Create array of rooms
-	rooms := make(map[string]*chat.Room)
+	// Create array of hub
+	hub := make(map[string]*chat.Room)
 
 	r.Use(cors.New(cors.Config{
 		AllowOrigins: []string{"*"},
@@ -38,12 +38,12 @@ func main() {
 	})
 
 	r.GET("/ws/:roomId", func(c *gin.Context) {
-		if _, ok := rooms[c.Param("roomId")]; !ok {
-			rooms[c.Param("roomId")] = chat.NewRoom()
-			go rooms[c.Param("roomId")].Run()
+		if _, ok := hub[c.Param("roomId")]; !ok {
+			hub[c.Param("roomId")] = chat.NewRoom()
+			go hub[c.Param("roomId")].Run()
 		}
 
-		chat.ServeWs(rooms[c.Param("roomId")], c.Writer, c.Request)
+		chat.ServeWs(hub[c.Param("roomId")], c.Writer, c.Request)
 	})
 
 	r.Run(":8080")

@@ -1,19 +1,17 @@
 package chat
 
-import "fmt"
-
 type Room struct {
 	clients    map[*Client]bool
 	unregister chan *Client
 	register   chan *Client
-	broadcast  chan []byte
+	broadcast  chan Message
 }
 
 type Message struct {
 	Type      string `json:"type"`
 	Sender    string `json:"sender"`
 	Recipient string `json:"recipient"`
-	Content   string `json:"content"`
+	Content   []byte `json:"content"`
 	ID        string `json:"id"`
 }
 
@@ -22,7 +20,7 @@ func NewRoom() *Room {
 		clients:    make(map[*Client]bool),
 		unregister: make(chan *Client),
 		register:   make(chan *Client),
-		broadcast:  make(chan []byte),
+		broadcast:  make(chan Message),
 	}
 }
 
@@ -37,10 +35,9 @@ func (r *Room) Run() {
 				close(client.send)
 			}
 		case messages := <-r.broadcast:
-			fmt.Println("Broadcasting message")
 			for client := range r.clients {
 				select {
-				case client.send <- messages:
+				case client.send <- messages.Content:
 				default:
 					close(client.send)
 					delete(r.clients, client)
