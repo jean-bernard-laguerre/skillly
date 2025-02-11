@@ -1,30 +1,26 @@
 package main
 
 import (
-	"net/http"
+	"fmt"
 
 	"github.com/gin-contrib/cors"
-
 	"github.com/gin-gonic/gin"
 
 	"skillly/chat"
-
-	"github.com/gorilla/websocket"
+	"skillly/pkg/db"
+	"skillly/pkg/handlers"
 )
-
-var upgrader = websocket.Upgrader{
-	/* ReadBufferSize:  1024,
-	WriteBufferSize: 1024, */
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
-}
 
 func main() {
 
+	// Init the database
+	DB := db.Init()
+	h := handlers.New(DB)
+	fmt.Println(h)
+
 	// Create a new gin router
 	r := gin.Default()
-	// Create array of hub
+	// Create array of rooms
 	hub := make(map[string]*chat.Room)
 
 	r.Use(cors.New(cors.Config{
