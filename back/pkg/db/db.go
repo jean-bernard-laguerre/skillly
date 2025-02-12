@@ -31,8 +31,7 @@ func Init() *gorm.DB {
 
 	// Construire la chaîne de connexion
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Europe/Paris",
-	host, dbUser, dbPassword, dbName, port)
-	
+		host, dbUser, dbPassword, dbName, port)
 
 	// Ouvrir une connexion à la base de données
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
@@ -42,16 +41,20 @@ func Init() *gorm.DB {
 	log.Println("Connected to database")
 
 	// MIGRATIONS
-	db.AutoMigrate(&models.File{}, 
-		&models.Company{}, 
-		&models.User{}, 
-		&models.ProfileCandidate{}, 
+	db.AutoMigrate(
+		&models.File{},
+		&models.Company{},
+		&models.User{},
+		&models.ProfileCandidate{},
 		&models.ProfileRecruiter{},
 		&models.Certification{},
-		// &models.Skill{},
+		&models.Skill{},
+		&models.JobPost{},
+		&models.CandidateReview{},
+		&models.CompanyReview{},
+		&models.Application{},
+		&models.Match{},
 	)
-
-
 
 	return db
 }
