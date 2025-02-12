@@ -61,7 +61,6 @@ func (h *Hub) RunHub() {
 			if room, ok := h.rooms[message.Recipient]; ok {
 				room.broadcast <- message
 			}
-			h.broadcast <- message
 		}
 	}
 }
