@@ -1,7 +1,16 @@
 package chat
 
-import "fmt"
+import (
+	"fmt"
+)
 
+type Hub struct {
+	clients    map[string]*Client
+	rooms      map[string]*Room
+	unregister chan *Client
+	register   chan *Client
+	broadcast  chan Message
+}
 type Room struct {
 	clients    map[*Client]bool
 	unregister chan *Client
@@ -17,6 +26,16 @@ type Message struct {
 	ID        string `json:"id"`
 }
 
+func NewHub() *Hub {
+	return &Hub{
+		clients:    make(map[string]*Client),
+		rooms:      make(map[string]*Room),
+		unregister: make(chan *Client),
+		register:   make(chan *Client),
+		broadcast:  make(chan Message),
+	}
+}
+
 func NewRoom() *Room {
 	return &Room{
 		clients:    make(map[*Client]bool),
@@ -26,7 +45,28 @@ func NewRoom() *Room {
 	}
 }
 
-func (r *Room) Run() {
+func (h *Hub) RunHub() {
+	for {
+		select {
+		case client := <-h.register:
+			h.clients[client.id] = client
+
+		case client := <-h.unregister:
+			if _, ok := h.clients[client.id]; ok {
+				delete(h.clients, client.id)
+				close(client.send)
+			}
+		case message := <-h.broadcast:
+			fmt.Println("message", message)
+			if room, ok := h.rooms[message.Recipient]; ok {
+				room.broadcast <- message
+			}
+			h.broadcast <- message
+		}
+	}
+}
+
+func (r *Room) RunRoom() {
 	for {
 		select {
 		case client := <-r.register:
@@ -36,16 +76,13 @@ func (r *Room) Run() {
 				delete(r.clients, client)
 				close(client.send)
 			}
-		case messages := <-r.broadcast:
+		case message := <-r.broadcast:
 			for client := range r.clients {
-				fmt.Println(messages.Sender, client.conn.RemoteAddr().String())
-				if messages.Sender != client.conn.RemoteAddr().String() {
-					select {
-					case client.send <- messages.Content:
-					default:
-						close(client.send)
-						delete(r.clients, client)
-					}
+				select {
+				case client.send <- message.Content:
+				default:
+					close(client.send)
+					delete(r.clients, client)
 				}
 			}
 		}

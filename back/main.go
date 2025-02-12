@@ -1,27 +1,21 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/gin-contrib/cors"
+
 	"github.com/gin-gonic/gin"
 
 	"skillly/chat"
-	"skillly/pkg/db"
-	"skillly/pkg/handlers"
 )
 
 func main() {
 
-	// Init the database
-	DB := db.Init()
-	h := handlers.New(DB)
-	fmt.Println(h)
-
 	// Create a new gin router
 	r := gin.Default()
-	// Create array of rooms
-	hub := make(map[string]*chat.Room)
+	// Create array of hub
+	/* hub := make(map[string]*chat.Room) */
+	hub := chat.NewHub()
+	go hub.RunHub()
 
 	r.Use(cors.New(cors.Config{
 		AllowOrigins: []string{"*"},
@@ -34,12 +28,16 @@ func main() {
 	})
 
 	r.GET("/ws/:roomId", func(c *gin.Context) {
-		if _, ok := hub[c.Param("roomId")]; !ok {
+		roomId := c.Param("roomId")
+
+		chat.ServeWs(hub, roomId, c.Writer, c.Request)
+
+		/* if _, ok := hub[c.Param("roomId")]; !ok {
 			hub[c.Param("roomId")] = chat.NewRoom()
-			go hub[c.Param("roomId")].Run()
+			go hub[c.Param("roomId")].RunRoom()
 		}
 
-		chat.ServeWs(hub[c.Param("roomId")], c.Writer, c.Request)
+		chat.ServeWs(hub[c.Param("roomId")], c.Writer, c.Request) */
 	})
 
 	r.Run(":8080")

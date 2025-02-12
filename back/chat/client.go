@@ -35,11 +35,22 @@ var upgrader = websocket.Upgrader{
 
 // Client is a middleman between the websocket connection and the hub.
 type Client struct {
-	id   string
-	room *Room
-	conn *websocket.Conn
+	id    string
+	hub   *Hub
+	rooms map[string]*Room
+	conn  *websocket.Conn
 	// Buffered channel of outbound messages.
 	send chan []byte
+}
+
+func NewClient(id string, hub *Hub, conn *websocket.Conn) *Client {
+	return &Client{
+		id:    id,
+		hub:   hub,
+		rooms: make(map[string]*Room),
+		conn:  conn,
+		send:  make(chan []byte, 256),
+	}
 }
 
 // readPump pumps messages from the websocket connection to the hub.
@@ -47,9 +58,11 @@ type Client struct {
 // The application runs readPump in a per-connection goroutine. The application
 // ensures that there is at most one reader on a connection by executing all
 // reads from this goroutine.
-func (c *Client) readPump() {
+func (c *Client) readPump(room string) {
 	defer func() {
-		c.room.unregister <- c
+		if room, ok := c.rooms[room]; ok {
+			room.unregister <- c
+		}
 		c.conn.Close()
 	}()
 	c.conn.SetReadLimit(maxMessageSize)
@@ -64,9 +77,11 @@ func (c *Client) readPump() {
 			break
 		}
 		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
-		c.room.broadcast <- Message{
-			Sender:  c.conn.RemoteAddr().String(),
-			Content: message,
+		if room, ok := c.rooms[room]; ok {
+			room.broadcast <- Message{
+				Sender:  c.id,
+				Content: message,
+			}
 		}
 	}
 }
@@ -118,17 +133,29 @@ func (c *Client) writePump() {
 }
 
 // serveWs handles websocket requests from the peer.
-func ServeWs(room *Room, w http.ResponseWriter, r *http.Request) {
+func ServeWs(hub *Hub, room string, w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)
 		return
 	}
-	client := &Client{room: room, conn: conn, send: make(chan []byte, 256)}
-	client.room.register <- client
+
+	// Create a new client
+	client := NewClient(r.URL.Query().Get("id"), hub, conn)
+	// Register the client to the hub
+	hub.register <- client
+	// Create a new room
+	if _, ok := hub.rooms[room]; !ok {
+		hub.rooms[room] = NewRoom()
+		go hub.rooms[room].RunRoom()
+	}
+
+	// Register the client to the room
+	hub.rooms[room].register <- client
+	client.rooms[room] = hub.rooms[room]
 
 	// Allow collection of memory referenced by the caller by doing all work in
 	// new goroutines.
 	go client.writePump()
-	go client.readPump()
+	go client.readPump(room)
 }
