@@ -9,15 +9,17 @@ import (
 
 	"skillly/chat"
 
+	"skillly/pkg/config"
 	"skillly/pkg/db"
 	"skillly/pkg/handlers"
+	"skillly/pkg/handlers/auth"
 )
 
 func main() {
 
 	// Init the database
-	DB := db.Init()
-	h := handlers.New(DB)
+	db.Init()
+	h := handlers.New(config.DB)
 	fmt.Println(h)
 
 	// Create a new gin router
@@ -31,6 +33,9 @@ func main() {
 		AllowOrigins: []string{"*"},
 	}))
 
+	// Add routes
+	auth.AddRoutes(r)
+
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "Hello, World!",
@@ -41,13 +46,6 @@ func main() {
 		roomId := c.Param("roomId")
 
 		chat.ServeWs(hub, roomId, c.Writer, c.Request)
-
-		/* if _, ok := hub[c.Param("roomId")]; !ok {
-			hub[c.Param("roomId")] = chat.NewRoom()
-			go hub[c.Param("roomId")].RunRoom()
-		}
-
-		chat.ServeWs(hub[c.Param("roomId")], c.Writer, c.Request) */
 	})
 
 	r.Run(":8080")

@@ -33,7 +33,6 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-// Client is a middleman between the websocket connection and the hub.
 type Client struct {
 	id    string
 	hub   *Hub
@@ -53,11 +52,7 @@ func NewClient(id string, hub *Hub, conn *websocket.Conn) *Client {
 	}
 }
 
-// readPump pumps messages from the websocket connection to the hub.
-//
-// The application runs readPump in a per-connection goroutine. The application
-// ensures that there is at most one reader on a connection by executing all
-// reads from this goroutine.
+// read messages from the client WebSocket connection and forwarding them to the appropriate room for broadcasting
 func (c *Client) readPump(room string) {
 	defer func() {
 		if room, ok := c.rooms[room]; ok {
@@ -86,11 +81,7 @@ func (c *Client) readPump(room string) {
 	}
 }
 
-// writePump pumps messages from the hub to the websocket connection.
-//
-// A goroutine running writePump is started for each connection. The
-// application ensures that there is at most one writer to a connection by
-// executing all writes from this goroutine.
+// handles sending messages from the client's send channel to the WebSocket connection
 func (c *Client) writePump() {
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {

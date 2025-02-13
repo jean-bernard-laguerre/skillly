@@ -9,6 +9,8 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
+	"skillly/pkg/config"
+	"skillly/pkg/handlers/user"
 	"skillly/pkg/models"
 )
 
@@ -17,7 +19,8 @@ import (
 // DB_USER
 // DB_PASSWORD
 // DB_NAME
-func Init() *gorm.DB {
+
+func Init() {
 	err := godotenv.Load()
 	if err != nil {
 		panic(err)
@@ -34,17 +37,17 @@ func Init() *gorm.DB {
 		host, dbUser, dbPassword, dbName, port)
 
 	// Ouvrir une connexion à la base de données
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	config.DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
 	log.Println("Connected to database")
 
 	// MIGRATIONS
-	db.AutoMigrate(
+	config.DB.AutoMigrate(
 		&models.File{},
 		&models.Company{},
-		&models.User{},
+		&user.UserModel{},
 		&models.ProfileCandidate{},
 		&models.ProfileRecruiter{},
 		&models.Certification{},
@@ -55,6 +58,4 @@ func Init() *gorm.DB {
 		&models.Application{},
 		&models.Match{},
 	)
-
-	return db
 }

@@ -1,4 +1,4 @@
-package models
+package user
 
 import (
 	"errors"
@@ -13,8 +13,8 @@ const (
 	RoleRecruiter RoleType = "recruiter"
 )
 
-// User is a struct that represents a user
-type User struct {
+// UserModel is a struct that represents a user
+type UserModel struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`
 	FirstName string    `json:"first_name"`
 	LastName  string    `json:"last_name"`
@@ -25,7 +25,7 @@ type User struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func (u *User) ValidateRole() error {
+func (u *UserModel) ValidateRole() error {
 	switch u.Role {
 	case RoleCandidate, RoleRecruiter:
 		return nil
