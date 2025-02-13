@@ -12,6 +12,7 @@ func Register(c *gin.Context) {
 
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
+		return
 	}
 
 	// Create the user
@@ -21,6 +22,7 @@ func Register(c *gin.Context) {
 
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
+		return
 	}
 
 	c.JSON(200, gin.H{"message": "User created"})
