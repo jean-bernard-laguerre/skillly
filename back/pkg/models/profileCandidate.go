@@ -6,7 +6,7 @@ import "skillly/pkg/handlers/user"
 type ProfileCandidate struct {
 	ID              uint            `json:"id" gorm:"primaryKey"`
 	UserID          uint            `json:"user_id" gorm:"uniqueIndex"` // Clé étrangère vers User
-	User            user.UserModel  `json:"user" gorm:"embedded;embeddedPrefix:user_;constraint:OnDelete:CASCADE;"`
+	User            user.User       `json:"user" gorm:"embedded;embeddedPrefix:user_;constraint:OnDelete:CASCADE;"`
 	Bio             string          `json:"bio"`
 	ExperienceYear  int             `json:"experience_year"`
 	PreferedJobType string          `json:"prefered_job_type"`

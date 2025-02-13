@@ -13,8 +13,8 @@ const (
 	RoleRecruiter RoleType = "recruiter"
 )
 
-// UserModel is a struct that represents a user
-type UserModel struct {
+// User is a struct that represents a user
+type User struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`
 	FirstName string    `json:"first_name"`
 	LastName  string    `json:"last_name"`
@@ -25,7 +25,7 @@ type UserModel struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func (u *UserModel) ValidateRole() error {
+func (u *User) ValidateRole() error {
 	switch u.Role {
 	case RoleCandidate, RoleRecruiter:
 		return nil

@@ -17,7 +17,7 @@ func Register(c *gin.Context) {
 	}
 
 	// Create the user
-	userModel := user.UserModel{}
+	userModel := user.User{}
 	_, err = userModel.Create(newUser)
 
 	if err != nil {

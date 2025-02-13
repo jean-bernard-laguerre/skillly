@@ -47,7 +47,7 @@ func Init() {
 	config.DB.AutoMigrate(
 		&models.File{},
 		&models.Company{},
-		&user.UserModel{},
+		&user.User{},
 		&models.ProfileCandidate{},
 		&models.ProfileRecruiter{},
 		&models.Certification{},
