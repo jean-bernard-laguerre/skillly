@@ -8,7 +8,8 @@ import (
 )
 
 func Register(c *gin.Context) {
-	err := c.BindJSON(&dto.CreateUserDTO{})
+	newUser := dto.CreateUserDTO{}
+	err := c.BindJSON(&newUser)
 
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
@@ -16,9 +17,8 @@ func Register(c *gin.Context) {
 	}
 
 	// Create the user
-	register := user.UserModel{}
-
-	_, err = register.Create(dto.CreateUserDTO{})
+	userModel := user.UserModel{}
+	_, err = userModel.Create(newUser)
 
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
