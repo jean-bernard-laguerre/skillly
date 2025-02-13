@@ -6,10 +6,12 @@ import (
 
 func AddRoutes(r *gin.Engine) {
 
-	r.POST("/login", func(c *gin.Context) {
+	au := r.Group("/auth")
+
+	au.POST("/login", func(c *gin.Context) {
 		Login(c)
 	})
-	r.POST("/register", func(c *gin.Context) {
+	au.POST("/register", func(c *gin.Context) {
 		Register(c)
 	})
 }
