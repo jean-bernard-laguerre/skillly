@@ -19,7 +19,7 @@ import (
 	"skillly/pkg/handlers/file"
 	"skillly/pkg/handlers/jobPost"
 	"skillly/pkg/handlers/match"
-	recruiter "skillly/pkg/handlers/recruterProfile"
+	recruiter "skillly/pkg/handlers/recruiterProfile"
 	"skillly/pkg/handlers/skill"
 	"skillly/pkg/handlers/user"
 )

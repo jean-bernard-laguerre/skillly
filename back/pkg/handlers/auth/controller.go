@@ -11,7 +11,10 @@ func AddRoutes(r *gin.Engine) {
 	au.POST("/login", func(c *gin.Context) {
 		Login(c)
 	})
-	au.POST("/register", func(c *gin.Context) {
-		Register(c)
+	au.POST("/signup/candidate", func(c *gin.Context) {
+		RegisterCandidate(c)
+	})
+	au.POST("/signup/recruiter", func(c *gin.Context) {
+		RegisterRecruiter(c)
 	})
 }

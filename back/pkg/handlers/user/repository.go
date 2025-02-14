@@ -1,36 +1,37 @@
 package user
 
 import (
-	"log"
-	"skillly/pkg/config"
+	/* "skillly/pkg/config" */
 	userDto "skillly/pkg/handlers/user/dto"
+
+	"gorm.io/gorm"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
+// Create a new user
 func (u *User) Create(
-	dto userDto.CreateUserDTO,
-) (int, error) {
+	dto userDto.CreateUserDTO, tx *gorm.DB,
+) (User, error) {
 
-	db, err := config.DB.DB()
+	// Hash the password
+	hashPassword, err := bcrypt.GenerateFromPassword([]byte(dto.Password), bcrypt.DefaultCost)
 	if err != nil {
-		log.Printf("Error: %s", err)
+		return User{}, err
 	}
 
-	err = db.Ping()
-	if err != nil {
-		log.Printf("Error: %s", err)
-	}
-
-	createdUser := config.DB.Create(&User{
+	user := User{
 		FirstName: dto.FirstName,
 		LastName:  dto.LastName,
 		Email:     dto.Email,
-		Password:  dto.Password,
+		Password:  string(hashPassword),
 		Role:      RoleCandidate,
-	})
-	if createdUser.Error != nil {
-		return 0, createdUser.Error
 	}
 
-	log.Printf("User created successfully: %d rows affected", createdUser.RowsAffected)
-	return int(createdUser.RowsAffected), nil
+	createdUser := tx.Create(&user)
+	if createdUser.Error != nil {
+		return User{}, createdUser.Error
+	}
+
+	return user, nil
 }

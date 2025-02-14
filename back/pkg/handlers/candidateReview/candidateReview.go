@@ -2,7 +2,7 @@ package candidateReview
 
 import (
 	candidate "skillly/pkg/handlers/candidateProfile"
-	recruiter "skillly/pkg/handlers/recruterProfile"
+	recruiter "skillly/pkg/handlers/recruiterProfile"
 	"time"
 )
 
