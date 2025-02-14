@@ -1,28 +1,22 @@
-import { Stack } from "expo-router";
+import "react-native-gesture-handler";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { Drawer } from "expo-router/drawer";
+import { Stack } from "expo-router";
+import TabNavigator from "@/navigation/TabNavigator";
 
-import { AuthProvider, useAuth } from "../context/AuthContext";
+import { AuthProvider } from "@/context/AuthContext";
 import "../global.css";
 
 export default function RootLayout() {
-  const { role } = useAuth();
-
   return (
     <AuthProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <Drawer>
-          <Drawer.Screen
-            name="drawer/ProfileScreen" // This is the name of the page and must match the url from root
-            options={{
-              drawerLabel: "Profile",
-              title: "overview",
-            }}
-            redirect={role === null}
-          />
-          {/* faire un bouton pour se déconnecter */}
-        </Drawer>
-        <Stack screenOptions={{ headerShown: false }} />
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="index" options={{ headerShown: false }} />
+          <Stack.Screen name="auth/login" options={{ headerShown: false }} />
+          <Stack.Screen name="auth/register" options={{ headerShown: false }} />
+          <Stack.Screen name="(protected)" options={{ headerShown: false }} />
+        </Stack>
+        {/* <TabNavigator role={null} /> */}
       </GestureHandlerRootView>
     </AuthProvider>
   );

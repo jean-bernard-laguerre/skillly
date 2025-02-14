@@ -1,13 +1,13 @@
 import { View, Text, Button } from "react-native";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../../context/AuthContext";
 
-export default function RecruiterDashboard() {
+export default function CandidateHome() {
   const { handleLogOut } = useAuth();
 
   return (
     <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
       <Text style={{ fontSize: 24, fontWeight: "bold", marginBottom: 20 }}>
-        Espace Recruteur 🚀
+        Espace Candidat 🎯
       </Text>
       <Button title="Se déconnecter" onPress={handleLogOut} />
     </View>
