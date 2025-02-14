@@ -3,8 +3,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 
 type AuthContextType = {
-  role: string | null;
-  setRole: (role: string | null) => void;
+  role: "candidate" | "recruiter" | null;
+  setRole: (role: "candidate" | "recruiter" | null) => void;
   handleLogOut: () => void;
   loading: boolean;
 };
@@ -12,7 +12,7 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [role, setRole] = useState<string | null>(null);
+  const [role, setRole] = useState<"candidate" | "recruiter" | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -22,9 +22,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const handleRedirect: HandleRedirect = (role) => {
     if (role === "candidate") {
-      router.replace("/candidate");
+      router.replace("/(protected)/candidate");
     } else if (role === "recruiter") {
-      router.replace("/recruiter");
+      router.replace("/(protected)/recruiter");
     } else {
       router.replace("/");
     }
@@ -40,7 +40,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const loadRole = async () => {
       try {
         const storedRole = await AsyncStorage.getItem("userRole");
-        setRole(storedRole);
+        if (
+          storedRole === "candidate" ||
+          storedRole === "recruiter" ||
+          storedRole === null
+        ) {
+          setRole(storedRole);
+        } else {
+          setRole(null);
+        }
       } catch (error) {
         console.error("Erreur lors du chargement du rôle :", error);
       } finally {

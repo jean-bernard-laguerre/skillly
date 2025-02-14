@@ -6,9 +6,14 @@ export default function Login() {
   const router = useRouter();
   const { setRole } = useAuth();
 
-  const handleLogin = (role: string) => {
+  const handleLogin = (role: "candidate" | "recruiter") => {
     setRole(role);
-    router.replace("/candidate");
+    if (role === "candidate") {
+      router.replace("/(protected)/candidate");
+    } else if (role === "recruiter") {
+      console.log("recruiter");
+      router.replace("/(protected)/recruiter");
+    }
   };
 
   return (
