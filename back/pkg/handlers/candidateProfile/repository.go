@@ -17,10 +17,10 @@ func (c *ProfileCandidate) Create(
 		ExperienceYear:  dto.ExperienceYear,
 		PreferedJobType: dto.PreferedJobType,
 		Availability:    dto.Availability,
-		/* ResumeID:        dto.ResumeID,
+		ResumeID:        dto.ResumeID,
 		Certifications:  dto.Certifications,
-		Skills:          dto.Skills, */
-		UserID: dto.User.ID,
+		Skills:          dto.Skills,
+		UserID:          dto.User.ID,
 	}
 
 	createdCandidate := tx.Create(&profile)

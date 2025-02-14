@@ -51,9 +51,9 @@ func RegisterCandidate(c *gin.Context) {
 			PreferedJobType: candidateRegister.PreferedJob,
 			Availability:    candidateRegister.Availability,
 			ResumeID:        candidateRegister.ResumeID,
-			/* Certifications:  candidateRegister.Certifications,
-			Skills:          candidateRegister.Skills, */
-			User: savedUser,
+			Certifications:  candidateRegister.Certifications,
+			Skills:          candidateRegister.Skills,
+			User:            savedUser,
 		}
 
 		// Create the candidate
