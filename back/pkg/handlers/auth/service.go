@@ -48,12 +48,12 @@ func RegisterCandidate(c *gin.Context) {
 			Bio:             candidateRegister.Bio,
 			Location:        candidateRegister.Location,
 			ExperienceYear:  candidateRegister.ExperienceYear,
-			PreferedJobType: candidateRegister.PreferedJobType,
+			PreferedJobType: candidateRegister.PreferedJob,
 			Availability:    candidateRegister.Availability,
 			ResumeID:        candidateRegister.ResumeID,
-			Certifications:  candidateRegister.Certifications,
-			Skills:          candidateRegister.Skills,
-			User:            savedUser,
+			/* Certifications:  candidateRegister.Certifications,
+			Skills:          candidateRegister.Skills, */
+			User: savedUser,
 		}
 
 		// Create the candidate
@@ -98,9 +98,9 @@ func RegisterRecruiter(c *gin.Context) {
 		}
 
 		newRecruiter := recruiterDto.CreateRecruiterDTO{
-			Title:   recruiterRegister.Title,
-			Company: recruiterRegister.Company,
-			User:    savedUser,
+			Title:     recruiterRegister.Title,
+			CompanyID: recruiterRegister.Company,
+			User:      savedUser,
 		}
 
 		// Create the recruiter

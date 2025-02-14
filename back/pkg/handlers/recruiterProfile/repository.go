@@ -11,9 +11,9 @@ func (r *ProfileRecruiter) Create(
 ) (int, error) {
 
 	createdRecruiter := config.DB.Create(&ProfileRecruiter{
-		Title:   dto.Title,
-		Company: dto.Company,
-		User:    dto.User,
+		Title:     dto.Title,
+		CompanyID: dto.CompanyID,
+		UserID:    dto.User.ID,
 	})
 
 	if createdRecruiter.Error != nil {
