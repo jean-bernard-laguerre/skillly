@@ -67,6 +67,7 @@ func RegisterCandidate(c *gin.Context) {
 
 		return nil
 	})
+	c.JSON(200, gin.H{"message": "Candidate created successfully"})
 }
 
 // RegisterRecruiter is a handler that creates a new recruiter and user
@@ -114,6 +115,7 @@ func RegisterRecruiter(c *gin.Context) {
 
 		return nil
 	})
+	c.JSON(200, gin.H{"message": "Recruiter created successfully"})
 }
 
 func Login(c *gin.Context) {
