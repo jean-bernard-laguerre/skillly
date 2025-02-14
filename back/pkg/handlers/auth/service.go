@@ -2,14 +2,14 @@ package auth
 
 import (
 	"skillly/pkg/handlers/user"
-	"skillly/pkg/handlers/user/dto"
+	userDto "skillly/pkg/handlers/user/dto"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 )
 
 func Register(c *gin.Context) {
-	newUser := dto.CreateUserDTO{}
+	newUser := userDto.CreateUserDTO{}
 	err := c.BindJSON(&newUser)
 
 	if err != nil {
@@ -39,5 +39,5 @@ func Register(c *gin.Context) {
 }
 
 func Login(c *gin.Context) {
-
+	// TODO
 }

@@ -10,8 +10,18 @@ import (
 	"gorm.io/gorm"
 
 	"skillly/pkg/config"
+	"skillly/pkg/handlers/application"
+	candidate "skillly/pkg/handlers/candidateProfile"
+	"skillly/pkg/handlers/candidateReview"
+	"skillly/pkg/handlers/certification"
+	"skillly/pkg/handlers/company"
+	"skillly/pkg/handlers/companyReview"
+	"skillly/pkg/handlers/file"
+	"skillly/pkg/handlers/jobPost"
+	"skillly/pkg/handlers/match"
+	recruiter "skillly/pkg/handlers/recruterProfile"
+	"skillly/pkg/handlers/skill"
 	"skillly/pkg/handlers/user"
-	"skillly/pkg/models"
 )
 
 // Init creates a new connection to the database
@@ -45,17 +55,17 @@ func Init() {
 
 	// MIGRATIONS
 	config.DB.AutoMigrate(
-		&models.File{},
-		&models.Company{},
+		&file.File{},
+		&company.Company{},
 		&user.User{},
-		&models.ProfileCandidate{},
-		&models.ProfileRecruiter{},
-		&models.Certification{},
-		&models.Skill{},
-		&models.JobPost{},
-		&models.CandidateReview{},
-		&models.CompanyReview{},
-		&models.Application{},
-		&models.Match{},
+		&candidate.ProfileCandidate{},
+		&recruiter.ProfileRecruiter{},
+		&certification.Certification{},
+		&skill.Skill{},
+		&jobPost.JobPost{},
+		&candidateReview.CandidateReview{},
+		&companyReview.CompanyReview{},
+		&application.Application{},
+		&match.Match{},
 	)
 }

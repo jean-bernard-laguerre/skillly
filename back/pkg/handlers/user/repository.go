@@ -3,11 +3,11 @@ package user
 import (
 	"log"
 	"skillly/pkg/config"
-	"skillly/pkg/handlers/user/dto"
+	userDto "skillly/pkg/handlers/user/dto"
 )
 
 func (u *User) Create(
-	dto dto.CreateUserDTO,
+	dto userDto.CreateUserDTO,
 ) (int, error) {
 
 	db, err := config.DB.DB()
