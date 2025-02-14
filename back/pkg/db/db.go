@@ -9,7 +9,19 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
-	"skillly/pkg/models"
+	"skillly/pkg/config"
+	"skillly/pkg/handlers/application"
+	candidate "skillly/pkg/handlers/candidateProfile"
+	"skillly/pkg/handlers/candidateReview"
+	"skillly/pkg/handlers/certification"
+	"skillly/pkg/handlers/company"
+	"skillly/pkg/handlers/companyReview"
+	"skillly/pkg/handlers/file"
+	"skillly/pkg/handlers/jobPost"
+	"skillly/pkg/handlers/match"
+	recruiter "skillly/pkg/handlers/recruiterProfile"
+	"skillly/pkg/handlers/skill"
+	"skillly/pkg/handlers/user"
 )
 
 // Init creates a new connection to the database
@@ -17,7 +29,8 @@ import (
 // DB_USER
 // DB_PASSWORD
 // DB_NAME
-func Init() *gorm.DB {
+
+func Init() {
 	err := godotenv.Load()
 	if err != nil {
 		panic(err)
@@ -34,27 +47,25 @@ func Init() *gorm.DB {
 		host, dbUser, dbPassword, dbName, port)
 
 	// Ouvrir une connexion à la base de données
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	config.DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
 	log.Println("Connected to database")
 
 	// MIGRATIONS
-	db.AutoMigrate(
-		&models.File{},
-		&models.Company{},
-		&models.User{},
-		&models.ProfileCandidate{},
-		&models.ProfileRecruiter{},
-		&models.Certification{},
-		&models.Skill{},
-		&models.JobPost{},
-		&models.CandidateReview{},
-		&models.CompanyReview{},
-		&models.Application{},
-		&models.Match{},
+	config.DB.AutoMigrate(
+		&file.File{},
+		&company.Company{},
+		&user.User{},
+		&candidate.ProfileCandidate{},
+		&recruiter.ProfileRecruiter{},
+		&certification.Certification{},
+		&skill.Skill{},
+		&jobPost.JobPost{},
+		&candidateReview.CandidateReview{},
+		&companyReview.CompanyReview{},
+		&application.Application{},
+		&match.Match{},
 	)
-
-	return db
 }
