@@ -2,6 +2,7 @@ package user
 
 import (
 	/* "skillly/pkg/config" */
+	"skillly/pkg/config"
 	userDto "skillly/pkg/handlers/user/dto"
 
 	"gorm.io/gorm"
@@ -33,5 +34,14 @@ func (u *User) Create(
 		return User{}, createdUser.Error
 	}
 
+	return user, nil
+}
+
+func (u *User) GetByEmail(email string) (User, error) {
+	var user User
+	result := config.DB.Where("email = ?", email).First(&user)
+	if result.Error != nil {
+		return User{}, result.Error
+	}
 	return user, nil
 }

@@ -12,8 +12,11 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 
 	"skillly/pkg/config"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 // RegisterCandidate is a handler that creates a new candidate and user
@@ -120,4 +123,53 @@ func RegisterRecruiter(c *gin.Context) {
 
 func Login(c *gin.Context) {
 	// TODO
+
+	userLogin := authDto.LoginDto{}
+	err := c.BindJSON(&userLogin)
+
+	if err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	userModel := user.User{}
+	user, err := userModel.GetByEmail(userLogin.Email)
+
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
+	if user.ID == 0 {
+		c.JSON(404, gin.H{"error": "User not found"})
+		return
+	}
+
+	// Check the password
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(userLogin.Password))
+	if err != nil {
+		c.JSON(401, gin.H{"error": "Invalid credentials"})
+		return
+	}
+
+	// Create the token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"email":     user.Email,
+		"role":      user.Role,
+		"id":        user.ID,
+		"firstName": user.FirstName,
+		"lastName":  user.LastName,
+		"exp":       15000,
+	})
+
+	tokenString, err := token.SignedString([]byte("secret"))
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"user":  user,
+		"token": tokenString,
+	})
 }
