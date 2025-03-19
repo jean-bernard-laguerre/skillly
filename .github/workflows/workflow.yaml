@@ -16,13 +16,13 @@ jobs:
     runs-on: ubuntu-latest
 
     services:
-      mysql:
+      postgres:
         image: postgres:16.4
         ports:
           - "3308:5432"
         env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: skilly_test
+          POSTGRES_PASSWORD: root
+          POSTGRES_DATABASE: skilly_test
         options: >-
           --health-cmd="mysqladmin ping --silent"
           --health-interval=10s
