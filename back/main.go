@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/gin-contrib/cors"
 
@@ -18,7 +19,15 @@ import (
 func main() {
 
 	// Init the database
-	db.Init()
+	dbUser := os.Getenv("DB_USER")
+	dbPassword := os.Getenv("DB_PASSWORD")
+	dbName := os.Getenv("DB_NAME")
+	host := "postgres"
+	port := "5432"
+
+	db.Init(
+		dbUser, dbPassword, dbName, host, port,
+	)
 	h := handlers.New(config.DB)
 	fmt.Println(h)
 

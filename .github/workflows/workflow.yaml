@@ -45,11 +45,11 @@ jobs:
 
       - name: Run tests
         env:
-          DB_HOST: localhost
-          DB_PORT: 3308
-          DB_USER: root
-          DB_PASSWORD: root
-          DB_NAME: skilly_test
+          TEST_DB_HOST: localhost
+          TEST_DB_PORT: 3308
+          TEST_DB_USER: root
+          TEST_DB_PASSWORD: root
+          TEST_DB_NAME: skilly_test
         run: go test -v ./test
         working-directory: ./back
 
