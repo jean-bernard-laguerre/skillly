@@ -5,7 +5,7 @@ on:
       - master
       - main
   push:
-    branche:
+    branches:
       - main
 
 jobs:
@@ -21,10 +21,11 @@ jobs:
         ports:
           - "3308:5432"
         env:
+          POSTGRES_USER: root
           POSTGRES_PASSWORD: root
-          POSTGRES_DATABASE: skilly_test
+          POSTGRES_DB: skilly_test
         options: >-
-          --health-cmd="mysqladmin ping --silent"
+          --health-cmd="pg_isready"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=3
