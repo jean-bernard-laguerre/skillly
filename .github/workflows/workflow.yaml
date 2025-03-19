@@ -43,6 +43,10 @@ jobs:
         run: go mod tidy
         working-directory: ./back
 
+      - name: Create empty .env file
+        run: touch .env
+        working-directory: ./back
+
       - name: Run tests
         env:
           TEST_DB_HOST: localhost
