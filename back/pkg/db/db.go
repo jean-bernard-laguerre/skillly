@@ -33,9 +33,6 @@ func Init(
 	dbUser, dbPassword, dbName, host, port string,
 ) {
 	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file)")
-	}
 
 	/* dbUser := os.Getenv("DB_USER")
 	dbPassword := os.Getenv("DB_PASSWORD")
