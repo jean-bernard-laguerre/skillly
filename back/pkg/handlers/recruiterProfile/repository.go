@@ -1,16 +1,17 @@
 package recruiter
 
 import (
-	"skillly/pkg/config"
 	recruiterDto "skillly/pkg/handlers/recruiterProfile/dto"
+
+	"gorm.io/gorm"
 )
 
 // Create a new recruiter
 func (r *ProfileRecruiter) Create(
-	dto recruiterDto.CreateRecruiterDTO,
+	dto recruiterDto.CreateRecruiterDTO, tx *gorm.DB,
 ) (int, error) {
 
-	createdRecruiter := config.DB.Create(&ProfileRecruiter{
+	createdRecruiter := tx.Create(&ProfileRecruiter{
 		Title:     dto.Title,
 		CompanyID: dto.CompanyID,
 		UserID:    dto.User.ID,
