@@ -47,15 +47,16 @@ func RegisterCandidate(c *gin.Context) {
 		}
 
 		newCandidate := candidateDto.CreateCandidateDTO{
-			Bio:             candidateRegister.Bio,
-			Location:        candidateRegister.Location,
-			ExperienceYear:  candidateRegister.ExperienceYear,
-			PreferedJobType: candidateRegister.PreferedJob,
-			Availability:    candidateRegister.Availability,
-			ResumeID:        candidateRegister.ResumeID,
-			Certifications:  candidateRegister.Certifications,
-			Skills:          candidateRegister.Skills,
-			User:            savedUser,
+			Bio:              candidateRegister.Bio,
+			Location:         candidateRegister.Location,
+			ExperienceYear:   candidateRegister.ExperienceYear,
+			PreferedContract: candidateRegister.PreferedContract,
+			PreferedJob:      candidateRegister.PreferedJob,
+			Availability:     candidateRegister.Availability,
+			ResumeID:         candidateRegister.ResumeID,
+			Certifications:   candidateRegister.Certifications,
+			Skills:           candidateRegister.Skills,
+			User:             savedUser,
 		}
 
 		// Create the candidate

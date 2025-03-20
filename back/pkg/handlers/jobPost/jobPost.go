@@ -5,6 +5,7 @@ import (
 	"skillly/pkg/handlers/company"
 	"skillly/pkg/handlers/file"
 	"skillly/pkg/handlers/skill"
+	"skillly/pkg/skillly"
 	"time"
 )
 
@@ -14,6 +15,7 @@ type JobPost struct {
 	Description     string                        `json:"description"`
 	Title           string                        `json:"title"`
 	Location        string                        `json:"location"`
+	Contract_type   skillly.ContractType          `json:"contract_type"`
 	Salary_range    string                        `json:"salary_range"`
 	Expiration_Date time.Time                     `json:"expiration_date"`
 	CreatedAt       time.Time                     `json:"created_at"`

@@ -12,15 +12,16 @@ func (c *ProfileCandidate) Create(
 ) (int, error) {
 
 	profile := ProfileCandidate{
-		Bio:             dto.Bio,
-		Location:        dto.Location,
-		ExperienceYear:  dto.ExperienceYear,
-		PreferedJobType: dto.PreferedJobType,
-		Availability:    dto.Availability,
-		ResumeID:        dto.ResumeID,
-		Certifications:  dto.Certifications,
-		Skills:          dto.Skills,
-		UserID:          dto.User.ID,
+		Bio:              dto.Bio,
+		Location:         dto.Location,
+		ExperienceYear:   dto.ExperienceYear,
+		PreferedContract: dto.PreferedContract,
+		PreferedJob:      dto.PreferedJob,
+		Availability:     dto.Availability,
+		ResumeID:         dto.ResumeID,
+		Certifications:   dto.Certifications,
+		Skills:           dto.Skills,
+		UserID:           dto.User.ID,
 	}
 
 	createdCandidate := tx.Create(&profile)
