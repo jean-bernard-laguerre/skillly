@@ -1,7 +1,6 @@
 package user
 
 import (
-	/* "skillly/pkg/config" */
 	"skillly/pkg/config"
 	userDto "skillly/pkg/handlers/user/dto"
 

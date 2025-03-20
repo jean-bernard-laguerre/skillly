@@ -4,6 +4,7 @@ import (
 	authDto "skillly/pkg/handlers/auth/dto"
 	candidate "skillly/pkg/handlers/candidateProfile"
 	candidateDto "skillly/pkg/handlers/candidateProfile/dto"
+	"skillly/pkg/handlers/company"
 	recruiter "skillly/pkg/handlers/recruiterProfile"
 	recruiterDto "skillly/pkg/handlers/recruiterProfile/dto"
 	"skillly/pkg/handlers/user"
@@ -21,12 +22,11 @@ import (
 
 // RegisterCandidate is a handler that creates a new candidate and user
 func RegisterCandidate(c *gin.Context) {
-	config.DB.Transaction(func(tx *gorm.DB) error {
+	err := config.DB.Transaction(func(tx *gorm.DB) error {
 		candidateRegister := authDto.CandidateRegisterDTO{}
 		err := c.BindJSON(&candidateRegister)
 
 		if err != nil {
-			c.JSON(400, gin.H{"error": err.Error()})
 			return err
 		}
 
@@ -43,7 +43,6 @@ func RegisterCandidate(c *gin.Context) {
 		savedUser, err := userModel.Create(newUser, tx)
 
 		if err != nil {
-			c.JSON(500, gin.H{"error": err.Error()})
 			return err
 		}
 
@@ -64,23 +63,26 @@ func RegisterCandidate(c *gin.Context) {
 		_, err = candidateModel.Create(newCandidate, tx)
 
 		if err != nil {
-			c.JSON(500, gin.H{"error": err.Error()})
 			return err
 		}
 
 		return nil
 	})
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
 	c.JSON(200, gin.H{"message": "Candidate created successfully"})
 }
 
 // RegisterRecruiter is a handler that creates a new recruiter and user
 func RegisterRecruiter(c *gin.Context) {
-	config.DB.Transaction(func(tx *gorm.DB) error {
+	err := config.DB.Transaction(func(tx *gorm.DB) error {
 		recruiterRegister := authDto.RecruterRegisterDTO{}
 		err := c.BindJSON(&recruiterRegister)
 
 		if err != nil {
-			c.JSON(400, gin.H{"error": err.Error()})
 			return err
 		}
 
@@ -97,7 +99,6 @@ func RegisterRecruiter(c *gin.Context) {
 		savedUser, err := userModel.Create(newUser, tx)
 
 		if err != nil {
-			c.JSON(500, gin.H{"error": err.Error()})
 			return err
 		}
 
@@ -107,17 +108,34 @@ func RegisterRecruiter(c *gin.Context) {
 			User:      savedUser,
 		}
 
+		// if the recruiter is creating a new company create it
+		if recruiterRegister.NewCompany != nil {
+			companyModel := company.Company{}
+			savedCompany, err := companyModel.Create(*recruiterRegister.NewCompany, tx)
+
+			if err != nil {
+				return err
+			}
+
+			newRecruiter.CompanyID = savedCompany.ID
+		}
+
 		// Create the recruiter
 		recruiterModel := recruiter.ProfileRecruiter{}
-		_, err = recruiterModel.Create(newRecruiter)
+		_, err = recruiterModel.Create(newRecruiter, tx)
 
 		if err != nil {
-			c.JSON(500, gin.H{"error": err.Error()})
 			return err
 		}
 
 		return nil
 	})
+
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
 	c.JSON(200, gin.H{"message": "Recruiter created successfully"})
 }
 
