@@ -21,6 +21,9 @@ import (
 	recruiter "skillly/pkg/handlers/recruiterProfile"
 	"skillly/pkg/handlers/skill"
 	"skillly/pkg/handlers/user"
+
+	"os"
+	"skillly/pkg/handlers"
 )
 
 // Init creates a new connection to the database
@@ -33,12 +36,6 @@ func Init(
 	dbUser, dbPassword, dbName, host, port string,
 ) {
 	err := godotenv.Load()
-
-	/* dbUser := os.Getenv("DB_USER")
-	dbPassword := os.Getenv("DB_PASSWORD")
-	dbName := os.Getenv("DB_NAME")
-	host := "postgres"
-	port := "5432" */
 
 	// Construire la chaîne de connexion
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Europe/Paris",
@@ -66,4 +63,21 @@ func Init(
 		&application.Application{},
 		&match.Match{},
 	)
+}
+
+func SetupDB() {
+	_ = godotenv.Load()
+
+	dbUser := os.Getenv("DB_USER")
+	dbPassword := os.Getenv("DB_PASSWORD")
+	dbName := os.Getenv("DB_NAME")
+	host := "postgres"
+	port := "5432"
+
+	Init(
+		dbUser, dbPassword, dbName, host, port,
+	)
+
+	h := handlers.New(config.DB)
+	fmt.Println(h)
 }

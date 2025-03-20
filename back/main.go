@@ -1,8 +1,7 @@
 package main
 
 import (
-	"fmt"
-	"os"
+	"github.com/joho/godotenv"
 
 	"github.com/gin-contrib/cors"
 
@@ -10,31 +9,20 @@ import (
 
 	"skillly/chat"
 
-	"skillly/pkg/config"
 	"skillly/pkg/db"
-	"skillly/pkg/handlers"
 	"skillly/pkg/handlers/auth"
 )
 
 func main() {
 
-	// Init the database
-	dbUser := os.Getenv("DB_USER")
-	dbPassword := os.Getenv("DB_PASSWORD")
-	dbName := os.Getenv("DB_NAME")
-	host := "postgres"
-	port := "5432"
+	_ = godotenv.Load()
 
-	db.Init(
-		dbUser, dbPassword, dbName, host, port,
-	)
-	h := handlers.New(config.DB)
-	fmt.Println(h)
+	// Init the database
+	db.SetupDB()
 
 	// Create a new gin router
 	r := gin.Default()
-	// Create array of hub
-	/* hub := make(map[string]*chat.Room) */
+	// Create a new chat hub
 	hub := chat.NewHub()
 	go hub.RunHub()
 
