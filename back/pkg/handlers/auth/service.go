@@ -119,6 +119,7 @@ func RegisterRecruiter(c *gin.Context) {
 			}
 
 			newRecruiter.CompanyID = savedCompany.ID
+			newRecruiter.Role = recruiter.AdminRole
 		}
 
 		// Create the recruiter
