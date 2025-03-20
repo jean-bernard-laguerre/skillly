@@ -11,3 +11,17 @@ func DatabaseConnection(t *testing.T) {
 		t.Fatalf("Error getting DB connection: %v", err)
 	}
 }
+
+func TableCheck(t *testing.T) {
+	tables := []string{
+		"applications", "candidate_reviews", "certifications", "companies",
+		"company_reviews", "files", "job_posts", "matches", "profiles_candidates",
+		"profiles_recruiters", "skills", "users",
+	}
+	for _, table := range tables {
+		check := config.DB.Migrator().HasTable(table)
+		if !check {
+			t.Fatalf("Table %v not found", table)
+		}
+	}
+}

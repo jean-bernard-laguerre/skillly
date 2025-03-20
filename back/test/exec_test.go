@@ -9,6 +9,7 @@ import (
 
 func TestDB(t *testing.T) {
 	t.Run("DatabaseConnection", db_test.DatabaseConnection)
+	t.Run("TableCheck", db_test.TableCheck)
 }
 
 func TestUser(t *testing.T) {
