@@ -15,6 +15,7 @@ func (r *ProfileRecruiter) Create(
 		Title:     dto.Title,
 		CompanyID: dto.CompanyID,
 		UserID:    dto.User.ID,
+		Role:      dto.Role,
 	})
 
 	if createdRecruiter.Error != nil {
