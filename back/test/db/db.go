@@ -15,7 +15,7 @@ func DatabaseConnection(t *testing.T) {
 func TableCheck(t *testing.T) {
 	tables := []string{
 		"applications", "candidate_reviews", "certifications", "companies",
-		"company_reviews", "files", "job_posts", "matches", "profiles_candidates",
+		"company_reviews", "files", "job_posts", "matches", "profile_candidates",
 		"profiles_recruiters", "skills", "users",
 	}
 	for _, table := range tables {
