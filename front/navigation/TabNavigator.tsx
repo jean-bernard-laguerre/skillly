@@ -9,6 +9,7 @@ import {
   Building2,
   User,
   MessageSquare,
+  Users,
 } from "lucide-react-native";
 
 // Public Components
@@ -26,6 +27,7 @@ import CandidateHome from "@/app/(protected)/candidate";
 // Components Recruiter
 import RecruiterHome from "@/app/(protected)/recruiter";
 import Jobs from "@/app/(protected)/recruiter/jobs";
+import Applications from "@/app/(protected)/recruiter/Applications";
 
 const Tab = createBottomTabNavigator();
 
@@ -134,7 +136,7 @@ function RecruiterTabNavigator() {
   return (
     <Tab.Navigator
       screenOptions={{
-        headerShown: false,
+        headerShown: true,
         tabBarActiveTintColor: "#6366f1",
         tabBarInactiveTintColor: "#94a3b8",
       }}
@@ -155,6 +157,14 @@ function RecruiterTabNavigator() {
             <Building2 size={size} color={color} />
           ),
           title: "Offres d'emploi",
+        }}
+      />
+      <Tab.Screen
+        name="Applications"
+        component={Applications}
+        options={{
+          tabBarIcon: ({ color, size }) => <Users size={size} color={color} />,
+          title: "Candidatures",
         }}
       />
       <Tab.Screen
