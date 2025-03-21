@@ -1,15 +1,10 @@
-import { View, Text, Button } from "react-native";
-import { useAuth } from "../../../context/AuthContext";
+import { View, Text } from "react-native";
 
 export default function CandidateHome() {
-  const { handleLogOut } = useAuth();
-
   return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-      <Text style={{ fontSize: 24, fontWeight: "bold", marginBottom: 20 }}>
-        Espace Candidat 🎯
-      </Text>
-      <Button title="Se déconnecter" onPress={handleLogOut} />
+    <View className="items-center justify-center flex-1">
+      <Text className="mb-2 text-2xl font-bold">Espace Candidat 🎯</Text>
+      <Text className="text-gray-600">Bienvenue sur votre espace candidat</Text>
     </View>
   );
 }

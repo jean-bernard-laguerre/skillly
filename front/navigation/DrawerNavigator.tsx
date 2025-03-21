@@ -6,11 +6,9 @@ import {
   DrawerItemList,
 } from "@react-navigation/drawer";
 import { View, Button } from "react-native";
-import { Slot, useRouter } from "expo-router";
 
 import { useAuth } from "@/context/AuthContext";
-import ProfileScreen from "./ProfileScreen";
-import TabNavigator from "@/navigation/TabNavigator";
+import ProfileScreen from "@/app/(protected)/ProfileScreen";
 
 const CustomDrawerContent = (props: DrawerContentComponentProps) => {
   const { handleLogOut } = useAuth();
@@ -38,6 +36,9 @@ const DrawerNavigator = ({ children }: DrawerNavigatorProps) => {
   const { role } = useAuth();
   return (
     <Drawer.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}
       drawerContent={(props) => <CustomDrawerContent {...props} />}
     >
       <Drawer.Screen name="Home">{() => children}</Drawer.Screen>

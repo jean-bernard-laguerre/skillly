@@ -1,7 +1,9 @@
 import React from "react";
-import { View, Text, StyleSheet, Image } from "react-native";
+import { View, Text, StyleSheet, Image, Pressable } from "react-native";
+import { useAuth } from "@/context/AuthContext";
 
 const ProfileScreen: React.FC = () => {
+  const { handleLogOut } = useAuth();
   return (
     <View style={styles.container}>
       <Image
@@ -13,6 +15,12 @@ const ProfileScreen: React.FC = () => {
         Software Engineer at XYZ Company. Passionate about technology and open
         source.
       </Text>
+      <Pressable
+        className="p-2 mt-5 bg-red-500 rounded-md"
+        onPress={handleLogOut}
+      >
+        <Text className="text-white">Se déconnecter</Text>
+      </Pressable>
     </View>
   );
 };
