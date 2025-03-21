@@ -2,18 +2,9 @@ import React, { useEffect, useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import Swiper from "react-native-deck-swiper";
 import { Heart, X } from "lucide-react-native";
+import { JobCard, SwippedState, OverlayLabelProps } from "@/types/interfaces";
 
-interface Card {
-  title: string;
-  description: string;
-}
-
-interface SwippedState {
-  left: Card[];
-  right: Card[];
-}
-
-const Card = ({ card }: { card: Card }) => (
+const Card = ({ card }: { card: JobCard }) => (
   <View className="flex-[0.9] rounded-lg shadow-lg justify-center items-center bg-white">
     <Text className="text-3xl font-bold text-center text-black">
       {card.title}
@@ -24,7 +15,7 @@ const Card = ({ card }: { card: Card }) => (
   </View>
 );
 
-const OverlayLabel = ({ color }: { color: string }) => {
+const OverlayLabel = ({ color }: OverlayLabelProps) => {
   if (color === "red") {
     return (
       <View className="flex-1 justify-center items-center absolute z-[1000]">
@@ -41,14 +32,14 @@ const OverlayLabel = ({ color }: { color: string }) => {
 };
 
 export default function JobOffers() {
-  const swiperRef = React.useRef<Swiper<Card>>(null);
+  const swiperRef = React.useRef<Swiper<JobCard>>(null);
   const [swipped, setSwipped] = useState<SwippedState>({
     left: [],
     right: [],
   });
   const [index, setIndex] = useState(0);
   const [isAllSwiped, setIsAllSwiped] = useState(false);
-  const cards = [
+  const cards: JobCard[] = [
     {
       title: "Card 1",
       description: "This is a card",
@@ -91,7 +82,7 @@ export default function JobOffers() {
     },
   ];
 
-  const handleSwipe = (swipe: "left" | "right", card: Card) => {
+  const handleSwipe = (swipe: "left" | "right", card: JobCard) => {
     setIndex((prev) => prev + 1);
     setSwipped((prev: SwippedState) => ({
       ...prev,

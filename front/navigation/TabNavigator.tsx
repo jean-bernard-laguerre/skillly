@@ -11,6 +11,7 @@ import {
   MessageSquare,
   Users,
 } from "lucide-react-native";
+import { TabNavigatorProps } from "@/types/navigation";
 
 // Public Components
 import HomePage from "@/app/index";
@@ -31,10 +32,6 @@ import Applications from "@/app/(protected)/recruiter/Applications";
 
 const Tab = createBottomTabNavigator();
 
-interface TabNavigatorProps {
-  role: "candidate" | "recruiter" | null;
-}
-
 function PublicTabNavigator() {
   return (
     <Tab.Navigator
@@ -45,7 +42,7 @@ function PublicTabNavigator() {
       }}
     >
       <Tab.Screen
-        name="Home"
+        name="Welcome"
         component={HomePage}
         options={{
           tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
@@ -81,7 +78,7 @@ function CandidateTabNavigator() {
       }}
     >
       <Tab.Screen
-        name="Home"
+        name="CandidateHome"
         component={CandidateHome}
         options={{
           tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
@@ -142,7 +139,7 @@ function RecruiterTabNavigator() {
       }}
     >
       <Tab.Screen
-        name="Home"
+        name="RecruiterHome"
         component={RecruiterHome}
         options={{
           tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,

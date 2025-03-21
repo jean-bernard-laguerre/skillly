@@ -1,25 +1,13 @@
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import { Briefcase } from "lucide-react-native";
-
-interface Job {
-  id: string;
-  title: string;
-  company: string;
-  location: string;
-  applicationsCount: number;
-}
-
-interface JobSelectorProps {
-  jobs: Job[];
-  selectedJobId: string | null;
-  onSelectJob: (jobId: string) => void;
-}
+import { JobSelectorProps } from "@/types/interfaces";
 
 export default function JobSelector({
   jobs,
   selectedJobId,
   onSelectJob,
+  applications,
 }: JobSelectorProps) {
   return (
     <View className="p-4 mb-4">
@@ -44,7 +32,8 @@ export default function JobSelector({
               </View>
               <View className="px-2 py-1 bg-indigo-100 rounded-full">
                 <Text className="text-sm text-indigo-800">
-                  {job.applicationsCount} candidatures
+                  {applications.filter((app) => app.jobId === job.id).length}{" "}
+                  candidatures
                 </Text>
               </View>
             </View>

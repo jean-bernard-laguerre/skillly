@@ -1,13 +1,7 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
-
-type AuthContextType = {
-  role: "candidate" | "recruiter" | null;
-  setRole: (role: "candidate" | "recruiter" | null) => void;
-  handleLogOut: () => void;
-  loading: boolean;
-};
+import { AuthContextType, HandleRedirect } from "@/types/interfaces";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -15,10 +9,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [role, setRole] = useState<"candidate" | "recruiter" | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-
-  interface HandleRedirect {
-    (role: string | null): void;
-  }
 
   const handleRedirect: HandleRedirect = (role) => {
     if (role === "candidate") {

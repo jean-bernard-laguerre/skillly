@@ -2,20 +2,7 @@ import React, { useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import { Check, X, User, ArrowLeft } from "lucide-react-native";
 import Swiper from "react-native-deck-swiper";
-
-interface Application {
-  id: string;
-  candidateName: string;
-  jobTitle: string;
-  date: string;
-  status: "pending" | "accepted" | "rejected";
-}
-
-interface ApplicationsListProps {
-  applications: Application[];
-  onStatusChange: (id: string, status: "accepted" | "rejected") => void;
-  onBack: () => void;
-}
+import { Application, ApplicationsListProps } from "@/types/interfaces";
 
 const ApplicationCard = ({ application }: { application: Application }) => (
   <View className="flex-[0.9] rounded-lg shadow-lg justify-center items-center bg-white p-4">

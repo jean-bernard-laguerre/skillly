@@ -1,9 +1,10 @@
+import React from "react";
 import { useEffect, useState } from "react";
 import { Redirect, useRootNavigationState } from "expo-router";
 import { useAuth } from "../context/AuthContext";
 import { View, Text, ActivityIndicator, Pressable } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { TabNavigationProp } from "../types/navigation";
+import { TabNavigationProp } from "@/types/navigation";
 
 export default function HomePage() {
   const { role, loading } = useAuth();

@@ -9,6 +9,7 @@ import { View, Button } from "react-native";
 
 import { useAuth } from "@/context/AuthContext";
 import ProfileScreen from "@/app/(protected)/ProfileScreen";
+import { DrawerNavigatorProps } from "@/types/navigation";
 
 const CustomDrawerContent = (props: DrawerContentComponentProps) => {
   const { handleLogOut } = useAuth();
@@ -26,13 +27,9 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
   );
 };
 
-interface DrawerNavigatorProps {
-  children: ReactNode;
-}
-
 const Drawer = createDrawerNavigator();
 
-const DrawerNavigator = ({ children }: DrawerNavigatorProps) => {
+export default function DrawerNavigator({ children }: DrawerNavigatorProps) {
   const { role } = useAuth();
   return (
     <Drawer.Navigator
@@ -49,6 +46,4 @@ const DrawerNavigator = ({ children }: DrawerNavigatorProps) => {
       />
     </Drawer.Navigator>
   );
-};
-
-export default DrawerNavigator;
+}
