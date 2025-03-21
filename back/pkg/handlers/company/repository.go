@@ -1,15 +1,17 @@
 package company
 
 import (
-	"skillly/pkg/config"
 	companyDto "skillly/pkg/handlers/company/dto"
+	"skillly/pkg/models"
 
 	"gorm.io/gorm"
 )
 
-func (c *Company) Create(dto companyDto.CreateCompanyDTO, tx *gorm.DB) (Company, error) {
+type CompanyRepository struct{}
 
-	company := Company{
+func (r *CompanyRepository) Create(dto companyDto.CreateCompanyDTO, tx *gorm.DB) (models.Company, error) {
+
+	company := models.Company{
 		CompanyName: dto.CompanyName,
 		SIRET:       dto.SIRET,
 		Description: dto.Description,
@@ -22,16 +24,7 @@ func (c *Company) Create(dto companyDto.CreateCompanyDTO, tx *gorm.DB) (Company,
 
 	createdCompany := tx.Create(&company)
 	if createdCompany.Error != nil {
-		return Company{}, createdCompany.Error
+		return models.Company{}, createdCompany.Error
 	}
 	return company, nil
-}
-
-func (c *Company) GetAll() ([]Company, error) {
-	var companies []Company
-	result := config.DB.Find(&companies)
-	if result.Error != nil {
-		return []Company{}, result.Error
-	}
-	return companies, nil
 }

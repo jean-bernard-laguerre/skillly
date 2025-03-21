@@ -10,6 +10,8 @@ import (
 	"skillly/pkg/handlers/user"
 	userDto "skillly/pkg/handlers/user/dto"
 
+	"skillly/pkg/models"
+
 	"gorm.io/gorm"
 
 	"github.com/gin-gonic/gin"
@@ -35,11 +37,11 @@ func RegisterCandidate(c *gin.Context) {
 			LastName:  candidateRegister.LastName,
 			Email:     candidateRegister.Email,
 			Password:  candidateRegister.Password,
-			Role:      user.RoleCandidate,
+			Role:      models.RoleCandidate,
 		}
 
 		// Create the user
-		userModel := user.User{}
+		userModel := user.UserRepository{}
 		savedUser, err := userModel.Create(newUser, tx)
 
 		if err != nil {
@@ -60,7 +62,7 @@ func RegisterCandidate(c *gin.Context) {
 		}
 
 		// Create the candidate
-		candidateModel := candidate.ProfileCandidate{}
+		candidateModel := candidate.CandidateRepository{}
 		_, err = candidateModel.Create(newCandidate, tx)
 
 		if err != nil {
@@ -92,11 +94,11 @@ func RegisterRecruiter(c *gin.Context) {
 			LastName:  recruiterRegister.LastName,
 			Email:     recruiterRegister.Email,
 			Password:  recruiterRegister.Password,
-			Role:      user.RoleRecruiter,
+			Role:      models.RoleRecruiter,
 		}
 
 		// Create the user
-		userModel := user.User{}
+		userModel := user.UserRepository{}
 		savedUser, err := userModel.Create(newUser, tx)
 
 		if err != nil {
@@ -111,7 +113,7 @@ func RegisterRecruiter(c *gin.Context) {
 
 		// if the recruiter is creating a new company create it
 		if recruiterRegister.NewCompany != nil {
-			companyModel := company.Company{}
+			companyModel := company.CompanyRepository{}
 			savedCompany, err := companyModel.Create(*recruiterRegister.NewCompany, tx)
 
 			if err != nil {
@@ -119,11 +121,11 @@ func RegisterRecruiter(c *gin.Context) {
 			}
 
 			newRecruiter.CompanyID = savedCompany.ID
-			newRecruiter.Role = recruiter.AdminRole
+			newRecruiter.Role = models.AdminRole
 		}
 
 		// Create the recruiter
-		recruiterModel := recruiter.ProfileRecruiter{}
+		recruiterModel := recruiter.RecruiterRepository{}
 		_, err = recruiterModel.Create(newRecruiter, tx)
 
 		if err != nil {
@@ -152,7 +154,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	userModel := user.User{}
+	userModel := user.UserRepository{}
 	user, err := userModel.GetByEmail(userLogin.Email)
 
 	if err != nil {
