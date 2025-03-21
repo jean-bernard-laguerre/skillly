@@ -17,4 +17,8 @@ type Company struct {
 	Size        string    `json:"size"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
+
+	Recruiters []ProfileRecruiter `json:"recruiters" gorm:"foreignKey:CompanyID;references:ID"`
+	Reviews    []CompanyReview    `json:"reviews" gorm:"foreignKey:CompanyID;references:ID"`
+	JobPosts   []JobPost          `json:"job_posts" gorm:"foreignKey:CompanyID;references:ID"`
 }
