@@ -3,44 +3,49 @@ package user
 import (
 	"skillly/pkg/config"
 	userDto "skillly/pkg/handlers/user/dto"
+	"skillly/pkg/models"
 
 	"gorm.io/gorm"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
+type UserRepository struct{}
+
 // Create a new user
-func (u *User) Create(
+func (
+	r *UserRepository,
+) Create(
 	dto userDto.CreateUserDTO, tx *gorm.DB,
-) (User, error) {
+) (models.User, error) {
 
 	// Hash the password
 	hashPassword, err := bcrypt.GenerateFromPassword([]byte(dto.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return User{}, err
+		return models.User{}, err
 	}
 
-	user := User{
+	user := models.User{
 		FirstName: dto.FirstName,
 		LastName:  dto.LastName,
 		Email:     dto.Email,
 		Password:  string(hashPassword),
-		Role:      RoleCandidate,
+		Role:      models.RoleCandidate,
 	}
 
 	createdUser := tx.Create(&user)
 	if createdUser.Error != nil {
-		return User{}, createdUser.Error
+		return models.User{}, createdUser.Error
 	}
 
 	return user, nil
 }
 
-func (u *User) GetByEmail(email string) (User, error) {
-	var user User
+func (r *UserRepository) GetByEmail(email string) (models.User, error) {
+	var user models.User
 	result := config.DB.Where("email = ?", email).First(&user)
 	if result.Error != nil {
-		return User{}, result.Error
+		return models.User{}, result.Error
 	}
 	return user, nil
 }

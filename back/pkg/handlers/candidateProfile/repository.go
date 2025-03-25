@@ -4,14 +4,17 @@ import (
 	"gorm.io/gorm"
 	/* "skillly/pkg/config" */
 	candidateDto "skillly/pkg/handlers/candidateProfile/dto"
+	"skillly/pkg/models"
 )
 
+type CandidateRepository struct{}
+
 // Create a new candidate
-func (c *ProfileCandidate) Create(
+func (r *CandidateRepository) Create(
 	dto candidateDto.CreateCandidateDTO, tx *gorm.DB,
 ) (int, error) {
 
-	profile := ProfileCandidate{
+	profile := models.ProfileCandidate{
 		Bio:              dto.Bio,
 		Location:         dto.Location,
 		ExperienceYear:   dto.ExperienceYear,
