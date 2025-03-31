@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func CreatedJobPost(c *gin.Context) {
+func CreateJobPost(c *gin.Context) {
 	dto := jobPostDto.CreateJobPostDTO{}
 	err := c.BindJSON(&dto)
 	if err != nil {
