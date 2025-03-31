@@ -17,6 +17,7 @@ type ProfileCandidate struct {
 	Availability     string             `json:"availability"`
 	ResumeID         uint               `json:"resume_id" gorm:"default:null"` // Ajout de la clé étrangère
 	Resume           File               `json:"resume" gorm:"foreignKey:ResumeID;references:ID"`
-	Certifications   []Certification    `json:"certifications" gorm:"many2many:User_Certifications;constraint:OnDelete:CASCADE;"`
-	Skills           []Skill            `json:"skills" gorm:"many2many:User_Skills;constraint:OnDelete:CASCADE;"`
+
+	Certifications []Certification `json:"certifications" gorm:"many2many:User_Certifications;constraint:OnDelete:CASCADE;"`
+	Skills         []Skill         `json:"skills" gorm:"many2many:User_Skills;constraint:OnDelete:CASCADE;"`
 }

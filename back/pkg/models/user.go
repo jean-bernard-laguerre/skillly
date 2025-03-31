@@ -21,6 +21,9 @@ type User struct {
 	Role      types.RoleType `json:"role"`
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
+
+	ProfileCandidate *ProfileCandidate `json:"profile_candidate" gorm:"foreignKey:UserID;references:ID"`
+	ProfileRecruiter *ProfileRecruiter `json:"profile_recruiter" gorm:"foreignKey:UserID;references:ID"`
 }
 
 func (u *User) ValidateRole() error {

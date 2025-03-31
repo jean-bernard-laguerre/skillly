@@ -12,6 +12,7 @@ import (
 	"skillly/pkg/db"
 	"skillly/pkg/handlers/auth"
 	"skillly/pkg/handlers/company"
+	"skillly/pkg/handlers/jobPost"
 )
 
 func main() {
@@ -34,6 +35,7 @@ func main() {
 	// Add routes
 	auth.AddRoutes(r)
 	company.AddRoutes(r)
+	jobPost.AddRoutes(r)
 
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
