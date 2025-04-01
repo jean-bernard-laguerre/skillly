@@ -13,4 +13,8 @@ func AddRoutes(r *gin.Engine) {
 	jp.POST("/", middleware.AuthMiddleware(models.RoleRecruiter), func(c *gin.Context) {
 		CreateJobPost(c)
 	})
+
+	jp.GET("/", func(c *gin.Context) {
+		GetAll(c)
+	})
 }

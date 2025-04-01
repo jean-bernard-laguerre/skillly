@@ -1,13 +1,13 @@
 package models
 
 import (
-	"skillly/pkg/types"
+	"skillly/pkg/utils"
 	"time"
 )
 
 const (
-	CDIContract types.ContractType = "CDI"
-	CDDContract types.ContractType = "CDD"
+	CDIContract utils.ContractType = "CDI"
+	CDDContract utils.ContractType = "CDD"
 )
 
 // JobPost is a struct that represents a job post
@@ -16,7 +16,7 @@ type JobPost struct {
 	Description     string             `json:"description"`
 	Title           string             `json:"title"`
 	Location        string             `json:"location"`
-	Contract_type   types.ContractType `json:"contract_type"`
+	Contract_type   utils.ContractType `json:"contract_type"`
 	Salary_range    string             `json:"salary_range"`
 	Expiration_Date time.Time          `json:"expiration_date"`
 	CreatedAt       time.Time          `json:"created_at"`

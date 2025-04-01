@@ -3,7 +3,7 @@ package middleware
 import (
 	"fmt"
 	"skillly/pkg/models"
-	"skillly/pkg/types"
+	"skillly/pkg/utils"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -13,7 +13,7 @@ import (
 // AuthMiddleware is a middleware that checks if the user is authenticated
 // and if the user has the correct role to access the route
 
-func AuthMiddleware(role types.RoleType) gin.HandlerFunc {
+func AuthMiddleware(role utils.RoleType) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Get the token from the header
 		authHeader := c.GetHeader("Authorization")

@@ -1,19 +1,39 @@
-package company
+package skill
 
 import (
 	"skillly/pkg/config"
+	skillDto "skillly/pkg/handlers/skill/dto"
 	"skillly/pkg/models"
 	"skillly/pkg/utils"
 
 	"github.com/gin-gonic/gin"
 )
 
+func CreateSkill(
+	c *gin.Context,
+) {
+	dto := skillDto.CreateSkillDTO{}
+	err := c.BindJSON(&dto)
+	if err != nil {
+		c.JSON(400, gin.H{"error": "Invalid input"})
+		return
+	}
+
+	skillRepository := SkillRepository{}
+	skill, err := skillRepository.Create(dto, config.DB)
+	if err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(200, skill)
+}
+
 func GetAll(
 	c *gin.Context,
 ) {
-
 	params := utils.GetUrlParams(c)
-	db := config.DB.Model(&models.Company{})
+	db := config.DB.Model(&models.Skill{})
 
 	// apply filters
 	for key, value := range params.Filters {
@@ -33,8 +53,8 @@ func GetAll(
 		db = db.Preload(field)
 	}
 
-	var companies []models.Company
-	db.Find(&companies)
+	var skills []models.Skill
+	db.Find(&skills)
 
-	c.JSON(200, companies)
+	c.JSON(200, skills)
 }

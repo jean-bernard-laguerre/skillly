@@ -1,4 +1,4 @@
-package types
+package utils
 
 // RoleType defines the available roles for a user
 type RoleType string

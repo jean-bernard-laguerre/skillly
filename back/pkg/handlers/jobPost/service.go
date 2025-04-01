@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"skillly/pkg/config"
 	jobPostDto "skillly/pkg/handlers/jobPost/dto"
+	"skillly/pkg/models"
+	"skillly/pkg/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -39,4 +41,31 @@ func CreateJobPost(c *gin.Context) {
 	}
 
 	c.JSON(200, jobPost)
+}
+
+func GetAll(c *gin.Context) {
+	params := utils.GetUrlParams(c)
+	db := config.DB.Model(&models.JobPost{})
+
+	for key, value := range params.Filters {
+		db = db.Where(key, value)
+	}
+
+	// apply sorting
+	db = db.Order(params.Sort + " " + params.Order)
+
+	// apply pagination
+	if params.PageSize != nil {
+		db = db.Limit(*params.PageSize).Offset((params.Page - 1) * *params.PageSize)
+	}
+
+	// populate fields
+	for _, field := range params.Populate {
+		db = db.Preload(field)
+	}
+
+	var jobPosts []models.JobPost
+	db.Find(&jobPosts)
+
+	c.JSON(200, jobPosts)
 }

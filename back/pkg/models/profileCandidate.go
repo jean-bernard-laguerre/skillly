@@ -1,7 +1,7 @@
 package models
 
 import (
-	"skillly/pkg/types"
+	"skillly/pkg/utils"
 )
 
 // ProfileCandidate is a struct that represents a candidate user
@@ -11,7 +11,7 @@ type ProfileCandidate struct {
 	User             User               `json:"user" gorm:"foreignKey:UserID;references:ID"`
 	Bio              string             `json:"bio"`
 	ExperienceYear   int                `json:"experience_year"`
-	PreferedContract types.ContractType `json:"prefered_contract"`
+	PreferedContract utils.ContractType `json:"prefered_contract"`
 	PreferedJob      string             `json:"prefered_job"`
 	Location         string             `json:"location"`
 	Availability     string             `json:"availability"`
