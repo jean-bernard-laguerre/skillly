@@ -19,14 +19,24 @@ export const useAuth = () => {
     error: loginError,
   } = useMutation({
     mutationFn: AuthService.login,
-    onSuccess: (data) => {
-      // Invalider les requêtes liées à l'utilisateur
-      queryClient.invalidateQueries({ queryKey: ["currentUser"] });
-      // Rediriger en fonction du rôle
-      if (data.user.role === "candidate") {
-        router.replace("/(protected)/candidate");
-      } else if (data.user.role === "recruiter") {
-        router.replace("/(protected)/recruiter");
+    onSuccess: async (data) => {
+      try {
+        // Invalider les requêtes liées à l'utilisateur
+        await queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+
+        // Attendre que les données soient bien stockées
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        console.log("data here", data.user.role);
+
+        // Rediriger en fonction du rôle
+        if (data.user.role === "candidate") {
+          console.log("candidate AAAAAAAAA");
+          router.push("/(protected)/candidate");
+        } else if (data.user.role === "recruiter") {
+          router.push("/(protected)/recruiter");
+        }
+      } catch (error) {
+        console.error("Erreur lors de la redirection:", error);
       }
     },
   });
@@ -38,11 +48,19 @@ export const useAuth = () => {
     error: registerCandidateError,
   } = useMutation({
     mutationFn: AuthService.registerCandidate,
-    onSuccess: (data) => {
-      // Invalider les requêtes liées à l'utilisateur
-      queryClient.invalidateQueries({ queryKey: ["currentUser"] });
-      // Rediriger vers la page candidat
-      router.replace("/(protected)/candidate");
+    onSuccess: async (data) => {
+      try {
+        // Invalider les requêtes liées à l'utilisateur
+        await queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+
+        // Attendre que les données soient bien stockées
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
+        // Rediriger vers la page candidat
+        router.push("/(protected)/candidate");
+      } catch (error) {
+        console.error("Erreur lors de la redirection:", error);
+      }
     },
   });
 
@@ -53,11 +71,19 @@ export const useAuth = () => {
     error: registerRecruiterError,
   } = useMutation({
     mutationFn: AuthService.registerRecruiter,
-    onSuccess: (data) => {
-      // Invalider les requêtes liées à l'utilisateur
-      queryClient.invalidateQueries({ queryKey: ["currentUser"] });
-      // Rediriger vers la page recruteur
-      router.replace("/(protected)/recruiter");
+    onSuccess: async (data) => {
+      try {
+        // Invalider les requêtes liées à l'utilisateur
+        await queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+
+        // Attendre que les données soient bien stockées
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
+        // Rediriger vers la page recruteur
+        router.push("/(protected)/recruiter");
+      } catch (error) {
+        console.error("Erreur lors de la redirection:", error);
+      }
     },
   });
 
@@ -68,11 +94,19 @@ export const useAuth = () => {
     error: logoutError,
   } = useMutation({
     mutationFn: AuthService.logout,
-    onSuccess: () => {
-      // Supprimer toutes les données du cache
-      queryClient.clear();
-      // Rediriger vers la page d'accueil
-      router.replace("/");
+    onSuccess: async () => {
+      try {
+        // Supprimer toutes les données du cache
+        await queryClient.clear();
+
+        // Attendre que les données soient bien supprimées
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
+        // Rediriger vers la page d'accueil
+        router.push("/");
+      } catch (error) {
+        console.error("Erreur lors de la déconnexion:", error);
+      }
     },
   });
 
@@ -91,7 +125,7 @@ export const useAuth = () => {
       return AuthService.getCurrentUser();
     },
     retry: false,
-    enabled: false, // Désactive l'exécution automatique
+    enabled: false,
   });
 
   // Mutation pour rafraîchir le token
