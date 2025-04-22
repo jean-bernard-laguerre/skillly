@@ -1,50 +1,45 @@
-import { IconSymbol } from "@/components/ui/IconSymbol";
 import React, { useEffect, useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 import Swiper from "react-native-deck-swiper";
+import { Heart, X } from "lucide-react-native";
+import { JobCard, SwippedState, OverlayLabelProps } from "@/types/interfaces";
 
-interface Card {
-  title: string;
-  description: string;
-}
-
-interface SwippedState {
-  left: Card[];
-  right: Card[];
-}
-
-const Card = ({ card }: { card: Card }) => (
-  <View style={styles.card}>
-    <Text style={[styles.text, styles.title]}>{card.title}</Text>
-    <Text style={[styles.desc, styles.text]}>{card.description}</Text>
+const Card = ({ card }: { card: JobCard }) => (
+  <View className="flex-[0.9] rounded-lg shadow-lg justify-center items-center bg-white">
+    <Text className="text-3xl font-bold text-center text-black">
+      {card.title}
+    </Text>
+    <Text className="text-xl font-medium text-center text-black">
+      {card.description}
+    </Text>
   </View>
 );
 
-const OverlayLabel = ({ color }: { color: string }) => {
+const OverlayLabel = ({ color }: OverlayLabelProps) => {
   if (color === "red") {
     return (
-      <View style={styles.overlayLabel}>
-        <IconSymbol size={50} name="xmark" color={color} />
+      <View className="flex-1 justify-center items-center absolute z-[1000]">
+        <X size={50} color={color} />
       </View>
     );
   } else {
     return (
-      <View style={styles.overlayLabel}>
-        <IconSymbol size={50} name="heart" color={color} />
+      <View className="flex-1 justify-center items-center absolute z-[1000]">
+        <Heart size={50} color={color} />
       </View>
     );
   }
 };
 
 export default function JobOffers() {
-  const swiperRef = React.useRef<Swiper<Card>>(null);
+  const swiperRef = React.useRef<Swiper<JobCard>>(null);
   const [swipped, setSwipped] = useState<SwippedState>({
     left: [],
     right: [],
   });
   const [index, setIndex] = useState(0);
   const [isAllSwiped, setIsAllSwiped] = useState(false);
-  const cards = [
+  const cards: JobCard[] = [
     {
       title: "Card 1",
       description: "This is a card",
@@ -87,7 +82,7 @@ export default function JobOffers() {
     },
   ];
 
-  const handleSwipe = (swipe: "left" | "right", card: Card) => {
+  const handleSwipe = (swipe: "left" | "right", card: JobCard) => {
     setIndex((prev) => prev + 1);
     setSwipped((prev: SwippedState) => ({
       ...prev,
@@ -100,8 +95,8 @@ export default function JobOffers() {
   }, [swipped]);
 
   return (
-    <View style={styles.container}>
-      <View style={styles.swiperContainer}>
+    <View className="flex-1">
+      <View className="flex-[0.9]">
         <Swiper
           ref={swiperRef}
           cards={cards}
@@ -166,39 +161,43 @@ export default function JobOffers() {
           }}
         />
       </View>
-      <View style={styles.bottomContainer}>
-        <View style={styles.info}>
+      <View className="flex-[0.1] items-center z-[100]">
+        <View className="flex-row w-full justify-evenly">
           <TouchableOpacity onPress={() => swiperRef.current?.swipeLeft()}>
-            <IconSymbol size={28} name="xmark" color="red" />
+            <X size={28} color="red" />
           </TouchableOpacity>
           <Text>Swipez les cartes pour les classer</Text>
           <TouchableOpacity onPress={() => swiperRef.current?.swipeRight()}>
-            <IconSymbol size={28} name="heart" color="blue" />
+            <Heart size={28} color="blue" />
           </TouchableOpacity>
         </View>
       </View>
       {isAllSwiped && (
-        <View style={styles.swipped}>
-          <Text>
+        <View className="absolute top-0 left-0 flex flex-col items-center justify-center w-full h-full bg-black">
+          <Text className="text-white">
             Plus aucune carte à swiper, vous avez swipé toutes les cartes
           </Text>
-          <Text>Cartes swipées: </Text>
-          <View style={styles.Table}>
-            <View style={styles.left}>
-              <Text>Left:</Text>
+          <Text className="text-white">Cartes swipées: </Text>
+          <View className="flex-row justify-between w-1/2">
+            <View className="flex-col items-center justify-center">
+              <Text className="text-white">Left:</Text>
               {swipped.left.map((card) => (
-                <Text key={card.title}>{card.title}</Text>
+                <Text key={card.title} className="text-white">
+                  {card.title}
+                </Text>
               ))}
             </View>
-            <View style={styles.right}>
-              <Text>Right:</Text>
+            <View className="flex-col items-center justify-center">
+              <Text className="text-white">Right:</Text>
               {swipped.right.map((card) => (
-                <Text key={card.title}>{card.title}</Text>
+                <Text key={card.title} className="text-white">
+                  {card.title}
+                </Text>
               ))}
             </View>
           </View>
           <TouchableOpacity
-            style={styles.button}
+            className="bg-black justify-center items-center rounded-lg p-2.5 mt-5 border border-white"
             onPress={() => {
               setSwipped({ left: [], right: [] });
               setIsAllSwiped(false);
@@ -206,108 +205,10 @@ export default function JobOffers() {
               swiperRef.current?.jumpToCardIndex(0);
             }}
           >
-            <Text>Recommencer</Text>
+            <Text className="text-white">Recommencer</Text>
           </TouchableOpacity>
         </View>
       )}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    // display: "flex",
-    // backgroundColor: "black",
-    // // alignItems: "center",
-    // justifyContent: "center",
-  },
-  swiperContainer: {
-    flex: 0.9,
-  },
-  bottomContainer: {
-    flex: 0.1,
-    alignItems: "center",
-    zIndex: 100,
-  },
-
-  swipped: {
-    position: "relative",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "center",
-    alignItems: "center",
-    color: "white",
-    backgroundColor: "black",
-  },
-
-  info: {
-    width: "100%",
-    flexDirection: "row",
-    justifyContent: "space-evenly",
-  },
-
-  card: {
-    flex: 0.9,
-    borderRadius: 8,
-    shadowRadius: 25,
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowOffset: { width: 0, height: 0 },
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "white",
-  },
-  text: {
-    textAlign: "center",
-    backgroundColor: "transparent",
-    color: "black",
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: "bold",
-  },
-  desc: {
-    fontSize: 20,
-    fontWeight: "500",
-  },
-
-  Table: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    width: "50%",
-  },
-  left: {
-    flexDirection: "column",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  right: {
-    flexDirection: "column",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  overlayLabel: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    position: "absolute",
-    zIndex: 1000,
-  },
-
-  button: {
-    backgroundColor: "black",
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 10,
-    padding: 10,
-    marginTop: 20,
-    borderWidth: 1,
-    borderColor: "white",
-  },
-});

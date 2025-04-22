@@ -1,7 +1,7 @@
 import { Slot } from "expo-router";
 import { NavigationContainer } from "@react-navigation/native";
-import DrawerNavigator from "./DrawerNavigator";
-import TabNavigator from "@/navigation/TabNavigator";
+import DrawerNavigator from "../../navigation/DrawerNavigator";
+import TabNavigator from "../../navigation/TabNavigator";
 import { useAuth } from "@/context/AuthContext";
 
 export default function Layout() {

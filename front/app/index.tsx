@@ -1,12 +1,16 @@
+import React from "react";
 import { useEffect, useState } from "react";
-import { Redirect, useRootNavigationState, Link } from "expo-router";
+import { Redirect, useRootNavigationState } from "expo-router";
 import { useAuth } from "../context/AuthContext";
-import { View, Text, Button, ActivityIndicator } from "react-native";
+import { View, Text, ActivityIndicator, Pressable } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { TabNavigationProp } from "@/types/navigation";
 
 export default function HomePage() {
   const { role, loading } = useAuth();
   const navigationState = useRootNavigationState();
   const [isReady, setIsReady] = useState(false);
+  const navigation = useNavigation<TabNavigationProp>();
 
   useEffect(() => {
     if (navigationState?.key && !isReady) {
@@ -16,27 +20,32 @@ export default function HomePage() {
 
   if (!isReady || loading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <View className="items-center justify-center flex-1">
         <ActivityIndicator size="large" color="#0000ff" />
       </View>
     );
   }
 
   return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-      <Text style={{ fontSize: 24, fontWeight: "bold", marginBottom: 20 }}>
-        Bienvenue sur Skillly 🚀
-      </Text>
-      <Text style={{ fontSize: 16, textAlign: "center", marginBottom: 40 }}>
+    <View className="items-center justify-center flex-1">
+      <Text className="mb-5 text-2xl font-bold">Bienvenue sur Skillly 🚀</Text>
+      <Text className="mb-10 text-base text-center">
         La plateforme qui connecte candidats et recruteurs en un instant.
       </Text>
-      <Link href="/auth/login">
-        <Text style={{ color: "#007bff", marginBottom: 10 }}>Se connecter</Text>
-      </Link>
-      <View style={{ height: 10 }} />
-      <Link href="/auth/register">
-        <Text style={{ color: "#007bff" }}>Créer un compte</Text>
-      </Link>
+      <Pressable
+        className="px-5 py-3 mb-3 bg-blue-500 rounded-lg active:bg-blue-700"
+        onPress={() => navigation.navigate("Login")}
+      >
+        <Text className="text-base font-semibold text-white">Se connecter</Text>
+      </Pressable>
+      <Pressable
+        className="px-5 py-3 bg-blue-500 rounded-lg active:bg-blue-700"
+        onPress={() => navigation.navigate("Register")}
+      >
+        <Text className="text-base font-semibold text-white">
+          Créer un compte
+        </Text>
+      </Pressable>
     </View>
   );
 }

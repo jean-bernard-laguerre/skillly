@@ -11,21 +11,18 @@ export default function Login() {
     if (role === "candidate") {
       router.replace("/(protected)/candidate");
     } else if (role === "recruiter") {
-      console.log("recruiter");
       router.replace("/(protected)/recruiter");
     }
   };
 
   return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-      <Text style={{ fontSize: 24, fontWeight: "bold", marginBottom: 20 }}>
-        Connexion 🔐
-      </Text>
+    <View className="items-center justify-center flex-1">
+      <Text className="mb-4 text-2xl font-bold">Connexion 🔐</Text>
       <Button
         title="Se connecter en Candidat"
         onPress={() => handleLogin("candidate")}
       />
-      <View style={{ height: 10 }} />
+      <View className="h-4" />
       <Button
         title="Se connecter en Recruteur"
         onPress={() => handleLogin("recruiter")}
