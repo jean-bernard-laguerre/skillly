@@ -26,5 +26,28 @@ func (r *JobPostRepository) Create(dto jobPostDto.CreateJobPostDTO, companyId ui
 	if createdJobPost.Error != nil {
 		return models.JobPost{}, createdJobPost.Error
 	}
+
+	if len(dto.Skills) > 0 {
+		var skills []models.Skill
+		if err := tx.Where("id IN ?", dto.Skills).Find(&skills).Error; err != nil {
+			return models.JobPost{}, err
+		}
+
+		if err := tx.Model(&jobPost).Association("Skills").Replace(skills); err != nil {
+			return models.JobPost{}, err
+		}
+	}
+
+	if len(dto.Certifications) > 0 {
+		var certifications []models.Certification
+		if err := tx.Where("id IN ?", dto.Certifications).Find(&certifications).Error; err != nil {
+			return models.JobPost{}, err
+		}
+
+		if err := tx.Model(&jobPost).Association("Certifications").Replace(certifications); err != nil {
+			return models.JobPost{}, err
+		}
+	}
+
 	return jobPost, nil
 }
