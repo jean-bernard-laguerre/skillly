@@ -2,13 +2,13 @@ package models
 
 import (
 	"errors"
-	"skillly/pkg/types"
+	"skillly/pkg/utils"
 	"time"
 )
 
 const (
-	RoleCandidate types.RoleType = "candidate"
-	RoleRecruiter types.RoleType = "recruiter"
+	RoleCandidate utils.RoleType = "candidate"
+	RoleRecruiter utils.RoleType = "recruiter"
 )
 
 // User is a struct that represents a user
@@ -18,9 +18,12 @@ type User struct {
 	LastName  string         `json:"last_name"`
 	Email     string         `json:"email"`
 	Password  string         `json:"-"`
-	Role      types.RoleType `json:"role"`
+	Role      utils.RoleType `json:"role"`
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
+
+	ProfileCandidate *ProfileCandidate `json:"profile_candidate" gorm:"foreignKey:UserID;references:ID"`
+	ProfileRecruiter *ProfileRecruiter `json:"profile_recruiter" gorm:"foreignKey:UserID;references:ID"`
 }
 
 func (u *User) ValidateRole() error {

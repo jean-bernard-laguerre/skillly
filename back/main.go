@@ -10,8 +10,7 @@ import (
 	"skillly/chat"
 
 	"skillly/pkg/db"
-	"skillly/pkg/handlers/auth"
-	"skillly/pkg/handlers/company"
+	"skillly/pkg/handlers"
 )
 
 func main() {
@@ -32,8 +31,7 @@ func main() {
 	}))
 
 	// Add routes
-	auth.AddRoutes(r)
-	company.AddRoutes(r)
+	handlers.AddRoutes(r)
 
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{

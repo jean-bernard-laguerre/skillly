@@ -30,7 +30,7 @@ func (
 		LastName:  dto.LastName,
 		Email:     dto.Email,
 		Password:  string(hashPassword),
-		Role:      models.RoleCandidate,
+		Role:      dto.Role,
 	}
 
 	createdUser := tx.Create(&user)
@@ -43,7 +43,8 @@ func (
 
 func (r *UserRepository) GetByEmail(email string) (models.User, error) {
 	var user models.User
-	result := config.DB.Where("email = ?", email).First(&user)
+	result := config.DB.Preload("ProfileCandidate").Preload("ProfileRecruiter").
+		Where("email = ?", email).First(&user)
 	if result.Error != nil {
 		return models.User{}, result.Error
 	}

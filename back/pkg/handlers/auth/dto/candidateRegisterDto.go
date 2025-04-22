@@ -2,7 +2,7 @@ package authDto
 
 import (
 	"skillly/pkg/models"
-	"skillly/pkg/types"
+	"skillly/pkg/utils"
 )
 
 type CandidateRegisterDTO struct {
@@ -12,7 +12,7 @@ type CandidateRegisterDTO struct {
 	Password         string                 `json:"password" binding:"required"`
 	Bio              string                 `json:"bio"`
 	ExperienceYear   int                    `json:"experienceYears"`
-	PreferedContract types.ContractType     `json:"preferedContract"`
+	PreferedContract utils.ContractType     `json:"preferedContract"`
 	PreferedJob      string                 `json:"preferedJob"`
 	Location         string                 `json:"location"`
 	Availability     string                 `json:"availability"`

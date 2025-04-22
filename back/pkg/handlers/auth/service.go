@@ -181,8 +181,13 @@ func Login(c *gin.Context) {
 		"id":        user.ID,
 		"firstName": user.FirstName,
 		"lastName":  user.LastName,
-		"exp":       15000,
+		/* "exp":       "24h", */
 	})
+
+	if user.Role == models.RoleRecruiter {
+		token.Claims.(jwt.MapClaims)["companyID"] = user.ProfileRecruiter.CompanyID
+		token.Claims.(jwt.MapClaims)["companyRole"] = user.ProfileRecruiter.Role
+	}
 
 	tokenString, err := token.SignedString([]byte("secret"))
 	if err != nil {
