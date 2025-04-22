@@ -1,19 +1,20 @@
 package candidateDto
 
 import (
-	"skillly/pkg/handlers/certification"
-	"skillly/pkg/handlers/skill"
-	"skillly/pkg/handlers/user"
+	"skillly/pkg/models"
+	"skillly/pkg/utils"
 )
 
 type CreateCandidateDTO struct {
-	Bio             string                        `json:"bio"`
-	Location        string                        `json:"location"`
-	ExperienceYear  int                           `json:"experience_year"`
-	PreferedJobType string                        `json:"prefered_job_type"`
-	Availability    string                        `json:"availability"`
-	ResumeID        uint                          `json:"resume_id"`
-	Certifications  []certification.Certification `json:"certifications"`
-	Skills          []skill.Skill                 `json:"skills"`
-	User            user.User                     `json:"user"`
+	Bio              string             `json:"bio"`
+	Location         string             `json:"location"`
+	ExperienceYear   int                `json:"experience_year"`
+	PreferedContract utils.ContractType `json:"prefered_contract"`
+	PreferedJob      string             `json:"prefered_job"`
+	Availability     string             `json:"availability"`
+	ResumeID         uint               `json:"resume_id"`
+
+	User           models.User `json:"user"`
+	Certifications []uint      `json:"certifications"`
+	Skills         []uint      `json:"skills"`
 }

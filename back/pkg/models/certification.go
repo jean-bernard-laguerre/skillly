@@ -1,11 +1,11 @@
-package skill
+package models
 
 import (
 	"time"
 )
 
-// Skill is a struct that represents a skill
-type Skill struct {
+// Certification is a struct that represents a certification
+type Certification struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`
 	Name      string    `json:"name"`
 	Category  string    `json:"category"`

@@ -4,29 +4,53 @@ import (
 	"gorm.io/gorm"
 	/* "skillly/pkg/config" */
 	candidateDto "skillly/pkg/handlers/candidateProfile/dto"
+	"skillly/pkg/models"
 )
 
-// Create a new candidate
-func (c *ProfileCandidate) Create(
-	dto candidateDto.CreateCandidateDTO, tx *gorm.DB,
-) (int, error) {
+type CandidateRepository struct{}
 
-	profile := ProfileCandidate{
-		Bio:             dto.Bio,
-		Location:        dto.Location,
-		ExperienceYear:  dto.ExperienceYear,
-		PreferedJobType: dto.PreferedJobType,
-		Availability:    dto.Availability,
-		/* ResumeID:        dto.ResumeID,
-		Certifications:  dto.Certifications,
-		Skills:          dto.Skills, */
-		UserID: dto.User.ID,
+// Create a new candidate
+func (r *CandidateRepository) Create(
+	dto candidateDto.CreateCandidateDTO, tx *gorm.DB,
+) (models.ProfileCandidate, error) {
+
+	profile := models.ProfileCandidate{
+		Bio:              dto.Bio,
+		Location:         dto.Location,
+		ExperienceYear:   dto.ExperienceYear,
+		PreferedContract: dto.PreferedContract,
+		PreferedJob:      dto.PreferedJob,
+		Availability:     dto.Availability,
+		ResumeID:         dto.ResumeID,
+		UserID:           dto.User.ID,
 	}
 
 	createdCandidate := tx.Create(&profile)
 	if createdCandidate.Error != nil {
-		return 0, createdCandidate.Error
+		return models.ProfileCandidate{}, createdCandidate.Error
 	}
 
-	return int(profile.ID), nil
+	if len(dto.Skills) > 0 {
+		var skills []models.Skill
+		if err := tx.Where("id IN ?", dto.Skills).Find(&skills).Error; err != nil {
+			return models.ProfileCandidate{}, err
+		}
+
+		if err := tx.Model(&profile).Association("Skills").Replace(skills); err != nil {
+			return models.ProfileCandidate{}, err
+		}
+	}
+
+	if len(dto.Certifications) > 0 {
+		var certifications []models.Certification
+		if err := tx.Where("id IN ?", dto.Certifications).Find(&certifications).Error; err != nil {
+			return models.ProfileCandidate{}, err
+		}
+
+		if err := tx.Model(&profile).Association("Certifications").Replace(certifications); err != nil {
+			return models.ProfileCandidate{}, err
+		}
+	}
+
+	return profile, nil
 }

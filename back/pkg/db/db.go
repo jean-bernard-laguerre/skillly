@@ -3,25 +3,15 @@ package db
 import (
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
+	"os"
 	"skillly/pkg/config"
-	"skillly/pkg/handlers/application"
-	candidate "skillly/pkg/handlers/candidateProfile"
-	"skillly/pkg/handlers/candidateReview"
-	"skillly/pkg/handlers/certification"
-	"skillly/pkg/handlers/company"
-	"skillly/pkg/handlers/companyReview"
-	"skillly/pkg/handlers/file"
-	"skillly/pkg/handlers/jobPost"
-	"skillly/pkg/handlers/match"
-	recruiter "skillly/pkg/handlers/recruiterProfile"
-	"skillly/pkg/handlers/skill"
-	"skillly/pkg/handlers/user"
+	"skillly/pkg/handlers"
+	"skillly/pkg/models"
 )
 
 // Init creates a new connection to the database
@@ -30,17 +20,10 @@ import (
 // DB_PASSWORD
 // DB_NAME
 
-func Init() {
+func Init(
+	dbUser, dbPassword, dbName, host, port string,
+) {
 	err := godotenv.Load()
-	if err != nil {
-		panic(err)
-	}
-
-	dbUser := os.Getenv("DB_USER")
-	dbPassword := os.Getenv("DB_PASSWORD")
-	dbName := os.Getenv("DB_NAME")
-	host := "postgres"
-	port := "5432"
 
 	// Construire la chaîne de connexion
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Europe/Paris",
@@ -55,17 +38,34 @@ func Init() {
 
 	// MIGRATIONS
 	config.DB.AutoMigrate(
-		&file.File{},
-		&company.Company{},
-		&user.User{},
-		&candidate.ProfileCandidate{},
-		&recruiter.ProfileRecruiter{},
-		&certification.Certification{},
-		&skill.Skill{},
-		&jobPost.JobPost{},
-		&candidateReview.CandidateReview{},
-		&companyReview.CompanyReview{},
-		&application.Application{},
-		&match.Match{},
+		&models.File{},
+		&models.Company{},
+		&models.User{},
+		&models.ProfileCandidate{},
+		&models.ProfileRecruiter{},
+		&models.Certification{},
+		&models.Skill{},
+		&models.JobPost{},
+		&models.CandidateReview{},
+		&models.CompanyReview{},
+		&models.Application{},
+		&models.Match{},
 	)
+}
+
+func SetupDB() {
+	_ = godotenv.Load()
+
+	dbUser := os.Getenv("DB_USER")
+	dbPassword := os.Getenv("DB_PASSWORD")
+	dbName := os.Getenv("DB_NAME")
+	host := "postgres"
+	port := "5432"
+
+	Init(
+		dbUser, dbPassword, dbName, host, port,
+	)
+
+	h := handlers.New(config.DB)
+	fmt.Println(h)
 }

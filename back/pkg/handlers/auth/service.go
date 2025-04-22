@@ -4,26 +4,31 @@ import (
 	authDto "skillly/pkg/handlers/auth/dto"
 	candidate "skillly/pkg/handlers/candidateProfile"
 	candidateDto "skillly/pkg/handlers/candidateProfile/dto"
+	"skillly/pkg/handlers/company"
 	recruiter "skillly/pkg/handlers/recruiterProfile"
 	recruiterDto "skillly/pkg/handlers/recruiterProfile/dto"
 	"skillly/pkg/handlers/user"
 	userDto "skillly/pkg/handlers/user/dto"
 
+	"skillly/pkg/models"
+
 	"gorm.io/gorm"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 
 	"skillly/pkg/config"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 // RegisterCandidate is a handler that creates a new candidate and user
 func RegisterCandidate(c *gin.Context) {
-	config.DB.Transaction(func(tx *gorm.DB) error {
+	err := config.DB.Transaction(func(tx *gorm.DB) error {
 		candidateRegister := authDto.CandidateRegisterDTO{}
 		err := c.BindJSON(&candidateRegister)
 
 		if err != nil {
-			c.JSON(400, gin.H{"error": err.Error()})
 			return err
 		}
 
@@ -32,52 +37,55 @@ func RegisterCandidate(c *gin.Context) {
 			LastName:  candidateRegister.LastName,
 			Email:     candidateRegister.Email,
 			Password:  candidateRegister.Password,
-			Role:      user.RoleCandidate,
+			Role:      models.RoleCandidate,
 		}
 
 		// Create the user
-		userModel := user.User{}
+		userModel := user.UserRepository{}
 		savedUser, err := userModel.Create(newUser, tx)
 
 		if err != nil {
-			c.JSON(500, gin.H{"error": err.Error()})
 			return err
 		}
 
 		newCandidate := candidateDto.CreateCandidateDTO{
-			Bio:             candidateRegister.Bio,
-			Location:        candidateRegister.Location,
-			ExperienceYear:  candidateRegister.ExperienceYear,
-			PreferedJobType: candidateRegister.PreferedJob,
-			Availability:    candidateRegister.Availability,
-			ResumeID:        candidateRegister.ResumeID,
-			/* Certifications:  candidateRegister.Certifications,
-			Skills:          candidateRegister.Skills, */
-			User: savedUser,
+			Bio:              candidateRegister.Bio,
+			Location:         candidateRegister.Location,
+			ExperienceYear:   candidateRegister.ExperienceYear,
+			PreferedContract: candidateRegister.PreferedContract,
+			PreferedJob:      candidateRegister.PreferedJob,
+			Availability:     candidateRegister.Availability,
+			ResumeID:         candidateRegister.ResumeID,
+			Certifications:   candidateRegister.Certifications,
+			Skills:           candidateRegister.Skills,
+			User:             savedUser,
 		}
 
 		// Create the candidate
-		candidateModel := candidate.ProfileCandidate{}
+		candidateModel := candidate.CandidateRepository{}
 		_, err = candidateModel.Create(newCandidate, tx)
 
 		if err != nil {
-			c.JSON(500, gin.H{"error": err.Error()})
 			return err
 		}
 
 		return nil
 	})
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
 	c.JSON(200, gin.H{"message": "Candidate created successfully"})
 }
 
 // RegisterRecruiter is a handler that creates a new recruiter and user
 func RegisterRecruiter(c *gin.Context) {
-	config.DB.Transaction(func(tx *gorm.DB) error {
+	err := config.DB.Transaction(func(tx *gorm.DB) error {
 		recruiterRegister := authDto.RecruterRegisterDTO{}
 		err := c.BindJSON(&recruiterRegister)
 
 		if err != nil {
-			c.JSON(400, gin.H{"error": err.Error()})
 			return err
 		}
 
@@ -86,15 +94,14 @@ func RegisterRecruiter(c *gin.Context) {
 			LastName:  recruiterRegister.LastName,
 			Email:     recruiterRegister.Email,
 			Password:  recruiterRegister.Password,
-			Role:      user.RoleRecruiter,
+			Role:      models.RoleRecruiter,
 		}
 
 		// Create the user
-		userModel := user.User{}
+		userModel := user.UserRepository{}
 		savedUser, err := userModel.Create(newUser, tx)
 
 		if err != nil {
-			c.JSON(500, gin.H{"error": err.Error()})
 			return err
 		}
 
@@ -104,20 +111,92 @@ func RegisterRecruiter(c *gin.Context) {
 			User:      savedUser,
 		}
 
+		// if the recruiter is creating a new company create it
+		if recruiterRegister.NewCompany != nil {
+			companyModel := company.CompanyRepository{}
+			savedCompany, err := companyModel.Create(*recruiterRegister.NewCompany, tx)
+
+			if err != nil {
+				return err
+			}
+
+			newRecruiter.CompanyID = savedCompany.ID
+			newRecruiter.Role = models.AdminRole
+		}
+
 		// Create the recruiter
-		recruiterModel := recruiter.ProfileRecruiter{}
-		_, err = recruiterModel.Create(newRecruiter)
+		recruiterModel := recruiter.RecruiterRepository{}
+		_, err = recruiterModel.Create(newRecruiter, tx)
 
 		if err != nil {
-			c.JSON(500, gin.H{"error": err.Error()})
 			return err
 		}
 
 		return nil
 	})
+
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
 	c.JSON(200, gin.H{"message": "Recruiter created successfully"})
 }
 
 func Login(c *gin.Context) {
 	// TODO
+
+	userLogin := authDto.LoginDto{}
+	err := c.BindJSON(&userLogin)
+
+	if err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	userModel := user.UserRepository{}
+	user, err := userModel.GetByEmail(userLogin.Email)
+
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
+	if user.ID == 0 {
+		c.JSON(404, gin.H{"error": "User not found"})
+		return
+	}
+
+	// Check the password
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(userLogin.Password))
+	if err != nil {
+		c.JSON(401, gin.H{"error": "Invalid credentials"})
+		return
+	}
+
+	// Create the token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"email":     user.Email,
+		"role":      user.Role,
+		"id":        user.ID,
+		"firstName": user.FirstName,
+		"lastName":  user.LastName,
+		/* "exp":       "24h", */
+	})
+
+	if user.Role == models.RoleRecruiter {
+		token.Claims.(jwt.MapClaims)["companyID"] = user.ProfileRecruiter.CompanyID
+		token.Claims.(jwt.MapClaims)["companyRole"] = user.ProfileRecruiter.Role
+	}
+
+	tokenString, err := token.SignedString([]byte("secret"))
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"user":  user,
+		"token": tokenString,
+	})
 }
