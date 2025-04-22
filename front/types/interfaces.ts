@@ -79,13 +79,19 @@ export interface OverlayLabelProps {
 export interface AuthContextType {
   role: "candidate" | "recruiter" | null;
   setRole: (role: "candidate" | "recruiter" | null) => void;
-  handleLogOut: () => void;
+  user: User | null;
+  setUser: (user: User | null) => void;
+  handleLogOut: () => Promise<void>;
   loading: boolean;
 }
 
-export interface HandleRedirect {
-  (role: string | null): void;
+export interface User {
+  id: number;
+  name: string;
+  email: string;
 }
+
+export type HandleRedirect = (role: "candidate" | "recruiter" | null) => void;
 
 // Components
 export type ExternalLinkProps = Omit<ComponentProps<typeof Link>, "href"> & {
