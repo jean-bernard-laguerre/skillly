@@ -15,10 +15,10 @@ import { TabNavigatorProps } from "@/types/navigation";
 
 // Public Components
 import HomePage from "@/app/index";
-import Login from "@/app/auth/login";
-import Register from "@/app/auth/register";
+import Login from "@/app/(auth)/login";
+import Register from "@/app/(auth)/register";
 // Components Profile
-import Profile from "@/app/(protected)/ProfileScreen";
+import Profile from "@/app/(protected)/index";
 // Components Messages
 import Messages from "@/app/(protected)/messages";
 // Components Candidate

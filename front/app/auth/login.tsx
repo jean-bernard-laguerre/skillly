@@ -11,15 +11,19 @@ export default function Login() {
     if (role === "candidate") {
       setUser({
         id: 1,
-        name: "John Doe",
+        firstName: "John",
+        lastName: "Doe",
         email: "john.doe@example.com",
+        role: "candidate",
       });
       router.replace("/(protected)/candidate");
     } else if (role === "recruiter") {
       setUser({
         id: 2,
-        name: "Jane Smith",
+        firstName: "Jane",
+        lastName: "Smith",
         email: "jane.smith@example.com",
+        role: "recruiter",
       });
       router.replace("/(protected)/recruiter");
     }
