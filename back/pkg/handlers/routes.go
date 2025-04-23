@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"skillly/pkg/handlers/application"
 	"skillly/pkg/handlers/auth"
 	"skillly/pkg/handlers/certification"
 	"skillly/pkg/handlers/company"
@@ -16,4 +17,5 @@ func AddRoutes(r *gin.Engine) {
 	jobPost.AddRoutes(r)
 	skill.AddRoutes(r)
 	certification.AddRoutes(r)
+	application.AddRoutes(r)
 }

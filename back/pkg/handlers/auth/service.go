@@ -187,6 +187,9 @@ func Login(c *gin.Context) {
 	if user.Role == models.RoleRecruiter {
 		token.Claims.(jwt.MapClaims)["companyID"] = user.ProfileRecruiter.CompanyID
 		token.Claims.(jwt.MapClaims)["companyRole"] = user.ProfileRecruiter.Role
+		token.Claims.(jwt.MapClaims)["recruiterID"] = user.ProfileRecruiter.ID
+	} else {
+		token.Claims.(jwt.MapClaims)["candidateID"] = user.ProfileCandidate.ID
 	}
 
 	tokenString, err := token.SignedString([]byte("secret"))

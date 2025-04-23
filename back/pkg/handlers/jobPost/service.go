@@ -1,7 +1,6 @@
 package jobPost
 
 import (
-	"fmt"
 	"skillly/pkg/config"
 	jobPostDto "skillly/pkg/handlers/jobPost/dto"
 	"skillly/pkg/models"
@@ -19,22 +18,12 @@ func CreateJobPost(c *gin.Context) {
 	}
 
 	// Get the company from the context
-	fmt.Println(c.Keys)
-	companyIdValue := c.Keys["company_id"]
-
-	var companyId uint
-	switch v := companyIdValue.(type) {
-	case float64:
-		companyId = uint(companyIdValue.(float64))
-	case uint:
-		companyId = companyIdValue.(uint)
-	default:
-		c.JSON(400, gin.H{"error": "Invalid company ID type %v", "value": v})
-	}
+	companyId := c.Keys["company_id"]
 
 	// Create the job post
+	dto.CompanyID = companyId.(uint)
 	jobPostRepository := JobPostRepository{}
-	jobPost, err := jobPostRepository.Create(dto, companyId, config.DB)
+	jobPost, err := jobPostRepository.Create(dto, config.DB)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
