@@ -5,6 +5,7 @@ type RoleType string
 type ContractType string
 type CompanyRole string
 type RecruiterState string
+type ApplicationState string
 
 type QueryParams struct {
 	Page     int

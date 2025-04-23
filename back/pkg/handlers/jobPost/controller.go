@@ -10,7 +10,7 @@ import (
 
 func AddRoutes(r *gin.Engine) {
 	jp := r.Group("/jobpost")
-	jp.POST("/", middleware.AuthMiddleware(models.RoleRecruiter), func(c *gin.Context) {
+	jp.POST("/", middleware.AuthMiddleware(), middleware.RoleMiddleware(models.RoleRecruiter), func(c *gin.Context) {
 		CreateJobPost(c)
 	})
 

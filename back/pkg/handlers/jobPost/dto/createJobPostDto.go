@@ -13,6 +13,7 @@ type CreateJobPostDTO struct {
 	Salary_range    string             `json:"salary_range" binding:"required"`
 	Expiration_Date time.Time          `json:"expiration_date" binding:"required"`
 	FileID          uint               `json:"file_id"`
+	CompanyID       uint               `json: company_id`
 
 	Certifications []uint `json:"certifications"`
 	Skills         []uint `json:"skills"`
