@@ -13,7 +13,7 @@ import (
 // AuthMiddleware is a middleware that checks if the user is authenticated
 // and if the user has the correct role to access the route
 
-func AuthMiddleware(role utils.RoleType) gin.HandlerFunc {
+func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Get the token from the header
 		authHeader := c.GetHeader("Authorization")
@@ -51,21 +51,31 @@ func AuthMiddleware(role utils.RoleType) gin.HandlerFunc {
 
 		// Check if the user has the correct role
 		userRole, ok := (*user)["role"].(string)
-		if (!ok) || userRole != string(role) {
+		if !ok {
 			c.JSON(403, gin.H{"error": "Forbidden"})
 			c.Abort()
 			return
 		}
 
 		// Set the user in the context
-		c.Set("user_id", (*user)["id"])
+		userID, _ := (*user)["id"].(float64)
+
+		c.Set("user_id", uint(userID))
 		c.Set("user_role", (*user)["role"])
 		c.Set("user_first_name", (*user)["firstName"])
 		c.Set("user_last_name", (*user)["lastName"])
 
-		if role == models.RoleRecruiter {
-			c.Set("company_id", (*user)["companyID"])
+		if utils.RoleType(userRole) == models.RoleRecruiter {
+			companyID, _ := (*user)["companyID"].(float64)
+			recruiterID, _ := (*user)["recruiterID"].(float64)
+
+			c.Set("company_id", uint(companyID))
+			c.Set("recruiter_id", uint(recruiterID))
 			c.Set("company_role", (*user)["companyRole"])
+		} else {
+			candidateID, _ := (*user)["candidateID"].(float64)
+
+			c.Set("candidate_id", uint(candidateID))
 		}
 
 		// Continue to the next middleware or handler
