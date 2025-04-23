@@ -6,3 +6,4 @@ export { instance };
 export * as UserService from "./user.service";
 export * as SkillService from "./skill.service";
 export * as AuthService from "./auth.service";
+export * as CertificationService from "./certification.service";

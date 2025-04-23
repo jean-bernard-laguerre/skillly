@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useRouter } from "expo-router";
+import { useRouter, useRootNavigationState } from "expo-router";
 import { AuthContextType, HandleRedirect, User } from "@/types/interfaces";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -10,8 +10,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const navigationState = useRootNavigationState();
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    if (navigationState?.key && !isReady) {
+      setIsReady(true);
+    }
+  }, [navigationState, isReady]);
 
   const handleRedirect: HandleRedirect = (role) => {
+    if (!isReady) return;
+
     if (role === "candidate") {
       router.replace("/(protected)/candidate");
     } else if (role === "recruiter") {
@@ -62,10 +72,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (role) {
+    if (role && isReady) {
       handleRedirect(role);
     }
-  }, [role]);
+  }, [role, isReady]);
 
   // Fonction pour mettre à jour les données utilisateur
   const updateUser = async (newUser: User | null) => {

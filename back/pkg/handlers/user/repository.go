@@ -1,13 +1,12 @@
 package user
 
 import (
+	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
+
 	"skillly/pkg/config"
 	userDto "skillly/pkg/handlers/user/dto"
 	"skillly/pkg/models"
-
-	"gorm.io/gorm"
-
-	"golang.org/x/crypto/bcrypt"
 )
 
 type UserRepository struct{}
@@ -45,6 +44,17 @@ func (r *UserRepository) GetByEmail(email string) (models.User, error) {
 	var user models.User
 	result := config.DB.Preload("ProfileCandidate").Preload("ProfileRecruiter").
 		Where("email = ?", email).First(&user)
+	if result.Error != nil {
+		return models.User{}, result.Error
+	}
+	return user, nil
+}
+
+func (r *UserRepository) GetByID(id uint) (models.User, error) {
+	var user models.User
+	// Preload associated profiles when fetching by ID
+	result := config.DB.Preload("ProfileCandidate").Preload("ProfileRecruiter").
+		First(&user, id) // Find user by primary key (ID)
 	if result.Error != nil {
 		return models.User{}, result.Error
 	}

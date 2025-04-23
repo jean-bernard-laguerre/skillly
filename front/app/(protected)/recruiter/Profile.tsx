@@ -1,9 +1,9 @@
 import React from "react";
 import { View, Text, Image, Pressable } from "react-native";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/lib/hooks/useAuth";
 
 export default function Profile() {
-  const { handleLogOut, user } = useAuth();
+  const { logout, currentUser } = useAuth();
 
   return (
     <View className="items-center justify-center flex-1 p-5">
@@ -12,16 +12,16 @@ export default function Profile() {
         source={{ uri: "https://picsum.photos/seed/987654321/150/150" }}
       />
       <Text className="mb-2 text-2xl font-bold">
-        {user?.firstName} {user?.lastName}
+        {currentUser?.firstName} {currentUser?.lastName}
       </Text>
-      <Text className="mb-2 text-gray-600">{user?.email}</Text>
+      <Text className="mb-2 text-gray-600">{currentUser?.email}</Text>
       <Text className="text-base text-center">
         Recruteur chez XYZ Company. À la recherche de talents passionnés pour
         rejoindre notre équipe dynamique.
       </Text>
       <Pressable
         className="p-2 mt-5 bg-red-500 rounded-md"
-        onPress={handleLogOut}
+        onPress={() => logout()}
       >
         <Text className="text-white">Se déconnecter</Text>
       </Pressable>

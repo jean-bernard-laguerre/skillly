@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { SkillService } from "@/services";
+import * as SkillService from "@/services/skill.service";
 import { Skill } from "@/types/interfaces";
 
 export const useSkills = () => {

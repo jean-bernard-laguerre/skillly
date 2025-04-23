@@ -126,7 +126,6 @@ export type ParallaxScrollViewProps = PropsWithChildren<{
 export interface Skill {
   id: number;
   name: string;
-  level: number; // 1-5
   category: string;
   description?: string;
 }
@@ -166,4 +165,11 @@ export interface RegisterCredentials {
 export interface AuthResponse {
   token: string;
   user: User;
+}
+
+export interface Certification {
+  id: number;
+  name: string;
+  category: string;
+  description?: string;
 }

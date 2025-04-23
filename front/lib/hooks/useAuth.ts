@@ -5,12 +5,35 @@ import {
   RegisterCredentials,
   User,
 } from "@/types/interfaces";
-import { useRouter } from "expo-router";
+import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { TabNavigationProp } from "@/types/navigation";
+import { useAuth as useAuthContext } from "@/context/AuthContext";
 
 export const useAuth = () => {
   const queryClient = useQueryClient();
-  const router = useRouter();
+  const navigation = useNavigation<TabNavigationProp>();
+  const { setUser } = useAuthContext();
+
+  // Query pour récupérer l'utilisateur courant
+  const {
+    data: currentUser,
+    isLoading: isLoadingUser,
+    error: userError,
+  } = useQuery({
+    queryKey: ["currentUser"],
+    queryFn: async () => {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) {
+        setUser(null);
+        return null;
+      }
+      const user = await AuthService.getCurrentUser();
+      setUser(user);
+      return user;
+    },
+    retry: false,
+  });
 
   // Mutation pour la connexion
   const {
@@ -23,17 +46,16 @@ export const useAuth = () => {
       try {
         // Invalider les requêtes liées à l'utilisateur
         await queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+        setUser(data.user);
 
         // Attendre que les données soient bien stockées
         await new Promise((resolve) => setTimeout(resolve, 300));
-        console.log("data here", data.user.role);
 
         // Rediriger en fonction du rôle
         if (data.user.role === "candidate") {
-          console.log("candidate AAAAAAAAA");
-          router.push("/(protected)/candidate");
+          navigation.navigate("CandidateHome");
         } else if (data.user.role === "recruiter") {
-          router.push("/(protected)/recruiter");
+          navigation.navigate("RecruiterHome");
         }
       } catch (error) {
         console.error("Erreur lors de la redirection:", error);
@@ -52,12 +74,13 @@ export const useAuth = () => {
       try {
         // Invalider les requêtes liées à l'utilisateur
         await queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+        setUser(data.user);
 
         // Attendre que les données soient bien stockées
         await new Promise((resolve) => setTimeout(resolve, 300));
 
         // Rediriger vers la page candidat
-        router.push("/(protected)/candidate");
+        navigation.navigate("CandidateHome");
       } catch (error) {
         console.error("Erreur lors de la redirection:", error);
       }
@@ -75,12 +98,13 @@ export const useAuth = () => {
       try {
         // Invalider les requêtes liées à l'utilisateur
         await queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+        setUser(data.user);
 
         // Attendre que les données soient bien stockées
         await new Promise((resolve) => setTimeout(resolve, 300));
 
         // Rediriger vers la page recruteur
-        router.push("/(protected)/recruiter");
+        navigation.navigate("RecruiterHome");
       } catch (error) {
         console.error("Erreur lors de la redirection:", error);
       }
@@ -98,34 +122,14 @@ export const useAuth = () => {
       try {
         // Supprimer toutes les données du cache
         await queryClient.clear();
+        setUser(null);
 
         // Attendre que les données soient bien supprimées
         await new Promise((resolve) => setTimeout(resolve, 300));
-
-        // Rediriger vers la page d'accueil
-        router.push("/");
       } catch (error) {
         console.error("Erreur lors de la déconnexion:", error);
       }
     },
-  });
-
-  // Query pour récupérer l'utilisateur courant
-  const {
-    data: currentUser,
-    isLoading: isLoadingUser,
-    error: userError,
-  } = useQuery({
-    queryKey: ["currentUser"],
-    queryFn: async () => {
-      const token = await AsyncStorage.getItem("token");
-      if (!token) {
-        return null;
-      }
-      return AuthService.getCurrentUser();
-    },
-    retry: false,
-    enabled: false,
   });
 
   // Mutation pour rafraîchir le token

@@ -2,12 +2,13 @@ package middleware
 
 import (
 	"fmt"
-	"skillly/pkg/models"
-	"skillly/pkg/utils"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+
+	"skillly/pkg/models"
+	"skillly/pkg/utils"
 )
 
 // AuthMiddleware is a middleware that checks if the user is authenticated
