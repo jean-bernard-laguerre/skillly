@@ -2,6 +2,8 @@ package auth
 
 import (
 	"github.com/gin-gonic/gin"
+
+	authMiddleware "skillly/pkg/middleware"
 )
 
 func AddRoutes(r *gin.Engine) {
@@ -18,5 +20,9 @@ func AddRoutes(r *gin.Engine) {
 	})
 	au.POST("/signup/recruiter", func(c *gin.Context) {
 		authService.RegisterRecruiter(c)
+	})
+
+	au.GET("/me", authMiddleware.AuthMiddleware(), func(c *gin.Context) {
+		GetCurrentUser(c)
 	})
 }

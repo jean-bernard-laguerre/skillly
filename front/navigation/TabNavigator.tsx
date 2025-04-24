@@ -15,10 +15,10 @@ import { TabNavigatorProps } from "@/types/navigation";
 
 // Public Components
 import HomePage from "@/app/index";
-import Login from "@/app/auth/login";
-import Register from "@/app/auth/register";
+import Login from "@/app/(auth)/login";
+import Register from "@/app/(auth)/register";
 // Components Profile
-import Profile from "@/app/(protected)/ProfileScreen";
+import Profile from "@/app/(protected)/index";
 // Components Messages
 import Messages from "@/app/(protected)/messages";
 // Components Candidate
@@ -42,10 +42,11 @@ function PublicTabNavigator() {
       }}
     >
       <Tab.Screen
-        name="Welcome"
+        name="HomePage"
         component={HomePage}
         options={{
           tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
+          title: "Accueil",
         }}
       />
       <Tab.Screen
@@ -53,6 +54,7 @@ function PublicTabNavigator() {
         component={Login}
         options={{
           tabBarIcon: ({ color, size }) => <LogIn size={size} color={color} />,
+          title: "Connexion",
         }}
       />
       <Tab.Screen
@@ -62,6 +64,7 @@ function PublicTabNavigator() {
           tabBarIcon: ({ color, size }) => (
             <UserPlus size={size} color={color} />
           ),
+          title: "Inscription",
         }}
       />
     </Tab.Navigator>
