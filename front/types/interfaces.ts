@@ -155,10 +155,8 @@ export interface RegisterCredentials {
   title?: string;
   company?: number;
   newCompany?: {
-    name: string;
-    description: string;
-    website: string;
-    logo: string;
+    CompanyName: string;
+    SIRET: string;
   };
 }
 
