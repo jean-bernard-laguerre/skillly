@@ -1,12 +1,12 @@
 package skill
 
 import (
+	"github.com/gin-gonic/gin"
+
 	"skillly/pkg/config"
 	skillDto "skillly/pkg/handlers/skill/dto"
 	"skillly/pkg/models"
 	"skillly/pkg/utils"
-
-	"github.com/gin-gonic/gin"
 )
 
 func CreateSkill(

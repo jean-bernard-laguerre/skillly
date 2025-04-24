@@ -2,7 +2,7 @@ import instance from "./api";
 import { Certification } from "@/types/interfaces";
 
 export const getAllCertifications = async (): Promise<Certification[]> => {
-  const response = await instance.get("/certifications");
+  const response = await instance.get("/certification");
   return response.data;
 };
 

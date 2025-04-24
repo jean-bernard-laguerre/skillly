@@ -2,7 +2,7 @@ import instance from "./api";
 import { Skill } from "@/types/interfaces";
 
 export const getAllSkills = async (): Promise<Skill[]> => {
-  const response = await instance.get("/skills");
+  const response = await instance.get("/skill");
   return response.data;
 };
 

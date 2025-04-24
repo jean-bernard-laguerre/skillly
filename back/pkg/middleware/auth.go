@@ -20,6 +20,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		authHeader := c.GetHeader("Authorization")
 		// Check if the token is empty
 		if authHeader == "" {
+			fmt.Println("authHeader", authHeader)
 			c.JSON(401, gin.H{"error": "Unauthorized"})
 			c.Abort()
 			return
@@ -38,6 +39,7 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		// Check if there is an error
 		if err != nil {
+			fmt.Println("err", err)
 			c.JSON(401, gin.H{"error": "Unauthorized"})
 			c.Abort()
 			return
@@ -45,6 +47,7 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		// Check if the token is valid
 		if !token.Valid {
+			fmt.Println("token.Valid", token.Valid)
 			c.JSON(401, gin.H{"error": "Unauthorized"})
 			c.Abort()
 			return
@@ -53,6 +56,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		// Check if the user has the correct role
 		userRole, ok := (*user)["role"].(string)
 		if !ok {
+			fmt.Println("userRole", userRole)
 			c.JSON(403, gin.H{"error": "Forbidden"})
 			c.Abort()
 			return

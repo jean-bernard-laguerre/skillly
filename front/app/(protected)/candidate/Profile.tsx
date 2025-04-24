@@ -41,6 +41,8 @@ export default function Profile() {
     );
   };
 
+  console.log("Certifications", certifications);
+
   return (
     <ScrollView className="flex-1 p-5">
       <View className="items-center justify-center">
@@ -151,7 +153,10 @@ export default function Profile() {
             <View className="flex-row justify-end mt-4">
               <Pressable
                 className="px-4 py-2 mr-2 bg-gray-500 rounded"
-                onPress={() => setIsSkillsModalVisible(false)}
+                onPress={() => {
+                  setIsSkillsModalVisible(false);
+                  setSelectedSkills([]);
+                }}
               >
                 <Text className="text-white">Annuler</Text>
               </Pressable>
@@ -206,7 +211,10 @@ export default function Profile() {
             <View className="flex-row justify-end mt-4">
               <Pressable
                 className="px-4 py-2 mr-2 bg-gray-500 rounded"
-                onPress={() => setIsCertificationsModalVisible(false)}
+                onPress={() => {
+                  setIsCertificationsModalVisible(false);
+                  setSelectedCertifications([]);
+                }}
               >
                 <Text className="text-white">Annuler</Text>
               </Pressable>

@@ -2,8 +2,9 @@ package models
 
 import (
 	"errors"
-	"skillly/pkg/utils"
 	"time"
+
+	"skillly/pkg/utils"
 )
 
 const (
