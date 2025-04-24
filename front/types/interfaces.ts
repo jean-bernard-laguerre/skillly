@@ -91,7 +91,7 @@ export interface User {
   lastName: string;
   email: string;
   role: "candidate" | "recruiter";
-  profileCandidate?: {
+  profile_candidate?: {
     bio: string;
     experienceYears: number;
     preferedContract: string;
@@ -99,10 +99,10 @@ export interface User {
     location: string;
     availability: string;
     resumeID: number;
-    certifications: number[];
-    skills: number[];
+    certifications: Certification[];
+    skills: Skill[];
   };
-  profileRecruiter?: {
+  profile_recruiter?: {
     title: string;
     companyID: number;
     role: "admin" | "member";

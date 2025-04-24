@@ -1,14 +1,29 @@
 import React, { useState } from "react";
-import { View, Text, Image, Pressable, Modal, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  Pressable,
+  Modal,
+  ScrollView,
+  Alert,
+} from "react-native";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { useSkills } from "@/lib/hooks/useSkills";
 import { useCertifications } from "@/lib/hooks/useCertifications";
 import { Skill, Certification } from "@/types/interfaces";
 
 export default function Profile() {
-  const { logout, currentUser } = useAuth();
-  const { skills, isLoadingSkills } = useSkills();
-  const { certifications, isLoadingCertifications } = useCertifications();
+  const {
+    logout,
+    currentUser,
+    addUserSkillsMutation,
+    deleteUserSkillMutation,
+    deleteUserCertificationMutation,
+  } = useAuth();
+  const { skills: allSkills, isLoadingSkills } = useSkills();
+  const { certifications: allCertifications, isLoadingCertifications } =
+    useCertifications();
   const [isSkillsModalVisible, setIsSkillsModalVisible] = useState(false);
   const [isCertificationsModalVisible, setIsCertificationsModalVisible] =
     useState(false);
@@ -17,31 +32,133 @@ export default function Profile() {
     number[]
   >([]);
 
+  const userSkillIds =
+    currentUser?.profile_candidate?.skills.map((s) => s.id) || [];
+  const userCertificationIds =
+    currentUser?.profile_candidate?.certifications.map((c) => c.id) || [];
+
   const handleAddSkills = () => {
+    setSelectedSkills(userSkillIds);
     setIsSkillsModalVisible(true);
   };
 
   const handleAddCertifications = () => {
+    setSelectedCertifications(userCertificationIds);
     setIsCertificationsModalVisible(true);
   };
 
   const handleSkillSelect = (skillId: number) => {
-    setSelectedSkills((prev) =>
-      prev.includes(skillId)
-        ? prev.filter((id) => id !== skillId)
-        : [...prev, skillId]
-    );
+    if (!selectedSkills.includes(skillId)) {
+      setSelectedSkills((prev) => [...prev, skillId]);
+    }
   };
 
   const handleCertificationSelect = (certificationId: number) => {
-    setSelectedCertifications((prev) =>
-      prev.includes(certificationId)
-        ? prev.filter((id) => id !== certificationId)
-        : [...prev, certificationId]
+    if (!selectedCertifications.includes(certificationId)) {
+      setSelectedCertifications((prev) => [...prev, certificationId]);
+    }
+  };
+
+  const handleSaveChanges = () => {
+    if (!currentUser) return;
+    const payload: { skills?: number[]; certifications?: number[] } = {};
+
+    const newSkills = selectedSkills.filter((id) => !userSkillIds.includes(id));
+    const newCertifications = selectedCertifications.filter(
+      (id) => !userCertificationIds.includes(id)
+    );
+
+    if (newSkills.length > 0) {
+      payload.skills = newSkills;
+    }
+    if (newCertifications.length > 0) {
+      payload.certifications = newCertifications;
+    }
+
+    if (Object.keys(payload).length > 0) {
+      addUserSkillsMutation(
+        { userId: currentUser.id, payload },
+        {
+          onSuccess: () => {
+            console.log("Profil mis à jour avec succès");
+            setIsSkillsModalVisible(false);
+            setIsCertificationsModalVisible(false);
+          },
+          onError: (error) => {
+            console.error("Erreur lors de la mise à jour du profil:", error);
+            Alert.alert(
+              "Erreur",
+              "Impossible de sauvegarder les modifications."
+            );
+          },
+        }
+      );
+    } else {
+      setIsSkillsModalVisible(false);
+      setIsCertificationsModalVisible(false);
+    }
+  };
+
+  const handleDeleteSkill = (skillId: number) => {
+    if (!currentUser) return;
+    Alert.alert(
+      "Supprimer la compétence",
+      "Êtes-vous sûr de vouloir supprimer cette compétence ?",
+      [
+        { text: "Annuler", style: "cancel" },
+        {
+          text: "Supprimer",
+          style: "destructive",
+          onPress: () => {
+            deleteUserSkillMutation(
+              { userId: currentUser.id, skillId },
+              {
+                onSuccess: () => console.log("Compétence supprimée:", skillId),
+                onError: (error) => {
+                  console.error("Erreur suppression compétence:", error);
+                  Alert.alert(
+                    "Erreur",
+                    "Impossible de supprimer la compétence."
+                  );
+                },
+              }
+            );
+          },
+        },
+      ]
     );
   };
 
-  console.log("Certifications", certifications);
+  const handleDeleteCertification = (certificationId: number) => {
+    if (!currentUser) return;
+    Alert.alert(
+      "Supprimer la certification",
+      "Êtes-vous sûr de vouloir supprimer cette certification ?",
+      [
+        { text: "Annuler", style: "cancel" },
+        {
+          text: "Supprimer",
+          style: "destructive",
+          onPress: () => {
+            deleteUserCertificationMutation(
+              { userId: currentUser.id, certificationId },
+              {
+                onSuccess: () =>
+                  console.log("Certification supprimée:", certificationId),
+                onError: (error) => {
+                  console.error("Erreur suppression certification:", error);
+                  Alert.alert(
+                    "Erreur",
+                    "Impossible de supprimer la certification."
+                  );
+                },
+              }
+            );
+          },
+        },
+      ]
+    );
+  };
 
   return (
     <ScrollView className="flex-1 p-5">
@@ -72,17 +189,15 @@ export default function Profile() {
           </Pressable>
         </View>
         <View className="flex-row flex-wrap">
-          {currentUser?.profileCandidate?.skills.map((skillId) => {
-            const skill = skills?.find((s) => s.id === skillId);
-            return (
-              <View
-                key={skillId}
-                className="px-3 py-1 mb-2 mr-2 bg-gray-200 rounded-full"
-              >
-                <Text>{skill?.name}</Text>
-              </View>
-            );
-          })}
+          {currentUser?.profile_candidate?.skills.map((skill) => (
+            <Pressable
+              key={skill.id}
+              onLongPress={() => handleDeleteSkill(skill.id)}
+              className="px-3 py-1 mb-2 mr-2 bg-gray-200 rounded-full"
+            >
+              <Text>{skill?.name}</Text>
+            </Pressable>
+          ))}
         </View>
       </View>
 
@@ -98,20 +213,16 @@ export default function Profile() {
           </Pressable>
         </View>
         <View className="flex-row flex-wrap">
-          {currentUser?.profileCandidate?.certifications.map(
-            (certificationId) => {
-              const certification = certifications?.find(
-                (c) => c.id === certificationId
-              );
-              return (
-                <View
-                  key={certificationId}
-                  className="px-3 py-1 mb-2 mr-2 bg-gray-200 rounded-full"
-                >
-                  <Text>{certification?.name}</Text>
-                </View>
-              );
-            }
+          {currentUser?.profile_candidate?.certifications.map(
+            (certification) => (
+              <Pressable
+                key={certification.id}
+                onLongPress={() => handleDeleteCertification(certification.id)}
+                className="px-3 py-1 mb-2 mr-2 bg-gray-200 rounded-full"
+              >
+                <Text>{certification?.name}</Text>
+              </Pressable>
+            )
           )}
         </View>
       </View>
@@ -128,27 +239,29 @@ export default function Profile() {
               Ajouter des compétences
             </Text>
             <ScrollView>
-              {skills?.map((skill) => (
-                <Pressable
-                  key={skill.id}
-                  className={`p-3 mb-2 rounded ${
-                    selectedSkills.includes(skill.id)
-                      ? "bg-blue-500"
-                      : "bg-gray-200"
-                  }`}
-                  onPress={() => handleSkillSelect(skill.id)}
-                >
-                  <Text
-                    className={
+              {allSkills
+                ?.filter((skill) => !userSkillIds.includes(skill.id))
+                .map((skill) => (
+                  <Pressable
+                    key={skill.id}
+                    className={`p-3 mb-2 rounded ${
                       selectedSkills.includes(skill.id)
-                        ? "text-white"
-                        : "text-black"
-                    }
+                        ? "bg-blue-500"
+                        : "bg-gray-200"
+                    }`}
+                    onPress={() => handleSkillSelect(skill.id)}
                   >
-                    {skill.name}
-                  </Text>
-                </Pressable>
-              ))}
+                    <Text
+                      className={
+                        selectedSkills.includes(skill.id)
+                          ? "text-white"
+                          : "text-black"
+                      }
+                    >
+                      {skill.name}
+                    </Text>
+                  </Pressable>
+                ))}
             </ScrollView>
             <View className="flex-row justify-end mt-4">
               <Pressable
@@ -162,10 +275,7 @@ export default function Profile() {
               </Pressable>
               <Pressable
                 className="px-4 py-2 bg-blue-500 rounded"
-                onPress={() => {
-                  // TODO: Implémenter la logique pour sauvegarder les compétences sélectionnées
-                  setIsSkillsModalVisible(false);
-                }}
+                onPress={handleSaveChanges}
               >
                 <Text className="text-white">Valider</Text>
               </Pressable>
@@ -186,27 +296,29 @@ export default function Profile() {
               Ajouter des certifications
             </Text>
             <ScrollView>
-              {certifications?.map((certification) => (
-                <Pressable
-                  key={certification.id}
-                  className={`p-3 mb-2 rounded ${
-                    selectedCertifications.includes(certification.id)
-                      ? "bg-blue-500"
-                      : "bg-gray-200"
-                  }`}
-                  onPress={() => handleCertificationSelect(certification.id)}
-                >
-                  <Text
-                    className={
+              {allCertifications
+                ?.filter((cert) => !userCertificationIds.includes(cert.id))
+                .map((certification) => (
+                  <Pressable
+                    key={certification.id}
+                    className={`p-3 mb-2 rounded ${
                       selectedCertifications.includes(certification.id)
-                        ? "text-white"
-                        : "text-black"
-                    }
+                        ? "bg-blue-500"
+                        : "bg-gray-200"
+                    }`}
+                    onPress={() => handleCertificationSelect(certification.id)}
                   >
-                    {certification.name}
-                  </Text>
-                </Pressable>
-              ))}
+                    <Text
+                      className={
+                        selectedCertifications.includes(certification.id)
+                          ? "text-white"
+                          : "text-black"
+                      }
+                    >
+                      {certification.name}
+                    </Text>
+                  </Pressable>
+                ))}
             </ScrollView>
             <View className="flex-row justify-end mt-4">
               <Pressable
@@ -220,10 +332,7 @@ export default function Profile() {
               </Pressable>
               <Pressable
                 className="px-4 py-2 bg-blue-500 rounded"
-                onPress={() => {
-                  // TODO: Implémenter la logique pour sauvegarder les certifications sélectionnées
-                  setIsCertificationsModalVisible(false);
-                }}
+                onPress={handleSaveChanges}
               >
                 <Text className="text-white">Valider</Text>
               </Pressable>

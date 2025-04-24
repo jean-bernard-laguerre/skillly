@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AuthService } from "@/services";
+import * as AuthService from "@/services/auth.service";
+import * as UserService from "@/services/user.service";
 import {
   LoginCredentials,
   RegisterCredentials,
@@ -20,6 +21,7 @@ export const useAuth = () => {
     data: currentUser,
     isLoading: isLoadingUser,
     error: userError,
+    refetch: refetchCurrentUser,
   } = useQuery({
     queryKey: ["currentUser"],
     queryFn: async () => {
@@ -35,6 +37,43 @@ export const useAuth = () => {
     retry: false,
   });
 
+  // Mutation pour ajouter des compétences/certifications
+  const { mutate: addUserSkillsMutation, isPending: isAddingSkills } =
+    useMutation({
+      mutationFn: ({ userId, payload }: { userId: number; payload: any }) =>
+        UserService.addUserSkills(userId, payload),
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+      },
+    });
+
+  // Mutation pour supprimer une compétence
+  const { mutate: deleteUserSkillMutation, isPending: isDeletingSkill } =
+    useMutation({
+      mutationFn: ({ userId, skillId }: { userId: number; skillId: number }) =>
+        UserService.deleteUserSkill(userId, skillId),
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+      },
+    });
+
+  // Mutation pour supprimer une certification
+  const {
+    mutate: deleteUserCertificationMutation,
+    isPending: isDeletingCertification,
+  } = useMutation({
+    mutationFn: ({
+      userId,
+      certificationId,
+    }: {
+      userId: number;
+      certificationId: number;
+    }) => UserService.deleteUserCertification(userId, certificationId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+    },
+  });
+
   // Mutation pour la connexion
   const {
     mutate: login,
@@ -44,14 +83,9 @@ export const useAuth = () => {
     mutationFn: AuthService.login,
     onSuccess: async (data) => {
       try {
-        // Invalider les requêtes liées à l'utilisateur
         await queryClient.invalidateQueries({ queryKey: ["currentUser"] });
         setUser(data.user);
-
-        // Attendre que les données soient bien stockées
         await new Promise((resolve) => setTimeout(resolve, 300));
-
-        // Rediriger en fonction du rôle
         if (data.user.role === "candidate") {
           navigation.navigate("CandidateHome");
         } else if (data.user.role === "recruiter") {
@@ -72,14 +106,9 @@ export const useAuth = () => {
     mutationFn: AuthService.registerCandidate,
     onSuccess: async (data) => {
       try {
-        // Invalider les requêtes liées à l'utilisateur
         await queryClient.invalidateQueries({ queryKey: ["currentUser"] });
         setUser(data.user);
-
-        // Attendre que les données soient bien stockées
         await new Promise((resolve) => setTimeout(resolve, 300));
-
-        // Rediriger vers la page candidat
         navigation.navigate("CandidateHome");
       } catch (error) {
         console.error("Erreur lors de la redirection:", error);
@@ -96,14 +125,9 @@ export const useAuth = () => {
     mutationFn: AuthService.registerRecruiter,
     onSuccess: async (data) => {
       try {
-        // Invalider les requêtes liées à l'utilisateur
         await queryClient.invalidateQueries({ queryKey: ["currentUser"] });
         setUser(data.user);
-
-        // Attendre que les données soient bien stockées
         await new Promise((resolve) => setTimeout(resolve, 300));
-
-        // Rediriger vers la page recruteur
         navigation.navigate("RecruiterHome");
       } catch (error) {
         console.error("Erreur lors de la redirection:", error);
@@ -120,11 +144,8 @@ export const useAuth = () => {
     mutationFn: AuthService.logout,
     onSuccess: async () => {
       try {
-        // Supprimer toutes les données du cache
         await queryClient.clear();
         setUser(null);
-
-        // Attendre que les données soient bien supprimées
         await new Promise((resolve) => setTimeout(resolve, 300));
       } catch (error) {
         console.error("Erreur lors de la déconnexion:", error);
@@ -136,7 +157,6 @@ export const useAuth = () => {
   const { mutate: refreshToken, error: refreshError } = useMutation({
     mutationFn: AuthService.refreshToken,
     onSuccess: (token) => {
-      // Mettre à jour le token dans le cache
       queryClient.setQueryData(["token"], token);
     },
   });
@@ -146,7 +166,7 @@ export const useAuth = () => {
     currentUser,
     isLoadingUser,
 
-    // Mutations
+    // Mutations Auth
     login,
     isLoggingIn,
     registerCandidate,
@@ -155,7 +175,14 @@ export const useAuth = () => {
     isRegisteringRecruiter,
     logout,
     isLoggingOut,
-    refreshToken,
+
+    // Mutations Profil (ajoutées)
+    addUserSkillsMutation,
+    isAddingSkills,
+    deleteUserSkillMutation,
+    isDeletingSkill,
+    deleteUserCertificationMutation,
+    isDeletingCertification,
 
     // États dérivés
     isAuthenticated: !!currentUser,

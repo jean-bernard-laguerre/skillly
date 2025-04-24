@@ -1,10 +1,5 @@
 import instance from "./api";
-
-export interface User {
-  id: number;
-  name: string;
-  email: string;
-}
+import { User } from "@/types/interfaces"; // Garder l'interface User si elle est déjà utilisée
 
 export const getAllUsers = async (): Promise<User[]> => {
   try {
@@ -37,4 +32,34 @@ export const createUser = async (userData: Omit<User, "id">): Promise<User> => {
     console.error("Erreur lors de la création de l'utilisateur:", error);
     throw error;
   }
+};
+
+// Interface pour le DTO d'ajout/mise à jour (PATCH)
+interface UpdateUserSkillsPayload {
+  skills?: number[];
+  certifications?: number[];
+}
+
+// Ajouter des compétences/certifications à un utilisateur (PATCH)
+export const addUserSkills = async (
+  userId: number,
+  payload: UpdateUserSkillsPayload
+): Promise<void> => {
+  await instance.patch(`/user/${userId}/skills`, payload);
+};
+
+// Supprimer une compétence spécifique pour un utilisateur (DELETE)
+export const deleteUserSkill = async (
+  userId: number,
+  skillId: number
+): Promise<void> => {
+  await instance.delete(`/user/${userId}/skills/${skillId}`);
+};
+
+// Supprimer une certification spécifique pour un utilisateur (DELETE)
+export const deleteUserCertification = async (
+  userId: number,
+  certificationId: number
+): Promise<void> => {
+  await instance.delete(`/user/${userId}/certifications/${certificationId}`);
 };
