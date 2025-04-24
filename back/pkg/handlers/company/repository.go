@@ -7,9 +7,24 @@ import (
 	"gorm.io/gorm"
 )
 
-type CompanyRepository struct{}
+type CompanyRepository interface {
+	models.Repository[models.Company]
+	CreateCompany(dto companyDto.CreateCompanyDTO, tx *gorm.DB) (models.Company, error)
+}
 
-func (r *CompanyRepository) Create(dto companyDto.CreateCompanyDTO, tx *gorm.DB) (models.Company, error) {
+type companyRepository struct {
+	models.Repository[models.Company]
+	db *gorm.DB
+}
+
+func NewCompanyRepository(db *gorm.DB) CompanyRepository {
+	return &companyRepository{
+		Repository: models.NewRepository[models.Company](db),
+		db:         db,
+	}
+}
+
+func (r *companyRepository) CreateCompany(dto companyDto.CreateCompanyDTO, tx *gorm.DB) (models.Company, error) {
 
 	company := models.Company{
 		CompanyName: dto.CompanyName,

@@ -2,39 +2,35 @@ package company
 
 import (
 	"skillly/pkg/config"
-	"skillly/pkg/models"
 	"skillly/pkg/utils"
 
 	"github.com/gin-gonic/gin"
 )
 
-func GetAll(
+type CompanyService interface {
+	GetAll(c *gin.Context)
+}
+
+type companyService struct {
+	companyRepository CompanyRepository
+}
+
+func NewCompanyService() CompanyService {
+	return &companyService{
+		companyRepository: NewCompanyRepository(config.DB),
+	}
+}
+
+func (s *companyService) GetAll(
 	c *gin.Context,
 ) {
 
 	params := utils.GetUrlParams(c)
-	db := config.DB.Model(&models.Company{})
+	companies, err := s.companyRepository.GetAll(params)
 
-	// apply filters
-	for key, value := range params.Filters {
-		db = db.Where(key, value)
+	if err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
 	}
-
-	// apply sorting
-	db = db.Order(params.Sort + " " + params.Order)
-
-	// apply pagination
-	if params.PageSize != nil {
-		db = db.Limit(*params.PageSize).Offset((params.Page - 1) * *params.PageSize)
-	}
-
-	// populate fields
-	for _, field := range params.Populate {
-		db = db.Preload(field)
-	}
-
-	var companies []models.Company
-	db.Find(&companies)
 
 	c.JSON(200, companies)
 }

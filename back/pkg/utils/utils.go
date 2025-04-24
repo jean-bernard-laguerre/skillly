@@ -32,3 +32,15 @@ func GetUrlParams(c *gin.Context) QueryParams {
 		Filters:  c.QueryMap("filters"),
 	}
 }
+
+func GetId(c *gin.Context) (uint, error) {
+	idStr := c.Param("id")
+
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		c.JSON(400, gin.H{"error": "Invalid ID"})
+		c.Abort()
+	}
+
+	return uint(id), nil
+}

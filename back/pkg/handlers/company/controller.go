@@ -6,9 +6,11 @@ import (
 
 func AddRoutes(r *gin.Engine) {
 
+	services := NewCompanyService()
+
 	co := r.Group("/company")
 
 	co.GET("/", func(c *gin.Context) {
-		GetAll(c)
+		services.GetAll(c)
 	})
 }

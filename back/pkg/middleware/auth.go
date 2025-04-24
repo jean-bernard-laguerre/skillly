@@ -72,10 +72,14 @@ func AuthMiddleware() gin.HandlerFunc {
 			c.Set("company_id", uint(companyID))
 			c.Set("recruiter_id", uint(recruiterID))
 			c.Set("company_role", (*user)["companyRole"])
-		} else {
+		} else if utils.RoleType(userRole) == models.RoleCandidate {
 			candidateID, _ := (*user)["candidateID"].(float64)
 
 			c.Set("candidate_id", uint(candidateID))
+		} else {
+			c.JSON(403, gin.H{"error": "Invalid Role"})
+			c.Abort()
+			return
 		}
 
 		// Continue to the next middleware or handler

@@ -7,9 +7,24 @@ import (
 	"gorm.io/gorm"
 )
 
-type JobPostRepository struct{}
+type JobPostRepository interface {
+	models.Repository[models.JobPost]
+	CreateJobPost(dto jobPostDto.CreateJobPostDTO, tx *gorm.DB) (models.JobPost, error)
+}
 
-func (r *JobPostRepository) Create(dto jobPostDto.CreateJobPostDTO, tx *gorm.DB) (models.JobPost, error) {
+type jobPostRepository struct {
+	models.Repository[models.JobPost]
+	db *gorm.DB
+}
+
+func NewJobPostRepository(db *gorm.DB) JobPostRepository {
+	return &jobPostRepository{
+		Repository: models.NewRepository[models.JobPost](db),
+		db:         db,
+	}
+}
+
+func (r *jobPostRepository) CreateJobPost(dto jobPostDto.CreateJobPostDTO, tx *gorm.DB) (models.JobPost, error) {
 
 	jobPost := models.JobPost{
 		Description:     dto.Description,

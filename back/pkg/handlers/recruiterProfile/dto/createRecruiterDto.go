@@ -1,4 +1,4 @@
-package models
+package recruiterDto
 
 import (
 	"skillly/pkg/models"

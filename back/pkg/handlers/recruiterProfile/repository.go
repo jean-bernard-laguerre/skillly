@@ -7,25 +7,38 @@ import (
 	"gorm.io/gorm"
 )
 
-type RecruiterRepository struct{}
+type RecruiterRepository interface {
+	models.Repository[models.ProfileRecruiter]
+	CreateRecruiter(dto recruiterDto.CreateRecruiterDTO, tx *gorm.DB) (models.ProfileRecruiter, error)
+}
+
+type recruiterRepository struct {
+	models.Repository[models.ProfileRecruiter]
+	db *gorm.DB
+}
+
+func NewRecruiterRepository(db *gorm.DB) RecruiterRepository {
+	return &recruiterRepository{
+		Repository: models.NewRepository[models.ProfileRecruiter](db),
+		db:         db,
+	}
+}
 
 // Create a new recruiter
-func (
-	r *RecruiterRepository,
-) Create(
-	dto recruiterDto.CreateRecruiterDTO, tx *gorm.DB,
-) (int, error) {
+func (r *recruiterRepository) CreateRecruiter(dto recruiterDto.CreateRecruiterDTO, tx *gorm.DB) (models.ProfileRecruiter, error) {
 
-	createdRecruiter := tx.Create(&models.ProfileRecruiter{
+	recruiter := models.ProfileRecruiter{
 		Title:     dto.Title,
 		CompanyID: dto.CompanyID,
 		UserID:    dto.User.ID,
 		Role:      dto.Role,
-	})
-
-	if createdRecruiter.Error != nil {
-		return 0, createdRecruiter.Error
 	}
 
-	return int(createdRecruiter.RowsAffected), nil
+	createdRecruiter := tx.Create(&recruiter)
+
+	if createdRecruiter.Error != nil {
+		return models.ProfileRecruiter{}, createdRecruiter.Error
+	}
+
+	return recruiter, nil
 }
