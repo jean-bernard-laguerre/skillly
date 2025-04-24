@@ -1,34 +1,28 @@
 import "react-native-gesture-handler";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { Stack } from "expo-router";
 import TabNavigator from "@/navigation/TabNavigator";
-import { AuthProvider, useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/lib/hooks/useAuth";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
 import "../global.css";
+import { AuthProvider } from "@/context/AuthContext";
 
 function RootLayoutNav() {
-  const { role, loading } = useAuth();
-
-  if (loading) {
-    return null; // Ou un composant de chargement
-  }
+  const { role } = useAuth();
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      {role === null ? (
-        <TabNavigator role={null} />
-      ) : (
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(protected)" options={{ headerShown: false }} />
-        </Stack>
-      )}
+      <TabNavigator role={role ?? null} />
     </GestureHandlerRootView>
   );
 }
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <RootLayoutNav />
-    </AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <RootLayoutNav />
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }

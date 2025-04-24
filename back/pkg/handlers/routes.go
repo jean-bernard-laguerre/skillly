@@ -1,14 +1,15 @@
 package handlers
 
 import (
+	"github.com/gin-gonic/gin"
+
 	"skillly/pkg/handlers/application"
 	"skillly/pkg/handlers/auth"
 	"skillly/pkg/handlers/certification"
 	"skillly/pkg/handlers/company"
 	"skillly/pkg/handlers/jobPost"
 	"skillly/pkg/handlers/skill"
-
-	"github.com/gin-gonic/gin"
+	"skillly/pkg/handlers/user"
 )
 
 func AddRoutes(r *gin.Engine) {
@@ -18,4 +19,5 @@ func AddRoutes(r *gin.Engine) {
 	skill.AddRoutes(r)
 	certification.AddRoutes(r)
 	application.AddRoutes(r)
+	user.AddRoutes(r)
 }

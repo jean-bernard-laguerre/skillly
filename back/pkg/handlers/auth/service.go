@@ -1,6 +1,14 @@
 package auth
 
 import (
+	"errors"
+
+	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
+	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
+
+	"skillly/pkg/config"
 	authDto "skillly/pkg/handlers/auth/dto"
 	candidate "skillly/pkg/handlers/candidateProfile"
 	candidateDto "skillly/pkg/handlers/candidateProfile/dto"
@@ -9,17 +17,7 @@ import (
 	recruiterDto "skillly/pkg/handlers/recruiterProfile/dto"
 	"skillly/pkg/handlers/user"
 	userDto "skillly/pkg/handlers/user/dto"
-
 	"skillly/pkg/models"
-
-	"gorm.io/gorm"
-
-	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
-
-	"skillly/pkg/config"
-
-	"golang.org/x/crypto/bcrypt"
 )
 
 // RegisterCandidate is a handler that creates a new candidate and user
@@ -202,4 +200,32 @@ func Login(c *gin.Context) {
 		"user":  user,
 		"token": tokenString,
 	})
+}
+
+func GetCurrentUser(c *gin.Context) {
+	userIDRaw, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(401, gin.H{"error": "Unauthorized: User ID not found in context"})
+		return
+	}
+
+	userID, ok := userIDRaw.(uint)
+	if !ok {
+		c.JSON(500, gin.H{"error": "Internal Server Error: User ID has invalid type in context"})
+		return
+	}
+
+	userModel := user.UserRepository{}
+	currentUser, err := userModel.GetByID(userID)
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(404, gin.H{"error": "User not found"})
+		} else {
+			c.JSON(500, gin.H{"error": "Failed to retrieve user data"})
+		}
+		return
+	}
+
+	c.JSON(200, currentUser)
 }

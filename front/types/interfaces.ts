@@ -79,13 +79,37 @@ export interface OverlayLabelProps {
 export interface AuthContextType {
   role: "candidate" | "recruiter" | null;
   setRole: (role: "candidate" | "recruiter" | null) => void;
+  user: User | null;
+  setUser: (user: User | null) => void;
   handleLogOut: () => void;
   loading: boolean;
 }
 
-export interface HandleRedirect {
-  (role: string | null): void;
+export interface User {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: "candidate" | "recruiter";
+  profile_candidate?: {
+    bio: string;
+    experienceYears: number;
+    preferedContract: string;
+    preferedJob: string;
+    location: string;
+    availability: string;
+    resumeID: number;
+    certifications: Certification[];
+    skills: Skill[];
+  };
+  profile_recruiter?: {
+    title: string;
+    companyID: number;
+    role: "admin" | "member";
+  };
 }
+
+export type HandleRedirect = (role: "candidate" | "recruiter" | null) => void;
 
 // Components
 export type ExternalLinkProps = Omit<ComponentProps<typeof Link>, "href"> & {
@@ -97,3 +121,55 @@ export type ParallaxScrollViewProps = PropsWithChildren<{
   headerImage?: any;
   headerHeight?: number;
 }>;
+
+// Skills
+export interface Skill {
+  id: number;
+  name: string;
+  category: string;
+  description?: string;
+}
+
+// Auth
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+export interface RegisterCredentials {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  // Champs spécifiques aux candidats
+  bio?: string;
+  experienceYears?: number;
+  preferedContract?: string;
+  preferedJob?: string;
+  location?: string;
+  availability?: string;
+  resumeID?: number;
+  certifications?: number[];
+  skills?: number[];
+  // Champs spécifiques aux recruteurs
+  title?: string;
+  company?: number;
+  newCompany?: {
+    name: string;
+    description: string;
+    website: string;
+    logo: string;
+  };
+}
+
+export interface AuthResponse {
+  token: string;
+  user: User;
+}
+
+export interface Certification {
+  id: number;
+  name: string;
+  category: string;
+  description?: string;
+}

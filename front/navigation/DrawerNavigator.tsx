@@ -8,7 +8,7 @@ import {
 import { View, Button } from "react-native";
 
 import { useAuth } from "@/context/AuthContext";
-import ProfileScreen from "@/app/(protected)/ProfileScreen";
+import Profile from "@/app/(protected)/index";
 import { DrawerNavigatorProps } from "@/types/navigation";
 
 const CustomDrawerContent = (props: DrawerContentComponentProps) => {
@@ -41,7 +41,7 @@ export default function DrawerNavigator({ children }: DrawerNavigatorProps) {
       <Drawer.Screen name="Home">{() => children}</Drawer.Screen>
       <Drawer.Screen
         name="Profile"
-        component={ProfileScreen}
+        component={Profile}
         options={{ title: "Mon Profil" }}
       />
     </Drawer.Navigator>
