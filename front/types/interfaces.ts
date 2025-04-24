@@ -171,3 +171,29 @@ export interface Certification {
   category: string;
   description?: string;
 }
+
+export interface JobPost {
+  id: number;
+  description: string;
+  title: string;
+  location: string;
+  contract_type: "CDI" | "CDD";
+  salary_range: string;
+  expiration_date: string;
+  skills: Skill[];
+  certifications: Certification[];
+  company_id?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface CreateJobPostDTO {
+  description: string;
+  title: string;
+  location: string;
+  contract_type: "CDI" | "CDD";
+  salary_range: string;
+  expiration_date: string;
+  skills: number[];
+  certifications: number[];
+}

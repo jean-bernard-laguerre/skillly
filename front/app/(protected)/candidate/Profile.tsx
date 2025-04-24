@@ -50,12 +50,18 @@ export default function Profile() {
   const handleSkillSelect = (skillId: number) => {
     if (!selectedSkills.includes(skillId)) {
       setSelectedSkills((prev) => [...prev, skillId]);
+    } else {
+      setSelectedSkills((prev) => prev.filter((id) => id !== skillId));
     }
   };
 
   const handleCertificationSelect = (certificationId: number) => {
     if (!selectedCertifications.includes(certificationId)) {
       setSelectedCertifications((prev) => [...prev, certificationId]);
+    } else {
+      setSelectedCertifications((prev) =>
+        prev.filter((id) => id !== certificationId)
+      );
     }
   };
 
