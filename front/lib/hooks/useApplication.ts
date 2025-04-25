@@ -1,8 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as ApplicationService from "@/services/application.service";
+import { useAuth } from "@/context/AuthContext";
 
 export const useApplication = () => {
   const queryClient = useQueryClient();
+  const { role } = useAuth();
 
   const {
     data: applications,
@@ -12,6 +14,7 @@ export const useApplication = () => {
   } = useQuery({
     queryKey: ["myApplications"],
     queryFn: ApplicationService.getMyApplications,
+    enabled: role === "candidate",
   });
 
   const {
@@ -31,6 +34,24 @@ export const useApplication = () => {
     },
   });
 
+  const {
+    mutate: updateApplicationState,
+    isPending: isUpdatingApplicationState,
+    error: updateApplicationStateError,
+  } = useMutation({
+    mutationFn: ({
+      applicationId,
+      state,
+    }: {
+      applicationId: string;
+      state: "pending" | "matched" | "rejected" | "accepted";
+    }) => ApplicationService.updateApplicationState(applicationId, state),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["myApplications"] });
+      queryClient.invalidateQueries({ queryKey: ["applications"] });
+    },
+  });
+
   return {
     applications,
     isLoadingApplications,
@@ -39,5 +60,8 @@ export const useApplication = () => {
     createApplication,
     isCreatingApplication,
     createApplicationError,
+    updateApplicationState,
+    isUpdatingApplicationState,
+    updateApplicationStateError,
   };
 };

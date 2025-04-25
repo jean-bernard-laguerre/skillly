@@ -23,7 +23,7 @@ export default function JobSelector({
             }`}
             onPress={() => onSelectJob(job.id)}
           >
-            <View className="flex-row items-center">
+            <View className="flex-row items-center gap-2">
               <Briefcase size={20} color="#6366f1" className="mr-2" />
               <View className="flex-1">
                 <Text className="font-medium">{job.title}</Text>
@@ -35,9 +35,10 @@ export default function JobSelector({
               <View className="px-2 py-1 bg-indigo-100 rounded-full">
                 <Text className="text-sm text-indigo-800">
                   {type === "applications"
-                    ? job.applications?.length || 0
+                    ? job.applications?.filter((app) => app.state !== "matched")
+                        .length || 0
                     : job.matches?.length || 0}{" "}
-                  {type === "applications" ? "candidatures" : "matches"}
+                  {type === "applications" ? "candidature(s)" : "match(es)"}
                 </Text>
               </View>
             </View>

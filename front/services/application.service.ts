@@ -31,3 +31,35 @@ export const createApplication = async (
     throw error;
   }
 };
+
+export const updateApplicationState = async (
+  applicationId: string,
+  state: "pending" | "matched" | "rejected" | "accepted"
+): Promise<{ message: string }> => {
+  try {
+    const response = await instance.put<{ message: string }>(
+      `/application/${applicationId}/state`,
+      {
+        state: state,
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Erreur lors de la mise à jour du statut de la candidature:",
+      error
+    );
+    const axiosError = error as AxiosError;
+    console.error("Erreur détaillée:", {
+      message: axiosError.message,
+      response: axiosError.response
+        ? {
+            status: axiosError.response.status,
+            data: axiosError.response.data,
+          }
+        : "Pas de réponse du serveur",
+      config: axiosError.config,
+    });
+    throw error;
+  }
+};

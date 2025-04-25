@@ -22,9 +22,10 @@ export interface Application {
   id: string;
   candidate: {
     id: string;
-    first_name: string;
-    last_name: string;
+    user_id: string;
+    user: User;
     skills?: Skill[];
+    certifications?: Certification[];
   };
   job_post_id: string;
   job_post: JobPost;
@@ -181,9 +182,10 @@ export interface Match {
   id: string;
   candidate: {
     id: string;
-    first_name: string;
-    last_name: string;
+    user_id: string;
+    user: User;
     skills?: Skill[];
+    certifications?: Certification[];
   };
   jobPost: JobPost;
   matched_at: string;
