@@ -132,17 +132,48 @@ export default function CreateJobPost({ onSuccess }: CreateJobPostProps) {
   };
 
   const handleDeleteSkill = (skillId: number) => {
-    const newSelectedSkills = selectedSkills.filter((id) => id !== skillId);
-    setSelectedSkills(newSelectedSkills);
-    setFormData({ ...formData, skills: newSelectedSkills });
+    Alert.alert(
+      "Supprimer la compétence",
+      "Êtes-vous sûr de vouloir supprimer cette compétence ?",
+      [
+        { text: "Annuler", style: "cancel" },
+        {
+          text: "Supprimer",
+          style: "destructive",
+          onPress: () => {
+            const newSelectedSkills = selectedSkills.filter(
+              (id) => id !== skillId
+            );
+            setSelectedSkills(newSelectedSkills);
+            setFormData({ ...formData, skills: newSelectedSkills });
+          },
+        },
+      ]
+    );
   };
 
   const handleDeleteCertification = (certificationId: number) => {
-    const newSelectedCertifications = selectedCertifications.filter(
-      (id) => id !== certificationId
+    Alert.alert(
+      "Supprimer la certification",
+      "Êtes-vous sûr de vouloir supprimer cette certification ?",
+      [
+        { text: "Annuler", style: "cancel" },
+        {
+          text: "Supprimer",
+          style: "destructive",
+          onPress: () => {
+            const newSelectedCertifications = selectedCertifications.filter(
+              (id) => id !== certificationId
+            );
+            setSelectedCertifications(newSelectedCertifications);
+            setFormData({
+              ...formData,
+              certifications: newSelectedCertifications,
+            });
+          },
+        },
+      ]
     );
-    setSelectedCertifications(newSelectedCertifications);
-    setFormData({ ...formData, certifications: newSelectedCertifications });
   };
 
   return (
@@ -235,9 +266,13 @@ export default function CreateJobPost({ onSuccess }: CreateJobPostProps) {
 
       <View className="mb-4">
         <Text className="mb-2">Date d'expiration</Text>
-        <SafeAreaView>
-          <Pressable onPress={showDatepicker}>
-            <Text>{date.toLocaleDateString("fr-FR")}</Text>
+        <SafeAreaView className="flex-row items-center justify-between">
+          <Text>{date.toLocaleDateString("fr-FR")}</Text>
+          <Pressable
+            onPress={showDatepicker}
+            className="px-3 py-1 bg-blue-500 rounded-lg"
+          >
+            <Text className="text-white">Modifier</Text>
           </Pressable>
           {show && (
             <DateTimePicker
@@ -259,7 +294,7 @@ export default function CreateJobPost({ onSuccess }: CreateJobPostProps) {
         <View className="flex-row items-center justify-between mb-2">
           <Text className="text-xl font-bold">Compétences requises</Text>
           <Pressable
-            className="px-3 py-1 bg-blue-500 rounded"
+            className="px-3 py-1 bg-blue-500 rounded-lg"
             onPress={handleOpenSkillsModal}
           >
             <Text className="text-white">Ajouter</Text>
@@ -286,7 +321,7 @@ export default function CreateJobPost({ onSuccess }: CreateJobPostProps) {
         <View className="flex-row items-center justify-between mb-2">
           <Text className="text-xl font-bold">Certifications requises</Text>
           <Pressable
-            className="px-3 py-1 bg-blue-500 rounded"
+            className="px-3 py-1 bg-blue-500 rounded-lg"
             onPress={handleOpenCertificationsModal}
           >
             <Text className="text-white">Ajouter</Text>
@@ -327,7 +362,7 @@ export default function CreateJobPost({ onSuccess }: CreateJobPostProps) {
                 .map((skill) => (
                   <Pressable
                     key={skill.id}
-                    className={`p-3 mb-2 rounded ${
+                    className={`p-3 mb-2 rounded-lg ${
                       tempSelectedSkills.includes(skill.id)
                         ? "bg-blue-500"
                         : "bg-gray-200"
@@ -340,13 +375,13 @@ export default function CreateJobPost({ onSuccess }: CreateJobPostProps) {
             </ScrollView>
             <View className="flex-row justify-end mt-4">
               <Pressable
-                className="px-4 py-2 mr-2 bg-gray-500 rounded"
+                className="px-4 py-2 mr-2 bg-gray-500 rounded-lg"
                 onPress={handleCancelSkills}
               >
                 <Text className="text-white">Annuler</Text>
               </Pressable>
               <Pressable
-                className="px-4 py-2 bg-blue-500 rounded"
+                className="px-4 py-2 bg-blue-500 rounded-lg"
                 onPress={handleSaveSkills}
               >
                 <Text className="text-white">Valider</Text>
