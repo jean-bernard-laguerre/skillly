@@ -23,6 +23,6 @@ func AddRoutes(r *gin.Engine) {
 	})
 
 	au.GET("/me", authMiddleware.AuthMiddleware(), func(c *gin.Context) {
-		GetCurrentUser(c)
+		authService.GetCurrentUser(c)
 	})
 }

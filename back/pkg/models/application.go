@@ -6,8 +6,10 @@ import (
 )
 
 const (
-	PendingApplication utils.ApplicationState = "pending"
-	ClosedApplication  utils.ApplicationState = "closed"
+	PendingApplication  utils.ApplicationState = "pending"
+	MatchedApplication  utils.ApplicationState = "matched"
+	RejectedApplication utils.ApplicationState = "rejected"
+	ClosedApplication   utils.ApplicationState = "closed"
 )
 
 // Application is a struct that represents an application
