@@ -3,16 +3,42 @@ package user
 import (
 	"errors"
 	"fmt"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
 	"skillly/pkg/config"
+	candidate "skillly/pkg/handlers/candidateProfile"
+	candidateDto "skillly/pkg/handlers/candidateProfile/dto"
 	userDto "skillly/pkg/handlers/user/dto"
+	"skillly/pkg/models"
+	"skillly/pkg/utils"
 )
 
-func CreateUser(c *gin.Context) {
+type UserService interface {
+	CreateUser(c *gin.Context)
+	GetAll(c *gin.Context)
+	GetById(c *gin.Context)
+	UpdateUser(c *gin.Context)
+	DeleteUser(c *gin.Context)
+	AddUserSkills(c *gin.Context)
+	DeleteUserSkill(c *gin.Context)
+}
+
+type userService struct {
+	userRepository      UserRepository
+	candidateRepository candidate.CandidateRepository
+}
+
+func NewUserService() UserService {
+	return &userService{
+		userRepository:      NewUserRepository(config.DB),
+		candidateRepository: candidate.NewCandidateRepository(config.DB),
+	}
+}
+
+func (s *userService) CreateUser(c *gin.Context) {
 	dto := userDto.CreateUserDTO{}
 	err := c.BindJSON(&dto)
 	if err != nil {
@@ -20,8 +46,7 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	userRepository := UserRepository{}
-	user, err := userRepository.Create(dto, config.DB)
+	user, err := s.userRepository.CreateUser(dto, config.DB)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
@@ -30,9 +55,9 @@ func CreateUser(c *gin.Context) {
 	c.JSON(200, user)
 }
 
-func GetAll(c *gin.Context) {
-	userRepository := UserRepository{}
-	users, err := userRepository.GetAll()
+func (s *userService) GetAll(c *gin.Context) {
+	params := utils.GetUrlParams(c)
+	users, err := s.userRepository.GetAll(params)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
@@ -41,15 +66,11 @@ func GetAll(c *gin.Context) {
 	c.JSON(200, users)
 }
 
-func GetById(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
-	if err != nil {
-		c.JSON(400, gin.H{"error": "Invalid ID"})
-		return
-	}
+func (s *userService) GetById(c *gin.Context) {
+	params := utils.GetUrlParams(c)
+	id, _ := utils.GetId(c)
 
-	userRepository := UserRepository{}
-	user, err := userRepository.GetByID(uint(id))
+	user, err := s.userRepository.GetByID(uint(id), &params.Populate)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
@@ -58,15 +79,41 @@ func GetById(c *gin.Context) {
 	c.JSON(200, user)
 }
 
-func UpdateUser(c *gin.Context) {
-	userRepository := UserRepository{}
-	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+func (s *userService) UpdateUser(c *gin.Context) {
+	dto := userDto.UpdateUserDTO{}
+	err := c.BindJSON(&dto)
 	if err != nil {
-		c.JSON(400, gin.H{"error": "Invalid ID"})
+		c.JSON(400, gin.H{"error": "Invalid input"})
 		return
 	}
-	user, err := userRepository.Update(uint(id), c.PostForm("name"), c.PostForm("email"), config.DB)
-	if err != nil {
+
+	id, _ := utils.GetId(c)
+	user := models.User{}
+	if err := config.DB.First(&user, id).Error; err != nil {
+		c.JSON(404, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Only update fields that are provided in the DTO
+	if dto.Email != "" {
+		user.Email = dto.Email
+	}
+	if dto.FirstName != "" {
+		user.FirstName = dto.FirstName
+	}
+	if dto.LastName != "" {
+		user.LastName = dto.LastName
+	}
+	if dto.Password != "" {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(dto.Password), bcrypt.DefaultCost)
+		if err != nil {
+			c.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+		user.Password = string(hashedPassword)
+	}
+
+	if err := s.userRepository.Update(&user); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
@@ -74,14 +121,9 @@ func UpdateUser(c *gin.Context) {
 	c.JSON(200, user)
 }
 
-func DeleteUser(c *gin.Context) {
-	userRepository := UserRepository{}
-	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
-	if err != nil {
-		c.JSON(400, gin.H{"error": "Invalid ID"})
-		return
-	}
-	err = userRepository.Delete(uint(id))
+func (s *userService) DeleteUser(c *gin.Context) {
+	id, _ := utils.GetId(c)
+	err := s.userRepository.Delete(uint(id))
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
@@ -91,26 +133,10 @@ func DeleteUser(c *gin.Context) {
 }
 
 // AddUserSkills ajoute des compétences et certifications à un utilisateur
-func AddUserSkills(c *gin.Context) {
-	userID, exists := c.Get("user_id")
-	if !exists {
-		fmt.Println("userID", userID)
-		c.JSON(401, gin.H{"error": "Unauthorized"})
-		return
-	}
-
-	requestedID, err := strconv.ParseUint(c.Param("id"), 10, 32)
-	if err != nil {
-		c.JSON(400, gin.H{"error": "Invalid ID"})
-		return
-	}
-
-	if uint(requestedID) != userID.(uint) {
-		c.JSON(403, gin.H{"error": "Forbidden: You can only update your own profile"})
-		return
-	}
-
-	var dto userDto.UpdateUserSkillsDTO
+func (s *userService) AddUserSkills(c *gin.Context) {
+	userID := c.Keys["user_id"]
+	candidateID := c.Keys["candidate_id"]
+	var dto candidateDto.UpdateUserSkillsDTO
 	if err := c.BindJSON(&dto); err != nil {
 		c.JSON(400, gin.H{"error": "Invalid input"})
 		return
@@ -119,9 +145,8 @@ func AddUserSkills(c *gin.Context) {
 	// On ne log plus le DTO entier ici pour éviter trop de bruit
 	fmt.Printf("Adding skills/certs for User ID: %d\n", userID.(uint))
 
-	userRepository := UserRepository{}
 	// Appel de la nouvelle fonction AddUserSkills
-	if err := userRepository.AddUserSkills(uint(requestedID), dto); err != nil {
+	if err := s.candidateRepository.SaveCandidateSkills(candidateID.(uint), dto); err != nil {
 		fmt.Printf("Error adding skills/certs: %v\n", err)
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
@@ -131,91 +156,27 @@ func AddUserSkills(c *gin.Context) {
 }
 
 // DeleteUserSkill supprime une compétence spécifique pour un utilisateur
-func DeleteUserSkill(c *gin.Context) {
+func (s *userService) DeleteUserSkill(c *gin.Context) {
 	// Récupérer et valider l'ID utilisateur depuis le contexte
-	userIDCtx, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(401, gin.H{"error": "Unauthorized"})
-		return
-	}
+	userIDCtx := c.Keys["candidate_id"]
 	userID := userIDCtx.(uint)
 
-	// Récupérer et valider l'ID utilisateur depuis l'URL
-	requestedID, err := strconv.ParseUint(c.Param("id"), 10, 32)
-	if err != nil {
-		c.JSON(400, gin.H{"error": "Invalid User ID"})
-		return
-	}
-
-	// Vérifier l'autorisation
-	if uint(requestedID) != userID {
-		c.JSON(403, gin.H{"error": "Forbidden: You can only delete skills from your own profile"})
-		return
-	}
-
-	// Récupérer et valider l'ID de la compétence depuis l'URL
-	skillID, err := strconv.ParseUint(c.Param("skillId"), 10, 32)
-	if err != nil {
-		c.JSON(400, gin.H{"error": "Invalid Skill ID"})
+	var dto candidateDto.UpdateUserSkillsDTO
+	if err := c.BindJSON(&dto); err != nil {
+		c.JSON(400, gin.H{"error": "Invalid input"})
 		return
 	}
 
 	// Appeler le repository
-	userRepository := UserRepository{}
-	if err := userRepository.DeleteUserSkill(userID, uint(skillID)); err != nil {
+	if err := s.candidateRepository.DeleteCandidateSkills(userID, dto); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			c.JSON(404, gin.H{"error": "Skill association not found"})
+			c.JSON(404, gin.H{"error": "Skill/Certification association not found"})
 		} else {
-			fmt.Printf("Error deleting skill association: %v\n", err)
+			fmt.Printf("Error deleting skill/certification association: %v\n", err)
 			c.JSON(500, gin.H{"error": "Failed to delete skill association"})
 		}
 		return
 	}
 
-	c.JSON(200, gin.H{"message": "Skill association deleted successfully"})
-}
-
-// DeleteUserCertification supprime une certification spécifique pour un utilisateur
-func DeleteUserCertification(c *gin.Context) {
-	// Récupérer et valider l'ID utilisateur depuis le contexte
-	userIDCtx, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(401, gin.H{"error": "Unauthorized"})
-		return
-	}
-	userID := userIDCtx.(uint)
-
-	// Récupérer et valider l'ID utilisateur depuis l'URL
-	requestedID, err := strconv.ParseUint(c.Param("id"), 10, 32)
-	if err != nil {
-		c.JSON(400, gin.H{"error": "Invalid User ID"})
-		return
-	}
-
-	// Vérifier l'autorisation
-	if uint(requestedID) != userID {
-		c.JSON(403, gin.H{"error": "Forbidden: You can only delete certifications from your own profile"})
-		return
-	}
-
-	// Récupérer et valider l'ID de la certification depuis l'URL
-	certificationID, err := strconv.ParseUint(c.Param("certificationId"), 10, 32)
-	if err != nil {
-		c.JSON(400, gin.H{"error": "Invalid Certification ID"})
-		return
-	}
-
-	// Appeler le repository
-	userRepository := UserRepository{}
-	if err := userRepository.DeleteUserCertification(userID, uint(certificationID)); err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			c.JSON(404, gin.H{"error": "Certification association not found"})
-		} else {
-			fmt.Printf("Error deleting certification association: %v\n", err)
-			c.JSON(500, gin.H{"error": "Failed to delete certification association"})
-		}
-		return
-	}
-
-	c.JSON(200, gin.H{"message": "Certification association deleted successfully"})
+	c.JSON(200, gin.H{"message": "Skills and/or certifications association deleted successfully"})
 }

@@ -10,6 +10,8 @@ import (
 type CandidateRepository interface {
 	models.Repository[models.ProfileCandidate]
 	CreateCandidate(dto candidateDto.CreateCandidateDTO, tx *gorm.DB) (models.ProfileCandidate, error)
+	SaveCandidateSkills(id uint, dto candidateDto.UpdateUserSkillsDTO) error
+	DeleteCandidateSkills(id uint, dto candidateDto.UpdateUserSkillsDTO) error
 }
 
 type candidateRepository struct {
@@ -66,4 +68,64 @@ func (r *candidateRepository) CreateCandidate(dto candidateDto.CreateCandidateDT
 	}
 
 	return profile, nil
+}
+
+func (r *candidateRepository) SaveCandidateSkills(id uint, dto candidateDto.UpdateUserSkillsDTO) error {
+	candidate, err := r.Repository.GetByID(uint(id), nil)
+	if err != nil {
+		return err
+	}
+
+	if len(dto.Skills) > 0 {
+		var skills []models.Skill
+		if err := r.db.Where("id IN ?", dto.Skills).Find(&skills).Error; err != nil {
+			return err
+		}
+		if err := r.db.Model(&candidate).Association("Certifications").Append(skills); err != nil {
+			return err
+		}
+	}
+
+	if len(dto.Certifications) > 0 {
+		var certifications []models.Certification
+		if err := r.db.Where("id IN ?", dto.Certifications).Find(&certifications).Error; err != nil {
+			return err
+		}
+
+		if err := r.db.Model(&candidate).Association("Certifications").Append(certifications); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (r *candidateRepository) DeleteCandidateSkills(id uint, dto candidateDto.UpdateUserSkillsDTO) error {
+	candidate, err := r.Repository.GetByID(uint(id), nil)
+	if err != nil {
+		return err
+	}
+
+	if len(dto.Skills) > 0 {
+		var skills []models.Skill
+		if err := r.db.Where("id IN ?", dto.Skills).Find(&skills).Error; err != nil {
+			return err
+		}
+		if err := r.db.Model(&candidate).Association("Certifications").Delete(skills); err != nil {
+			return err
+		}
+	}
+
+	if len(dto.Certifications) > 0 {
+		var certifications []models.Certification
+		if err := r.db.Where("id IN ?", dto.Certifications).Find(&certifications).Error; err != nil {
+			return err
+		}
+
+		if err := r.db.Model(&candidate).Association("Certifications").Delete(certifications); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

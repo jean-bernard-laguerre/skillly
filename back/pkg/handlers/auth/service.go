@@ -18,15 +18,18 @@ import (
 	"skillly/pkg/handlers/user"
 	userDto "skillly/pkg/handlers/user/dto"
 	"skillly/pkg/models"
+	"skillly/pkg/utils"
 )
 
 type AuthService interface {
 	RegisterCandidate(c *gin.Context)
 	RegisterRecruiter(c *gin.Context)
 	Login(c *gin.Context)
+	GetCurrentUser(c *gin.Context)
 }
 
 type authService struct {
+	userRepository      user.UserRepository
 	companyRepository   company.CompanyRepository
 	recruiterRepository recruiter.RecruiterRepository
 	candidateRepository candidate.CandidateRepository
@@ -34,6 +37,7 @@ type authService struct {
 
 func NewAuthService() AuthService {
 	return &authService{
+		userRepository:      user.NewUserRepository(config.DB),
 		companyRepository:   company.NewCompanyRepository(config.DB),
 		recruiterRepository: recruiter.NewRecruiterRepository(config.DB),
 		candidateRepository: candidate.NewCandidateRepository(config.DB),
@@ -59,8 +63,7 @@ func (s *authService) RegisterCandidate(c *gin.Context) {
 		}
 
 		// Create the user
-		userModel := user.UserRepository{}
-		savedUser, err := userModel.Create(newUser, tx)
+		savedUser, err := s.userRepository.CreateUser(newUser, tx)
 
 		if err != nil {
 			return err
@@ -115,8 +118,7 @@ func (s *authService) RegisterRecruiter(c *gin.Context) {
 		}
 
 		// Create the user
-		userModel := user.UserRepository{}
-		savedUser, err := userModel.Create(newUser, tx)
+		savedUser, err := s.userRepository.CreateUser(newUser, tx)
 
 		if err != nil {
 			return err
@@ -169,8 +171,7 @@ func (s *authService) Login(c *gin.Context) {
 		return
 	}
 
-	userModel := user.UserRepository{}
-	user, err := userModel.GetByEmail(userLogin.Email)
+	user, err := s.userRepository.GetByEmail(userLogin.Email)
 
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
@@ -219,21 +220,18 @@ func (s *authService) Login(c *gin.Context) {
 	})
 }
 
-func GetCurrentUser(c *gin.Context) {
-	userIDRaw, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(401, gin.H{"error": "Unauthorized: User ID not found in context"})
-		return
+func (s *authService) GetCurrentUser(c *gin.Context) {
+	userID := c.Keys["user_id"]
+	userRole := c.Keys["user_role"]
+
+	var populate *[]string
+	if utils.RoleType(userRole.(string)) == models.RoleCandidate {
+		populate = &[]string{"ProfileCandidate", "ProfileCandidate.Skills", "ProfileCandidate.Certifications"}
+	} else {
+		populate = &[]string{"ProfileRecruiter"}
 	}
 
-	userID, ok := userIDRaw.(uint)
-	if !ok {
-		c.JSON(500, gin.H{"error": "Internal Server Error: User ID has invalid type in context"})
-		return
-	}
-
-	userModel := user.UserRepository{}
-	currentUser, err := userModel.GetByID(userID)
+	currentUser, err := s.userRepository.GetByID(userID.(uint), populate)
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
