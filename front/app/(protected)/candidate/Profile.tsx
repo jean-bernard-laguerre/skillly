@@ -22,7 +22,7 @@ export default function Profile() {
   const {
     addUserSkillsMutation,
     deleteUserSkillMutation,
-    deleteUserCertificationMutation,
+    /* deleteUserCertificationMutation, */
   } = useAuthMutation();
 
   const { skills: allSkills, isLoadingSkills } = useSkills();
@@ -125,7 +125,7 @@ export default function Profile() {
             deleteUserSkillMutation(
               { userId: user.id, payload },
               {
-                onSuccess: () => console.log("Compétence supprimée:", payload),
+                onSuccess: () => console.log("Compétence supprimée:", payload.skills),
                 onError: (error) => {
                   console.error("Erreur suppression compétence:", error);
                   Alert.alert(
@@ -155,11 +155,12 @@ export default function Profile() {
           text: "Supprimer",
           style: "destructive",
           onPress: () => {
-            deleteUserCertificationMutation(
-              { userId: user.id, certificationId },
+            console.log(payload)
+            deleteUserSkillMutation(
+              { userId: user.id, payload },
               {
                 onSuccess: () =>
-                  console.log("Certification supprimée:", payload),
+                  console.log("Certification supprimée:", payload.certifications),
                 onError: (error) => {
                   console.error("Erreur suppression certification:", error);
                   Alert.alert(

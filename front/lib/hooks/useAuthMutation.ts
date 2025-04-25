@@ -45,15 +45,15 @@ export const useAuthMutation = () => {
   // Mutation pour supprimer une compétence
   const { mutate: deleteUserSkillMutation, isPending: isDeletingSkill } =
     useMutation({
-      mutationFn: ({ userId, skillId }: { userId: number; skillId: number }) =>
-        UserService.deleteUserSkill(userId, skillId),
+      mutationFn: ({ userId, payload }: { userId: number; payload: any }) =>
+        UserService.deleteUserSkill(userId, payload),
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["currentUser"] });
       },
     });
 
   // Mutation pour supprimer une certification
-  const {
+  /* const {
     mutate: deleteUserCertificationMutation,
     isPending: isDeletingCertification,
   } = useMutation({
@@ -67,7 +67,7 @@ export const useAuthMutation = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["currentUser"] });
     },
-  });
+  }); */
 
   // Mutation pour la connexion
   const {
@@ -172,8 +172,8 @@ export const useAuthMutation = () => {
     isAddingSkills,
     deleteUserSkillMutation,
     isDeletingSkill,
-    deleteUserCertificationMutation,
-    isDeletingCertification,
+    /* deleteUserCertificationMutation, */
+/*     isDeletingCertification, */
 
     // États dérivés
     isAuthenticated: !!currentUser,

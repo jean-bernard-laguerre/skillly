@@ -53,5 +53,5 @@ export const deleteUserSkill = async (
   userId: number,
   payload: UpdateUserSkillsPayload
 ): Promise<void> => {
-  await instance.delete(`/user/me/skills/`, payload);
+  await instance.delete(`/user/me/skills/`, { data: payload });
 };
