@@ -161,14 +161,14 @@ func (s *userService) DeleteUserSkill(c *gin.Context) {
 	userIDCtx := c.Keys["candidate_id"]
 	userID := userIDCtx.(uint)
 
-	var dto candidateDto.UpdateUserSkillsDTO
+	var dto candidateDto.DeleteUserSkillsDTO
 	if err := c.BindJSON(&dto); err != nil {
 		c.JSON(400, gin.H{"error": "Invalid input"})
 		return
 	}
 
 	// Appeler le repository
-	if err := s.candidateRepository.DeleteCandidateSkills(userID, dto); err != nil {
+	if err := s.candidateRepository.DeleteCandidateSkills(userID, dto.Data); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.JSON(404, gin.H{"error": "Skill/Certification association not found"})
 		} else {

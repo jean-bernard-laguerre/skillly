@@ -22,7 +22,7 @@ export default function Profile() {
   const {
     addUserSkillsMutation,
     deleteUserSkillMutation,
-    deleteUserCertificationMutation,
+    /* deleteUserCertificationMutation, */
   } = useAuthMutation();
 
   const { skills: allSkills, isLoadingSkills } = useSkills();
@@ -110,6 +110,9 @@ export default function Profile() {
 
   const handleDeleteSkill = (skillId: number) => {
     if (!user) return;
+    const payload: { skills?: number[]; certifications?: number[] } = {};
+
+    payload.skills = [skillId]
     Alert.alert(
       "Supprimer la compétence",
       "Êtes-vous sûr de vouloir supprimer cette compétence ?",
@@ -120,9 +123,9 @@ export default function Profile() {
           style: "destructive",
           onPress: () => {
             deleteUserSkillMutation(
-              { userId: user.id, skillId },
+              { userId: user.id, payload },
               {
-                onSuccess: () => console.log("Compétence supprimée:", skillId),
+                onSuccess: () => console.log("Compétence supprimée:", payload.skills),
                 onError: (error) => {
                   console.error("Erreur suppression compétence:", error);
                   Alert.alert(
@@ -140,6 +143,9 @@ export default function Profile() {
 
   const handleDeleteCertification = (certificationId: number) => {
     if (!user) return;
+    const payload: { skills?: number[]; certifications?: number[] } = {};
+
+    payload.certifications = [certificationId]
     Alert.alert(
       "Supprimer la certification",
       "Êtes-vous sûr de vouloir supprimer cette certification ?",
@@ -149,11 +155,12 @@ export default function Profile() {
           text: "Supprimer",
           style: "destructive",
           onPress: () => {
-            deleteUserCertificationMutation(
-              { userId: user.id, certificationId },
+            console.log(payload)
+            deleteUserSkillMutation(
+              { userId: user.id, payload },
               {
                 onSuccess: () =>
-                  console.log("Certification supprimée:", certificationId),
+                  console.log("Certification supprimée:", payload.certifications),
                 onError: (error) => {
                   console.error("Erreur suppression certification:", error);
                   Alert.alert(

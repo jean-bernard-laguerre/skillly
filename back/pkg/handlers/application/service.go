@@ -1,14 +1,14 @@
 package application
 
 import (
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
+
 	"skillly/pkg/config"
 	applicationDto "skillly/pkg/handlers/application/dto"
 	"skillly/pkg/handlers/jobPost"
 	"skillly/pkg/models"
 	"skillly/pkg/utils"
-
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 type ApplicationService interface {
