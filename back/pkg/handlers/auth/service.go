@@ -98,8 +98,7 @@ func (s *authService) RegisterCandidate(c *gin.Context) {
 	}
 
 	// Load the user with its profile
-	userModel := user.UserRepository{}
-	savedUser, err = userModel.GetByID(savedUser.ID)
+	savedUser, err = s.userRepository.GetByID(savedUser.ID, nil)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -107,14 +106,13 @@ func (s *authService) RegisterCandidate(c *gin.Context) {
 
 	// Create the token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"email":     savedUser.Email,
-		"role":      savedUser.Role,
-		"id":        savedUser.ID,
-		"firstName": savedUser.FirstName,
-		"lastName":  savedUser.LastName,
+		"email":       savedUser.Email,
+		"role":        savedUser.Role,
+		"id":          savedUser.ID,
+		"firstName":   savedUser.FirstName,
+		"lastName":    savedUser.LastName,
+		"candidateID": savedUser.ProfileCandidate.ID,
 	})
-
-	token.Claims.(jwt.MapClaims)["candidateID"] = savedUser.ProfileCandidate.ID
 
 	tokenString, err := token.SignedString([]byte("secret"))
 	if err != nil {
@@ -188,8 +186,9 @@ func (s *authService) RegisterRecruiter(c *gin.Context) {
 	}
 
 	// Load the user with its profile
-	userModel := user.UserRepository{}
-	savedUser, err = userModel.GetByID(savedUser.ID)
+
+	populate := []string{"ProfileRecruiter"}
+	savedUser, err = s.userRepository.GetByID(savedUser.ID, &populate)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -197,16 +196,15 @@ func (s *authService) RegisterRecruiter(c *gin.Context) {
 
 	// Create the token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"email":     savedUser.Email,
-		"role":      savedUser.Role,
-		"id":        savedUser.ID,
-		"firstName": savedUser.FirstName,
-		"lastName":  savedUser.LastName,
+		"email":        savedUser.Email,
+		"role":         savedUser.Role,
+		"id":           savedUser.ID,
+		"firstName":    savedUser.FirstName,
+		"lastName":     savedUser.LastName,
+		"companyID":    savedUser.ProfileRecruiter.CompanyID,
+		"companyRole:": savedUser.ProfileRecruiter.Role,
+		"recruiterID":  savedUser.ProfileRecruiter.ID,
 	})
-
-	token.Claims.(jwt.MapClaims)["companyID"] = savedUser.ProfileRecruiter.CompanyID
-	token.Claims.(jwt.MapClaims)["companyRole"] = savedUser.ProfileRecruiter.Role
-	token.Claims.(jwt.MapClaims)["recruiterID"] = savedUser.ProfileRecruiter.ID
 
 	tokenString, err := token.SignedString([]byte("secret"))
 	if err != nil {

@@ -57,9 +57,10 @@ func (r *userRepository) CreateUser(dto userDto.CreateUserDTO, tx *gorm.DB) (mod
 func (r *userRepository) GetByEmail(email string) (models.User, error) {
 	var user models.User
 	// Preload associated profiles and their associations when fetching by Email
-	result := config.DB.Preload("ProfileCandidate.Skills").
-		Preload("ProfileCandidate.Certifications").
+	result := config.DB.Preload("ProfileCandidate").
 		Preload("ProfileRecruiter").
+		Preload("ProfileCandidate.Skills").
+		Preload("ProfileCandidate.Certifications").
 		Where("email = ?", email).First(&user)
 	if result.Error != nil {
 		return models.User{}, result.Error
