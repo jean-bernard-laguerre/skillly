@@ -27,15 +27,9 @@ export interface Application {
     skills?: Skill[];
   };
   job_post_id: string;
-  jobPost: {
-    id: string;
-    title?: string;
-    location?: string;
-    contract_type?: string;
-    salary_range?: string;
-  };
+  job_post: JobPost;
   state: "pending" | "matched" | "rejected" | "accepted";
-  createdAt: string;
+  created_at: string;
 }
 
 export interface JobSelectorProps {

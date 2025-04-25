@@ -4,7 +4,9 @@ import { Application } from "@/types/interfaces";
 
 export const getMyApplications = async (): Promise<Application[]> => {
   try {
-    const response = await instance.get<Application[]>("/application/me");
+    const response = await instance.get<Application[]>(
+      "/application/me?populate=JobPost"
+    );
     return response.data;
   } catch (error) {
     console.error("Erreur lors de la récupération des candidatures:", error);

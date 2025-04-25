@@ -143,30 +143,30 @@ const MyApplications = () => {
           >
             <View className="flex-row items-center justify-between mb-2">
               <Text className="text-xl font-semibold">
-                {application.jobPost?.title || "Titre non spécifié"}
+                {application.job_post?.title || "Titre non spécifié"}
               </Text>
               <StatusBadge status={application.state} />
             </View>
-            {application.jobPost?.location && (
+            {application.job_post?.location && (
               <Text className="mb-2 text-gray-600">
-                {application.jobPost.location}
+                {application.job_post.location}
               </Text>
             )}
-            {application.jobPost?.contract_type && (
+            {application.job_post?.contract_type && (
               <Text className="mb-2 text-gray-600">
-                {application.jobPost.contract_type}
+                {application.job_post.contract_type}
               </Text>
             )}
-            {application.jobPost?.salary_range && (
+            {application.job_post?.salary_range && (
               <Text className="mb-2 text-gray-600">
-                {application.jobPost.salary_range}
+                {application.job_post.salary_range}
               </Text>
             )}
-            <View className="flex-row items-center mt-2">
-              <Clock size={16} color="#6B7280" className="mr-1" />
+            <View className="flex-row items-center gap-2 mt-2">
+              <Clock size={16} color="#6B7280" />
               <Text className="text-sm text-gray-500">
                 Postulé le{" "}
-                {new Date(application.createdAt).toLocaleDateString()}
+                {new Date(application.created_at).toLocaleDateString()}
               </Text>
             </View>
           </View>
