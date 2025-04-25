@@ -45,21 +45,13 @@ export const addUserSkills = async (
   userId: number,
   payload: UpdateUserSkillsPayload
 ): Promise<void> => {
-  await instance.patch(`/user/${userId}/skills`, payload);
+  await instance.patch(`/user/me/skills`, payload);
 };
 
-// Supprimer une compétence spécifique pour un utilisateur (DELETE)
+// Supprimer des compétences/certifications à un utilisateur (DELETE)
 export const deleteUserSkill = async (
   userId: number,
-  skillId: number
+  payload: UpdateUserSkillsPayload
 ): Promise<void> => {
-  await instance.delete(`/user/${userId}/skills/${skillId}`);
-};
-
-// Supprimer une certification spécifique pour un utilisateur (DELETE)
-export const deleteUserCertification = async (
-  userId: number,
-  certificationId: number
-): Promise<void> => {
-  await instance.delete(`/user/${userId}/certifications/${certificationId}`);
+  await instance.delete(`/user/me/skills/`, payload);
 };
