@@ -1,6 +1,7 @@
 package jobPost
 
 import (
+	"fmt"
 	"skillly/pkg/config"
 	jobPostDto "skillly/pkg/handlers/jobPost/dto"
 	"skillly/pkg/models"
@@ -61,7 +62,27 @@ func (s *jobPostService) GetAll(c *gin.Context) {
 }
 
 func (s *jobPostService) GetByCompany(c *gin.Context) {
+	fmt.Println("test")
+	params := utils.GetUrlParams(c)
+	query := config.DB.Model(&models.JobPost{})
 
+	companyId := c.Keys["company_id"]
+	fmt.Println(companyId.(uint))
+
+	query = query.Where("company_id", companyId.(uint))
+	query = query.Order(params.Sort + " " + params.Order)
+	if params.PageSize != nil {
+		query = query.Limit(*params.PageSize).Offset((params.Page - 1) * *params.PageSize)
+	}
+
+	for _, field := range params.Populate {
+		query = query.Preload(field)
+	}
+
+	var jobPosts []models.JobPost
+	query.Find(&jobPosts)
+
+	c.JSON(200, jobPosts)
 }
 
 func (s *jobPostService) GetByID(id uint, populate *[]string) (models.JobPost, error) {

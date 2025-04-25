@@ -22,8 +22,8 @@ func AddRoutes(r *gin.Engine) {
 		jobPostService.GetAll(c)
 	})
 
-	jp.GET("/company", middleware.AuthMiddleware(), middleware.RoleMiddleware(models.RoleRecruiter), func(ctx *gin.Context) {
-
+	jp.GET("/company", middleware.AuthMiddleware(), middleware.RoleMiddleware(models.RoleRecruiter), func(c *gin.Context) {
+		jobPostService.GetByCompany(c)
 	})
 
 	jp.GET("/:id", func(c *gin.Context) {
