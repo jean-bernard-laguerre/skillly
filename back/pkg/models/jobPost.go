@@ -1,8 +1,9 @@
 package models
 
 import (
-	"skillly/pkg/utils"
 	"time"
+
+	"skillly/pkg/utils"
 )
 
 const (
@@ -27,4 +28,6 @@ type JobPost struct {
 
 	Certifications []Certification `json:"certifications" gorm:"many2many:JobPost_Certifications;constraint:OnDelete:CASCADE;"`
 	Skills         []Skill         `json:"skills" gorm:"many2many:JobPost_Skills;constraint:OnDelete:CASCADE;"`
+	Applications   []Application   `json:"applications" gorm:"foreignKey:JobPostID;references:ID;constraint:OnDelete:CASCADE;"`
+	Matches        []Match         `json:"matches" gorm:"foreignKey:JobPostID;references:ID;constraint:OnDelete:CASCADE;"`
 }

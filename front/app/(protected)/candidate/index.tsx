@@ -1,8 +1,8 @@
 import { View, Text, Pressable } from "react-native";
-import { useAuth } from "@/lib/hooks/useAuth";
+import { useAuthMutation } from "@/lib/hooks/useAuthMutation";
 
 export default function CandidateHome() {
-  const { logout } = useAuth();
+  const { logout } = useAuthMutation();
   return (
     <View className="items-center justify-center flex-1">
       <Text className="mb-2 text-2xl font-bold">Espace Candidat 🎯</Text>

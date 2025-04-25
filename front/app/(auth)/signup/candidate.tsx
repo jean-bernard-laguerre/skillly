@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, Pressable, ScrollView } from "react-native";
-import { useAuth } from "@/lib/hooks/useAuth";
+import { useAuthMutation } from "@/lib/hooks/useAuthMutation";
 import { RegisterCredentials } from "@/types/interfaces";
 
 export default function CandidateSignup() {
   const { registerCandidate, isRegisteringCandidate, registerCandidateError } =
-    useAuth();
+    useAuthMutation();
   const [formData, setFormData] = useState<RegisterCredentials>({
     firstName: "",
     lastName: "",

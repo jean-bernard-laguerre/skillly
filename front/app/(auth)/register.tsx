@@ -2,11 +2,39 @@ import React, { useState } from "react";
 import { View, Text, Pressable } from "react-native";
 import CandidateSignup from "./signup/candidate";
 import RecruiterSignup from "./signup/recruiter";
+import { useAuthMutation } from "@/lib/hooks/useAuthMutation";
 
 type UserType = "candidate" | "recruiter" | null;
 
 export default function Register() {
   const [userType, setUserType] = useState<UserType>(null);
+  const { registerCandidate, registerRecruiter } = useAuthMutation();
+
+  const handleQuickSignup = (role: "candidate" | "recruiter") => {
+    if (role === "candidate") {
+      registerCandidate({
+        firstName: "John",
+        lastName: "Doe",
+        email: "candidate@mail.com",
+        password: "test1234",
+        bio: "Développeur passionné",
+        location: "Paris",
+        skills: [],
+        certifications: [],
+      });
+    } else {
+      registerRecruiter({
+        firstName: "Jane",
+        lastName: "Smith",
+        email: "recruiter@mail.com",
+        password: "test1234",
+        newCompany: {
+          CompanyName: "Tech Company",
+          SIRET: "123456789",
+        },
+      });
+    }
+  };
 
   return (
     <View className="flex-1 p-4">
@@ -34,6 +62,31 @@ export default function Register() {
                 Je suis un recruteur
               </Text>
             </Pressable>
+
+            <View className="mt-8">
+              <Text className="mb-4 text-center text-gray-500">
+                Inscription rapide
+              </Text>
+              <View className="space-y-4">
+                <Pressable
+                  className="p-4 bg-purple-500 rounded-lg"
+                  onPress={() => handleQuickSignup("candidate")}
+                >
+                  <Text className="text-lg text-center text-white">
+                    Candidat Test
+                  </Text>
+                </Pressable>
+
+                <Pressable
+                  className="p-4 bg-orange-500 rounded-lg"
+                  onPress={() => handleQuickSignup("recruiter")}
+                >
+                  <Text className="text-lg text-center text-white">
+                    Recruteur Test
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
           </View>
         </View>
       ) : (

@@ -1,8 +1,14 @@
 import React, { useState } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
-import { Check, X, User, ArrowLeft } from "lucide-react-native";
+import { View, Text, Pressable } from "react-native";
+import { useJobPost } from "@/lib/hooks/useJobPost";
 import Swiper from "react-native-deck-swiper";
-import { Application, ApplicationsListProps } from "@/types/interfaces";
+import { Check, X, User, ArrowLeft } from "lucide-react-native";
+import { Application } from "@/types/interfaces";
+
+interface ApplicationsListProps {
+  jobId: string;
+  onBack: () => void;
+}
 
 const ApplicationCard = ({ application }: { application: Application }) => (
   <View className="flex-[0.9] rounded-lg shadow-lg justify-center items-center bg-white p-4">
@@ -10,11 +16,22 @@ const ApplicationCard = ({ application }: { application: Application }) => (
       <View className="flex-row items-center mb-4">
         <User size={24} color="#6366f1" className="mr-2" />
         <Text className="text-xl font-semibold">
-          {application.candidateName}
+          {application.candidate.name}
         </Text>
       </View>
-      <Text className="mb-2 text-lg text-gray-600">{application.jobTitle}</Text>
-      <Text className="text-sm text-gray-500">{application.date}</Text>
+      <Text className="mb-2 text-lg text-gray-600">
+        {application.jobPost.title}
+      </Text>
+      <Text className="text-sm text-gray-500">
+        {new Date(application.createdAt).toLocaleDateString()}
+      </Text>
+      <View className="flex-row flex-wrap gap-2 mt-4">
+        {application.candidate.skills?.map((skill) => (
+          <View key={skill.id} className="px-2 py-1 bg-blue-100 rounded">
+            <Text className="text-sm text-blue-800">{skill.name}</Text>
+          </View>
+        ))}
+      </View>
     </View>
   </View>
 );
@@ -36,47 +53,46 @@ const OverlayLabel = ({ color }: { color: string }) => {
 };
 
 export default function ApplicationsList({
-  applications,
-  onStatusChange,
+  jobId,
   onBack,
 }: ApplicationsListProps) {
-  const swiperRef = React.useRef<Swiper<Application>>(null);
+  const { applications } = useJobPost();
+  const job = applications?.find((job) => job.id === jobId);
   const [index, setIndex] = useState(0);
-  const [isAllSwiped, setIsAllSwiped] = useState(applications.length === 0);
+  const [isAllSwiped, setIsAllSwiped] = useState(
+    job?.applications?.length === 0
+  );
+  const swiperRef = React.useRef<Swiper<Application>>(null);
 
   const handleSwipe = (direction: "left" | "right", cardIndex: number) => {
-    const application = applications[cardIndex];
-    if (direction === "left") {
-      onStatusChange(application.id, "rejected");
-    } else {
-      onStatusChange(application.id, "accepted");
+    const application = job?.applications?.[cardIndex];
+    if (application) {
+      // TODO: Implement status change
+      console.log(
+        `Application ${application.id} ${
+          direction === "left" ? "rejected" : "accepted"
+        }`
+      );
     }
     setIndex((prev) => prev + 1);
   };
 
   return (
     <View className="flex-1">
-      <View className="relative flex-1 ">
-        {/* Retour à la liste des offres */}
-        <View className="absolute top-0 left-0 right-0 z-[51]">
-          <TouchableOpacity
-            className="flex-row items-center p-4"
-            onPress={onBack}
-          >
-            <ArrowLeft size={24} color="#6366f1" className="mr-2" />
-            <Text className="font-medium text-indigo-600">
-              Retour aux offres
-            </Text>
-          </TouchableOpacity>
-        </View>
+      <View className="flex-row items-center p-4 border-b border-gray-200">
+        <Pressable onPress={onBack} className="mr-4">
+          <ArrowLeft size={24} color="#6366f1" />
+        </Pressable>
+        <Text className="text-xl font-semibold">{job?.title}</Text>
+      </View>
 
+      <View className="relative flex-1">
         {!isAllSwiped ? (
           <>
-            {/* CANDIDATURES */}
-            <View className="flex-1 pt-16">
+            <View className="flex-1 pt-4">
               <Swiper
                 ref={swiperRef}
-                cards={applications}
+                cards={job?.applications || []}
                 cardIndex={index}
                 renderCard={(application) => (
                   <ApplicationCard application={application} />
@@ -135,41 +151,38 @@ export default function ApplicationsList({
               />
             </View>
 
-            {/* Boutons pour accepter ou refuser une candidature */}
             <View className="absolute bottom-0 left-0 right-0 z-50">
               <View className="flex-row items-center w-full p-4 justify-evenly">
-                <TouchableOpacity
-                  onPress={() => swiperRef.current?.swipeLeft()}
-                >
+                <Pressable onPress={() => swiperRef.current?.swipeLeft()}>
                   <X size={28} color="red" />
-                </TouchableOpacity>
+                </Pressable>
                 <Text className="text-gray-600">
                   Swipez les cartes pour les classer
                 </Text>
-                <TouchableOpacity
-                  onPress={() => swiperRef.current?.swipeRight()}
-                >
+                <Pressable onPress={() => swiperRef.current?.swipeRight()}>
                   <Check size={28} color="green" />
-                </TouchableOpacity>
+                </Pressable>
               </View>
             </View>
           </>
         ) : (
-          <View className="absolute top-0 left-0 flex flex-col items-center justify-center w-full h-full bg-black z-[50]">
-            <Text className="mb-4 text-center text-white">
-              Plus aucune candidature à traiter
+          <View className="flex flex-col items-center justify-center w-full h-full">
+            <Text className="mb-4 text-center text-gray-600">
+              {job?.applications && job.applications.length > 0
+                ? "Plus aucune candidature à traiter"
+                : "Il n'y a pas encore de candidature"}
             </Text>
-            {applications.length > 0 && (
-              <TouchableOpacity
-                className="px-6 py-3 bg-white rounded-lg"
+            {job?.applications && job.applications.length > 0 && (
+              <Pressable
+                className="px-6 py-3 bg-blue-500 rounded-lg"
                 onPress={() => {
                   setIsAllSwiped(false);
                   setIndex(0);
                   swiperRef.current?.jumpToCardIndex(0);
                 }}
               >
-                <Text className="font-medium text-black">Recommencer</Text>
-              </TouchableOpacity>
+                <Text className="font-medium text-white">Recommencer</Text>
+              </Pressable>
             )}
           </View>
         )}

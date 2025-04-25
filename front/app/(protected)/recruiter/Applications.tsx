@@ -1,85 +1,92 @@
 import React, { useState } from "react";
-import { View } from "react-native";
-import JobSelector from "./components/JobSelector";
+import { View, Text, Pressable } from "react-native";
+import { useJobPost } from "@/lib/hooks/useJobPost";
 import ApplicationsList from "./components/ApplicationsList";
-import { Job, Application } from "@/types/interfaces";
+import MatchesList from "./components/MatchesList";
+import JobSelector from "./components/JobSelector";
+
+type Tab = "applications" | "matches";
 
 export default function Applications() {
+  const [selectedTab, setSelectedTab] = useState<Tab>("applications");
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
-  const [applications, setApplications] = useState<Application[]>([
-    {
-      id: "1",
-      jobId: "1",
-      candidateName: "Marie Dupont",
-      jobTitle: "Développeur Frontend",
-      date: "2024-03-20",
-      status: "pending",
-    },
-    {
-      id: "2",
-      jobId: "1",
-      candidateName: "Jean Martin",
-      jobTitle: "Développeur Frontend",
-      date: "2024-03-19",
-      status: "accepted",
-    },
-    {
-      id: "3",
-      jobId: "2",
-      candidateName: "Sophie Girard",
-      jobTitle: "UX Designer",
-      date: "2024-03-18",
-      status: "rejected",
-    },
-  ]);
+  const { applications, matches, isLoadingApplications, isLoadingMatches } =
+    useJobPost();
 
-  const [jobs] = useState<Job[]>([
-    {
-      id: "1",
-      title: "Développeur Frontend",
-      company: "TechCorp",
-      location: "Paris",
-    },
-    {
-      id: "2",
-      title: "UX Designer",
-      company: "DesignStudio",
-      location: "Lyon",
-    },
-    {
-      id: "3",
-      title: "Développeur Backend",
-      company: "TechCorp",
-      location: "Paris",
-    },
-  ]);
+  const renderTabContent = () => {
+    if (selectedTab === "applications") {
+      if (selectedJobId) {
+        return (
+          <ApplicationsList
+            jobId={selectedJobId}
+            onBack={() => setSelectedJobId(null)}
+          />
+        );
+      }
+      return (
+        <JobSelector
+          jobs={applications || []}
+          selectedJobId={selectedJobId}
+          onSelectJob={setSelectedJobId}
+          type="applications"
+        />
+      );
+    }
 
-  const handleStatusChange = (id: string, status: "accepted" | "rejected") => {
-    setApplications((prev) =>
-      prev.map((app) => (app.id === id ? { ...app, status } : app))
-    );
+    if (selectedTab === "matches") {
+      if (selectedJobId) {
+        return (
+          <MatchesList
+            jobId={selectedJobId}
+            onBack={() => setSelectedJobId(null)}
+          />
+        );
+      }
+      return (
+        <JobSelector
+          jobs={matches || []}
+          selectedJobId={selectedJobId}
+          onSelectJob={setSelectedJobId}
+          type="matches"
+        />
+      );
+    }
   };
-
-  const filteredApplications = applications.filter(
-    (app) => app.jobId === selectedJobId
-  );
 
   return (
     <View className="flex-1 bg-gray-50">
-      {selectedJobId ? (
-        <ApplicationsList
-          applications={filteredApplications}
-          onStatusChange={handleStatusChange}
-          onBack={() => setSelectedJobId(null)}
-        />
-      ) : (
-        <JobSelector
-          jobs={jobs}
-          selectedJobId={selectedJobId}
-          onSelectJob={setSelectedJobId}
-          applications={applications}
-        />
-      )}
+      <View className="flex-row border-b border-gray-200">
+        <Pressable
+          className={`flex-1 p-4 ${
+            selectedTab === "applications" ? "border-b-2 border-blue-500" : ""
+          }`}
+          onPress={() => setSelectedTab("applications")}
+        >
+          <Text
+            className={`text-center font-semibold ${
+              selectedTab === "applications" ? "text-blue-500" : "text-gray-500"
+            }`}
+          >
+            Candidatures
+          </Text>
+        </Pressable>
+        <Pressable
+          className={`flex-1 p-4 ${
+            selectedTab === "matches" ? "border-b-2 border-blue-500" : ""
+          }`}
+          onPress={() => setSelectedTab("matches")}
+        >
+          <Text
+            className={`text-center font-semibold ${
+              selectedTab === "matches" ? "text-blue-500" : "text-gray-500"
+            }`}
+          >
+            Matches
+          </Text>
+        </Pressable>
+      </View>
+
+      {renderTabContent()}
     </View>
   );
 }
