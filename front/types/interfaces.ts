@@ -26,12 +26,10 @@ export interface Application {
     last_name: string;
     skills?: Skill[];
   };
-  jobPost: {
-    id: string;
-    title: string;
-  };
-  status: "pending" | "accepted" | "rejected";
-  createdAt: string;
+  job_post_id: string;
+  job_post: JobPost;
+  state: "pending" | "matched" | "rejected" | "accepted";
+  created_at: string;
 }
 
 export interface JobSelectorProps {
