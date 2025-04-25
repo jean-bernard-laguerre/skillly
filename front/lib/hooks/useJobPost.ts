@@ -16,6 +16,28 @@ export const useJobPost = () => {
     queryFn: JobPostService.getCompanyJobPosts,
   });
 
+  // Query pour récupérer les candidatures
+  const {
+    data: applications,
+    isLoading: isLoadingApplications,
+    error: applicationsError,
+    refetch: refetchApplications,
+  } = useQuery({
+    queryKey: ["applications"],
+    queryFn: JobPostService.getCompanyApplications,
+  });
+
+  // Query pour récupérer les matches
+  const {
+    data: matches,
+    isLoading: isLoadingMatches,
+    error: matchesError,
+    refetch: refetchMatches,
+  } = useQuery({
+    queryKey: ["matches"],
+    queryFn: JobPostService.getCompanyMatches,
+  });
+
   // Mutation pour créer une nouvelle offre d'emploi
   const {
     mutate: createJobPost,
@@ -36,5 +58,13 @@ export const useJobPost = () => {
     createJobPost,
     isCreatingJobPost,
     createJobPostError,
+    applications,
+    isLoadingApplications,
+    applicationsError,
+    refetchApplications,
+    matches,
+    isLoadingMatches,
+    matchesError,
+    refetchMatches,
   };
 };

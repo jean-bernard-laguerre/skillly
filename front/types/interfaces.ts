@@ -20,18 +20,17 @@ export interface Job {
 
 export interface Application {
   id: string;
-  jobId: string;
-  candidateName: string;
-  jobTitle: string;
-  date: string;
+  candidate: User;
+  jobPost: JobPost;
   status: "pending" | "accepted" | "rejected";
+  createdAt: string;
 }
 
 export interface JobSelectorProps {
-  jobs: Job[];
+  jobs: JobPost[];
   selectedJobId: string | null;
   onSelectJob: (jobId: string) => void;
-  applications: Application[];
+  type: "applications" | "matches";
 }
 
 export interface ApplicationsListProps {
@@ -86,27 +85,11 @@ export interface AuthContextType {
 }
 
 export interface User {
-  id: number;
-  first_name: string;
-  last_name: string;
+  id: string;
+  name: string;
   email: string;
+  skills?: Skill[];
   role: "candidate" | "recruiter";
-  profile_candidate?: {
-    bio: string;
-    experienceYears: number;
-    preferedContract: string;
-    preferedJob: string;
-    location: string;
-    availability: string;
-    resumeID: number;
-    certifications: Certification[];
-    skills: Skill[];
-  };
-  profile_recruiter?: {
-    title: string;
-    companyID: number;
-    role: "admin" | "member";
-  };
 }
 
 export type HandleRedirect = (role: "candidate" | "recruiter" | null) => void;
@@ -172,19 +155,24 @@ export interface Certification {
   description?: string;
 }
 
+export interface Match {
+  id: string;
+  user: User;
+  jobPost: JobPost;
+  createdAt: string;
+}
+
 export interface JobPost {
-  id: number;
-  description: string;
+  id: string;
   title: string;
   location: string;
-  contract_type: "CDI" | "CDD";
+  contract_type: string;
   salary_range: string;
   expiration_date: string;
-  skills: Skill[];
-  certifications: Certification[];
-  company_id?: number;
-  created_at?: string;
-  updated_at?: string;
+  skills?: Skill[];
+  certifications?: Certification[];
+  applications?: Application[];
+  matches?: Match[];
 }
 
 export interface CreateJobPostDTO {

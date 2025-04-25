@@ -5,7 +5,7 @@ import { JobPost, CreateJobPostDTO } from "@/types/interfaces";
 export const getCompanyJobPosts = async (): Promise<JobPost[]> => {
   try {
     const response = await instance.get<JobPost[]>(
-      "/jobpost/company?populate=Skills"
+      "/jobpost/company?populate=Skills&populate=Certifications"
     );
     return response.data;
   } catch (error) {
@@ -40,6 +40,30 @@ export const createJobPost = async (
         baseURL: axiosError.config?.baseURL,
       },
     });
+    throw error;
+  }
+};
+
+export const getCompanyApplications = async (): Promise<JobPost[]> => {
+  try {
+    const response = await instance.get<JobPost[]>(
+      "/jobpost/company?populate=Applications"
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Erreur lors de la récupération des candidatures:", error);
+    throw error;
+  }
+};
+
+export const getCompanyMatches = async (): Promise<JobPost[]> => {
+  try {
+    const response = await instance.get<JobPost[]>(
+      "/jobpost/company?populate=Matches"
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Erreur lors de la récupération des matches:", error);
     throw error;
   }
 };
