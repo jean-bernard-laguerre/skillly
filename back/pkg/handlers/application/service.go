@@ -79,7 +79,7 @@ func (s *applicationService) GetOfferApplications(c *gin.Context) {
 
 	jobPostId, _ := utils.GetId(c)
 
-	jobpost, _ := s.jobPostRepository.GetByID(jobPostId, &params.Populate)
+	jobpost, _ := s.jobPostRepository.GetByID(jobPostId, nil)
 	companyId := c.Keys["company_id"]
 
 	if jobpost.CompanyID != companyId.(uint) {
