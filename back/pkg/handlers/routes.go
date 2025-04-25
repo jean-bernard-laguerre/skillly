@@ -8,6 +8,7 @@ import (
 	"skillly/pkg/handlers/certification"
 	"skillly/pkg/handlers/company"
 	"skillly/pkg/handlers/jobPost"
+	"skillly/pkg/handlers/match"
 	"skillly/pkg/handlers/skill"
 	"skillly/pkg/handlers/user"
 )
@@ -20,4 +21,5 @@ func AddRoutes(r *gin.Engine) {
 	certification.AddRoutes(r)
 	application.AddRoutes(r)
 	user.AddRoutes(r)
+	match.AddRoutes(r)
 }

@@ -24,4 +24,9 @@ func AddRoutes(r *gin.Engine) {
 		applicationService.GetMe(c)
 	})
 
+	// Route to update application state
+	app.PUT("/:id/state", middleware.AuthMiddleware(), middleware.RoleMiddleware(models.RoleRecruiter), func(c *gin.Context) {
+		applicationService.UpdateApplicationState(c)
+	})
+
 }
