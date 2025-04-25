@@ -5,13 +5,25 @@ import (
 
 	"skillly/pkg/config"
 	skillDto "skillly/pkg/handlers/skill/dto"
-	"skillly/pkg/models"
 	"skillly/pkg/utils"
 )
 
-func CreateSkill(
-	c *gin.Context,
-) {
+type SkillService interface {
+	CreateSkill(c *gin.Context)
+	GetAll(c *gin.Context)
+}
+
+type skillService struct {
+	skillRepository SkillRepository
+}
+
+func NewSkillService() SkillService {
+	return &skillService{
+		skillRepository: NewSkillRepository(config.DB),
+	}
+}
+
+func (s *skillService) CreateSkill(c *gin.Context) {
 	dto := skillDto.CreateSkillDTO{}
 	err := c.BindJSON(&dto)
 	if err != nil {
@@ -19,8 +31,7 @@ func CreateSkill(
 		return
 	}
 
-	skillRepository := SkillRepository{}
-	skill, err := skillRepository.Create(dto, config.DB)
+	skill, err := s.skillRepository.CreateSKill(dto, config.DB)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
@@ -29,32 +40,13 @@ func CreateSkill(
 	c.JSON(200, skill)
 }
 
-func GetAll(
-	c *gin.Context,
-) {
+func (s *skillService) GetAll(c *gin.Context) {
 	params := utils.GetUrlParams(c)
-	db := config.DB.Model(&models.Skill{})
+	skills, err := s.skillRepository.GetAll(params)
 
-	// apply filters
-	for key, value := range params.Filters {
-		db = db.Where(key, value)
+	if err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
 	}
-
-	// apply sorting
-	db = db.Order(params.Sort + " " + params.Order)
-
-	// apply pagination
-	if params.PageSize != nil {
-		db = db.Limit(*params.PageSize).Offset((params.Page - 1) * *params.PageSize)
-	}
-
-	// populate fields
-	for _, field := range params.Populate {
-		db = db.Preload(field)
-	}
-
-	var skills []models.Skill
-	db.Find(&skills)
 
 	c.JSON(200, skills)
 }

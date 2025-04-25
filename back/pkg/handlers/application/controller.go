@@ -8,18 +8,20 @@ import (
 )
 
 func AddRoutes(r *gin.Engine) {
+
+	applicationService := NewApplicationService()
+
 	app := r.Group("/application")
 	app.POST("/:id", middleware.AuthMiddleware(), middleware.RoleMiddleware(models.RoleCandidate), func(c *gin.Context) {
-		CreateApplication(c)
+		applicationService.CreateApplication(c)
 	})
-	app.GET("/company")
 
 	app.GET("/jobpost/:id", middleware.AuthMiddleware(), middleware.RoleMiddleware(models.RoleRecruiter), func(c *gin.Context) {
-		// get all jobpost application
+		applicationService.GetOfferApplications(c)
 	})
 
 	app.GET("/me", middleware.AuthMiddleware(), middleware.RoleMiddleware(models.RoleCandidate), func(c *gin.Context) {
-		// get all candidate application
+		applicationService.GetMe(c)
 	})
 
 }

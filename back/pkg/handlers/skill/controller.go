@@ -5,12 +5,15 @@ import (
 )
 
 func AddRoutes(r *gin.Engine) {
+
+	skillService := NewSkillService()
+
 	sk := r.Group("/skill")
 
 	sk.POST("/", func(c *gin.Context) {
-		CreateSkill(c)
+		skillService.CreateSkill(c)
 	})
 	sk.GET("/", func(c *gin.Context) {
-		GetAll(c)
+		skillService.GetAll(c)
 	})
 }

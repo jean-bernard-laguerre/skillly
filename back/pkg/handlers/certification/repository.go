@@ -7,9 +7,24 @@ import (
 	"gorm.io/gorm"
 )
 
-type CertificationRepository struct{}
+type CertificationRepository interface {
+	models.Repository[models.Certification]
+	CreateCertification(dto certificationDto.CreateCertificationDTO, tx *gorm.DB) (models.Certification, error)
+}
 
-func (r *CertificationRepository) Create(dto certificationDto.CreateCertificationDTO, tx *gorm.DB) (models.Certification, error) {
+type certificationRepository struct {
+	models.Repository[models.Certification]
+	db *gorm.DB
+}
+
+func NewCertificationRepository(db *gorm.DB) CertificationRepository {
+	return &certificationRepository{
+		Repository: models.NewRepository[models.Certification](db),
+		db:         db,
+	}
+}
+
+func (r *certificationRepository) CreateCertification(dto certificationDto.CreateCertificationDTO, tx *gorm.DB) (models.Certification, error) {
 	certification := models.Certification{
 		Name:     dto.Name,
 		Category: dto.Category,

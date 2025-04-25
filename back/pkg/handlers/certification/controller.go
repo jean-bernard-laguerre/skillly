@@ -5,13 +5,16 @@ import (
 )
 
 func AddRoutes(r *gin.Engine) {
+
+	certificationService := NewCertificationService()
+
 	crt := r.Group("/certification")
 
 	crt.POST("/", func(c *gin.Context) {
-		CreateCertification(c)
+		certificationService.CreateCertification(c)
 	})
 
 	crt.GET("/", func(c *gin.Context) {
-		GetAll(c)
+		certificationService.GetAll(c)
 	})
 }

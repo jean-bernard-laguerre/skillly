@@ -15,5 +15,7 @@ func RoleMiddleware(role utils.RoleType) gin.HandlerFunc {
 			c.Abort()
 			return
 		}
+
+		c.Next()
 	}
 }
