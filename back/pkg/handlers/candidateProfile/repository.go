@@ -81,7 +81,7 @@ func (r *candidateRepository) SaveCandidateSkills(id uint, dto candidateDto.Upda
 		if err := r.db.Where("id IN ?", dto.Skills).Find(&skills).Error; err != nil {
 			return err
 		}
-		if err := r.db.Model(&candidate).Association("Certifications").Append(skills); err != nil {
+		if err := r.db.Model(&candidate).Association("Skills").Append(skills); err != nil {
 			return err
 		}
 	}
@@ -111,7 +111,7 @@ func (r *candidateRepository) DeleteCandidateSkills(id uint, dto candidateDto.Up
 		if err := r.db.Where("id IN ?", dto.Skills).Find(&skills).Error; err != nil {
 			return err
 		}
-		if err := r.db.Model(&candidate).Association("Certifications").Delete(skills); err != nil {
+		if err := r.db.Model(&candidate).Association("Skills").Delete(skills); err != nil {
 			return err
 		}
 	}
