@@ -67,3 +67,15 @@ export const getCompanyMatches = async (): Promise<JobPost[]> => {
     throw error;
   }
 };
+
+export const getCandidateJobPosts = async (): Promise<JobPost[]> => {
+  try {
+    const response = await instance.get<JobPost[]>(
+      "/jobpost/candidate?populate=Skills&populate=Certifications"
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Erreur lors de la récupération des offres d'emploi:", error);
+    throw error;
+  }
+};

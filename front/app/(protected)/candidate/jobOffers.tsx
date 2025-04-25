@@ -2,20 +2,30 @@ import React, { useEffect, useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import Swiper from "react-native-deck-swiper";
 import { Heart, X } from "lucide-react-native";
-import { JobCard, SwippedState, OverlayLabelProps } from "@/types/interfaces";
+import { JobPost } from "@/types/interfaces";
+import { useJobPost } from "@/lib/hooks/useJobPost";
+import { useApplication } from "@/lib/hooks/useApplication";
+import Toast from "react-native-toast-message";
 
-const Card = ({ card }: { card: JobCard }) => (
-  <View className="flex-[0.9] rounded-lg shadow-lg justify-center items-center bg-white">
-    <Text className="text-3xl font-bold text-center text-black">
+const Card = ({ card }: { card: JobPost }) => (
+  <View className="flex-[0.9] rounded-lg shadow-lg justify-center items-center bg-white p-4">
+    <Text className="mb-2 text-2xl font-bold text-center text-black">
       {card.title}
     </Text>
-    <Text className="text-xl font-medium text-center text-black">
-      {card.description}
-    </Text>
+    <Text className="mb-2 text-lg text-gray-600">{card.location}</Text>
+    <Text className="mb-2 text-lg text-gray-600">{card.contract_type}</Text>
+    <Text className="mb-4 text-lg text-gray-600">{card.salary_range}</Text>
+    <View className="flex-row flex-wrap gap-2">
+      {card.skills?.map((skill) => (
+        <View key={skill.id} className="px-2 py-1 bg-blue-100 rounded">
+          <Text className="text-sm text-blue-800">{skill.name}</Text>
+        </View>
+      ))}
+    </View>
   </View>
 );
 
-const OverlayLabel = ({ color }: OverlayLabelProps) => {
+const OverlayLabel = ({ color }: { color: string }) => {
   if (color === "red") {
     return (
       <View className="flex-1 justify-center items-center absolute z-[1000]">
@@ -32,81 +42,85 @@ const OverlayLabel = ({ color }: OverlayLabelProps) => {
 };
 
 export default function JobOffers() {
-  const swiperRef = React.useRef<Swiper<JobCard>>(null);
-  const [swipped, setSwipped] = useState<SwippedState>({
-    left: [],
-    right: [],
-  });
+  const { candidateJobPosts, isLoadingCandidateJobPosts } = useJobPost();
+  const {
+    applications,
+    isLoadingApplications,
+    createApplication,
+    isCreatingApplication,
+  } = useApplication();
+  const swiperRef = React.useRef<Swiper<JobPost>>(null);
   const [index, setIndex] = useState(0);
   const [isAllSwiped, setIsAllSwiped] = useState(false);
-  const cards: JobCard[] = [
-    {
-      title: "Card 1",
-      description: "This is a card",
-    },
-    {
-      title: "Card 2",
-      description: "This is another card",
-    },
-    {
-      title: "Card 3",
-      description: "This is a card",
-    },
-    {
-      title: "Card 4",
-      description: "This is another card",
-    },
-    {
-      title: "Card 5",
-      description: "This is a card",
-    },
-    {
-      title: "Card 6",
-      description: "This is another card",
-    },
-    {
-      title: "Card 7",
-      description: "This is a card",
-    },
-    {
-      title: "Card 8",
-      description: "This is another card",
-    },
-    {
-      title: "Card 9",
-      description: "This is a card",
-    },
-    {
-      title: "Card 10",
-      description: "This is another card",
-    },
-  ];
 
-  const handleSwipe = (swipe: "left" | "right", card: JobCard) => {
+  // Filtrer les offres déjà postulées
+  const availableJobs = React.useMemo(() => {
+    if (!candidateJobPosts || !applications) return [];
+    const appliedJobIds = applications.map((app) => app.job_post_id);
+    return candidateJobPosts.filter((job) => !appliedJobIds.includes(job.id));
+  }, [candidateJobPosts, applications]);
+
+  const handleSwipe = (swipe: "left" | "right", card: JobPost) => {
     setIndex((prev) => prev + 1);
-    setSwipped((prev: SwippedState) => ({
-      ...prev,
-      [swipe]: [...prev[swipe], card],
-    }));
+    if (swipe === "right") {
+      // TODO: Calculer le score en fonction des compétences du candidat
+      const score = 90;
+      createApplication(
+        { jobOfferId: card.id, score },
+        {
+          onSuccess: () => {
+            Toast.show({
+              type: "success",
+              text1: "Candidature envoyée",
+              text2: `Votre candidature pour ${card.title} a été envoyée avec succès`,
+            });
+          },
+          onError: () => {
+            Toast.show({
+              type: "error",
+              text1: "Erreur",
+              text2: "Une erreur est survenue l'envoi de votre candidature",
+            });
+          },
+        }
+      );
+    }
   };
 
-  useEffect(() => {
-    console.log(swipped);
-  }, [swipped]);
+  if (isLoadingCandidateJobPosts || isLoadingApplications) {
+    return (
+      <View className="items-center justify-center flex-1">
+        <Text>Chargement des offres...</Text>
+      </View>
+    );
+  }
+
+  if (availableJobs.length === 0) {
+    return (
+      <View className="items-center justify-center flex-1">
+        <Text className="mb-4 text-lg text-gray-600">
+          Aucune nouvelle offre disponible
+        </Text>
+        <Text className="text-sm text-gray-500">
+          Vous avez déjà postulé à toutes les offres disponibles
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1">
       <View className="flex-[0.9]">
         <Swiper
           ref={swiperRef}
-          cards={cards}
+          cards={availableJobs}
           cardIndex={index}
           renderCard={(card) => <Card card={card} />}
           onSwipedLeft={(cardIndex) => {
-            handleSwipe("left", cards[cardIndex]);
+            handleSwipe("left", availableJobs[cardIndex]);
           }}
           onSwipedRight={(cardIndex) => {
-            handleSwipe("right", cards[cardIndex]);
+            handleSwipe("right", availableJobs[cardIndex]);
           }}
           onSwipedAll={() => {
             setIsAllSwiped(true);
@@ -174,38 +188,16 @@ export default function JobOffers() {
       </View>
       {isAllSwiped && (
         <View className="absolute top-0 left-0 flex flex-col items-center justify-center w-full h-full bg-black">
-          <Text className="text-white">
-            Plus aucune carte à swiper, vous avez swipé toutes les cartes
-          </Text>
-          <Text className="text-white">Cartes swipées: </Text>
-          <View className="flex-row justify-between w-1/2">
-            <View className="flex-col items-center justify-center">
-              <Text className="text-white">Left:</Text>
-              {swipped.left.map((card) => (
-                <Text key={card.title} className="text-white">
-                  {card.title}
-                </Text>
-              ))}
-            </View>
-            <View className="flex-col items-center justify-center">
-              <Text className="text-white">Right:</Text>
-              {swipped.right.map((card) => (
-                <Text key={card.title} className="text-white">
-                  {card.title}
-                </Text>
-              ))}
-            </View>
-          </View>
+          <Text className="mb-4 text-white">Plus aucune offre à swiper</Text>
           <TouchableOpacity
-            className="bg-black justify-center items-center rounded-lg p-2.5 mt-5 border border-white"
+            className="bg-white justify-center items-center rounded-lg p-2.5"
             onPress={() => {
-              setSwipped({ left: [], right: [] });
               setIsAllSwiped(false);
               setIndex(0);
               swiperRef.current?.jumpToCardIndex(0);
             }}
           >
-            <Text className="text-white">Recommencer</Text>
+            <Text>Recommencer</Text>
           </TouchableOpacity>
         </View>
       )}
