@@ -20,18 +20,25 @@ export interface Job {
 
 export interface Application {
   id: string;
-  jobId: string;
-  candidateName: string;
-  jobTitle: string;
-  date: string;
+  candidate: {
+    id: string;
+    first_name: string;
+    last_name: string;
+    skills?: Skill[];
+  };
+  jobPost: {
+    id: string;
+    title: string;
+  };
   status: "pending" | "accepted" | "rejected";
+  createdAt: string;
 }
 
 export interface JobSelectorProps {
-  jobs: Job[];
+  jobs: JobPost[];
   selectedJobId: string | null;
   onSelectJob: (jobId: string) => void;
-  applications: Application[];
+  type: "applications" | "matches";
 }
 
 export interface ApplicationsListProps {
@@ -87,8 +94,8 @@ export interface AuthContextType {
 
 export interface User {
   id: number;
-  firstName: string;
-  lastName: string;
+  first_name: string;
+  last_name: string;
   email: string;
   role: "candidate" | "recruiter";
   profile_candidate?: {
@@ -155,10 +162,8 @@ export interface RegisterCredentials {
   title?: string;
   company?: number;
   newCompany?: {
-    name: string;
-    description: string;
-    website: string;
-    logo: string;
+    CompanyName: string;
+    SIRET: string;
   };
 }
 
@@ -172,4 +177,39 @@ export interface Certification {
   name: string;
   category: string;
   description?: string;
+}
+
+export interface Match {
+  id: string;
+  candidate: {
+    id: string;
+    first_name: string;
+    last_name: string;
+    skills?: Skill[];
+  };
+  jobPost: JobPost;
+  matched_at: string;
+}
+export interface JobPost {
+  id: string;
+  title: string;
+  location: string;
+  contract_type: string;
+  salary_range: string;
+  expiration_date: string;
+  skills?: Skill[];
+  certifications?: Certification[];
+  applications?: Application[];
+  matches?: Match[];
+}
+
+export interface CreateJobPostDTO {
+  description: string;
+  title: string;
+  location: string;
+  contract_type: "CDI" | "CDD";
+  salary_range: string;
+  expiration_date: string;
+  skills: number[];
+  certifications: number[];
 }

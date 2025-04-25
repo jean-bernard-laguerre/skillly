@@ -6,15 +6,12 @@ import {
   RegisterCredentials,
   User,
 } from "@/types/interfaces";
-import { useNavigation } from "@react-navigation/native";
+import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { TabNavigationProp } from "@/types/navigation";
-import { useAuth as useAuthContext } from "@/context/AuthContext";
 
-export const useAuth = () => {
+export const useAuthMutation = () => {
   const queryClient = useQueryClient();
-  const navigation = useNavigation<TabNavigationProp>();
-  const { setUser } = useAuthContext();
+  const router = useRouter();
 
   // Query pour récupérer l'utilisateur courant
   const {
@@ -27,11 +24,9 @@ export const useAuth = () => {
     queryFn: async () => {
       const token = await AsyncStorage.getItem("token");
       if (!token) {
-        setUser(null);
         return null;
       }
       const user = await AuthService.getCurrentUser();
-      setUser(user);
       return user;
     },
     retry: false,
@@ -84,12 +79,11 @@ export const useAuth = () => {
     onSuccess: async (data) => {
       try {
         await queryClient.invalidateQueries({ queryKey: ["currentUser"] });
-        setUser(data.user);
         await new Promise((resolve) => setTimeout(resolve, 300));
         if (data.user.role === "candidate") {
-          navigation.navigate("CandidateHome");
+          router.replace("/(protected)/candidate");
         } else if (data.user.role === "recruiter") {
-          navigation.navigate("RecruiterHome");
+          router.replace("/(protected)/recruiter");
         }
       } catch (error) {
         console.error("Erreur lors de la redirection:", error);
@@ -107,9 +101,8 @@ export const useAuth = () => {
     onSuccess: async (data) => {
       try {
         await queryClient.invalidateQueries({ queryKey: ["currentUser"] });
-        setUser(data.user);
         await new Promise((resolve) => setTimeout(resolve, 300));
-        navigation.navigate("CandidateHome");
+        router.replace("/(protected)/candidate");
       } catch (error) {
         console.error("Erreur lors de la redirection:", error);
       }
@@ -126,9 +119,8 @@ export const useAuth = () => {
     onSuccess: async (data) => {
       try {
         await queryClient.invalidateQueries({ queryKey: ["currentUser"] });
-        setUser(data.user);
         await new Promise((resolve) => setTimeout(resolve, 300));
-        navigation.navigate("RecruiterHome");
+        router.replace("/(protected)/recruiter");
       } catch (error) {
         console.error("Erreur lors de la redirection:", error);
       }
@@ -145,8 +137,7 @@ export const useAuth = () => {
     onSuccess: async () => {
       try {
         await queryClient.clear();
-        setUser(null);
-        await new Promise((resolve) => setTimeout(resolve, 300));
+        await AsyncStorage.removeItem("token");
       } catch (error) {
         console.error("Erreur lors de la déconnexion:", error);
       }

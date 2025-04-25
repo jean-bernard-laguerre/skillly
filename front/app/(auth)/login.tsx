@@ -7,12 +7,12 @@ import {
   ScrollView,
   ActivityIndicator,
 } from "react-native";
-import { useAuth } from "@/lib/hooks/useAuth";
+import { useAuthMutation } from "@/lib/hooks/useAuthMutation";
 import { LoginCredentials } from "@/types/interfaces";
 import { Link } from "expo-router";
 
 export default function Login() {
-  const { login, isLoggingIn, loginError } = useAuth();
+  const { login, isLoggingIn, loginError } = useAuthMutation();
   const [formData, setFormData] = useState<LoginCredentials>({
     email: "",
     password: "",

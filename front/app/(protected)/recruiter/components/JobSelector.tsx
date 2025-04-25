@@ -7,7 +7,7 @@ export default function JobSelector({
   jobs,
   selectedJobId,
   onSelectJob,
-  applications,
+  type,
 }: JobSelectorProps) {
   return (
     <View className="p-4 mb-4">
@@ -27,13 +27,17 @@ export default function JobSelector({
               <Briefcase size={20} color="#6366f1" className="mr-2" />
               <View className="flex-1">
                 <Text className="font-medium">{job.title}</Text>
-                <Text className="text-sm text-gray-600">{job.company}</Text>
-                <Text className="text-sm text-gray-500">{job.location}</Text>
+                <Text className="text-sm text-gray-600">{job.location}</Text>
+                <Text className="text-sm text-gray-500">
+                  {job.contract_type}
+                </Text>
               </View>
               <View className="px-2 py-1 bg-indigo-100 rounded-full">
                 <Text className="text-sm text-indigo-800">
-                  {applications.filter((app) => app.jobId === job.id).length}{" "}
-                  candidatures
+                  {type === "applications"
+                    ? job.applications?.length || 0
+                    : job.matches?.length || 0}{" "}
+                  {type === "applications" ? "candidatures" : "matches"}
                 </Text>
               </View>
             </View>

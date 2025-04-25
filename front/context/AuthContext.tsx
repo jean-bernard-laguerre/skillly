@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter, useRootNavigationState } from "expo-router";
 import { AuthContextType, HandleRedirect, User } from "@/types/interfaces";
+import { useAuthMutation } from "@/lib/hooks/useAuthMutation";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -12,6 +13,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const navigationState = useRootNavigationState();
   const [isReady, setIsReady] = useState(false);
+
+  // Utiliser le hook useAuthMutation
+  const {
+    currentUser,
+    isLoadingUser,
+    logout: logoutMutation,
+  } = useAuthMutation();
 
   useEffect(() => {
     if (navigationState?.key && !isReady) {
@@ -27,65 +35,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } else if (role === "recruiter") {
       router.replace("/(protected)/recruiter");
     } else {
-      router.replace("/");
+      router.replace("/(auth)/login");
     }
   };
 
   const handleLogOut = async () => {
-    await AsyncStorage.multiRemove(["userRole", "userData"]);
+    await logoutMutation();
     setRole(null);
     setUser(null);
     handleRedirect(null);
   };
 
+  // Synchroniser l'état du contexte avec les données de TanStack Query
   useEffect(() => {
-    const loadUserData = async () => {
-      try {
-        const [storedRole, storedUser] = await Promise.all([
-          AsyncStorage.getItem("userRole"),
-          AsyncStorage.getItem("userData"),
-        ]);
-
-        if (
-          storedRole === "candidate" ||
-          storedRole === "recruiter" ||
-          storedRole === null
-        ) {
-          setRole(storedRole);
-        } else {
-          setRole(null);
-        }
-
-        if (storedUser) {
-          setUser(JSON.parse(storedUser));
-        }
-      } catch (error) {
-        console.error(
-          "Erreur lors du chargement des données utilisateur :",
-          error
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadUserData();
-  }, []);
-
-  useEffect(() => {
-    if (role && isReady) {
-      handleRedirect(role);
-    }
-  }, [role, isReady]);
-
-  // Fonction pour mettre à jour les données utilisateur
-  const updateUser = async (newUser: User | null) => {
-    setUser(newUser);
-    if (newUser) {
-      await AsyncStorage.setItem("userData", JSON.stringify(newUser));
+    if (currentUser) {
+      setUser(currentUser);
+      setRole(currentUser.role);
     } else {
-      await AsyncStorage.removeItem("userData");
+      setUser(null);
+      setRole(null);
     }
-  };
+  }, [currentUser]);
+
+  // Gérer le chargement
+  useEffect(() => {
+    setLoading(isLoadingUser);
+  }, [isLoadingUser]);
 
   return (
     <AuthContext.Provider
@@ -93,7 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         role,
         setRole,
         user,
-        setUser: updateUser,
+        setUser,
         handleLogOut,
         loading,
       }}

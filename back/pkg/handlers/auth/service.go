@@ -46,6 +46,7 @@ func NewAuthService() AuthService {
 
 // RegisterCandidate is a handler that creates a new candidate and user
 func (s *authService) RegisterCandidate(c *gin.Context) {
+	var savedUser models.User
 	err := config.DB.Transaction(func(tx *gorm.DB) error {
 		candidateRegister := authDto.CandidateRegisterDTO{}
 		err := c.BindJSON(&candidateRegister)
@@ -96,11 +97,40 @@ func (s *authService) RegisterCandidate(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, gin.H{"message": "Candidate created successfully"})
+	// Load the user with its profile
+	userModel := user.UserRepository{}
+	savedUser, err = userModel.GetByID(savedUser.ID)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Create the token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"email":     savedUser.Email,
+		"role":      savedUser.Role,
+		"id":        savedUser.ID,
+		"firstName": savedUser.FirstName,
+		"lastName":  savedUser.LastName,
+	})
+
+	token.Claims.(jwt.MapClaims)["candidateID"] = savedUser.ProfileCandidate.ID
+
+	tokenString, err := token.SignedString([]byte("secret"))
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"user":  savedUser,
+		"token": tokenString,
+	})
 }
 
 // RegisterRecruiter is a handler that creates a new recruiter and user
 func (s *authService) RegisterRecruiter(c *gin.Context) {
+	var savedUser models.User
 	err := config.DB.Transaction(func(tx *gorm.DB) error {
 		recruiterRegister := authDto.RecruterRegisterDTO{}
 		err := c.BindJSON(&recruiterRegister)
@@ -157,7 +187,37 @@ func (s *authService) RegisterRecruiter(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, gin.H{"message": "Recruiter created successfully"})
+	// Load the user with its profile
+	userModel := user.UserRepository{}
+	savedUser, err = userModel.GetByID(savedUser.ID)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Create the token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"email":     savedUser.Email,
+		"role":      savedUser.Role,
+		"id":        savedUser.ID,
+		"firstName": savedUser.FirstName,
+		"lastName":  savedUser.LastName,
+	})
+
+	token.Claims.(jwt.MapClaims)["companyID"] = savedUser.ProfileRecruiter.CompanyID
+	token.Claims.(jwt.MapClaims)["companyRole"] = savedUser.ProfileRecruiter.Role
+	token.Claims.(jwt.MapClaims)["recruiterID"] = savedUser.ProfileRecruiter.ID
+
+	tokenString, err := token.SignedString([]byte("secret"))
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"user":  savedUser,
+		"token": tokenString,
+	})
 }
 
 func (s *authService) Login(c *gin.Context) {

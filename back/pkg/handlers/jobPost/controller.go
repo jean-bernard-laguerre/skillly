@@ -1,12 +1,11 @@
 package jobPost
 
 import (
-	"skillly/pkg/middleware"
-	"skillly/pkg/utils"
-
-	"skillly/pkg/models"
-
 	"github.com/gin-gonic/gin"
+
+	"skillly/pkg/middleware"
+	"skillly/pkg/models"
+	"skillly/pkg/utils"
 )
 
 func AddRoutes(r *gin.Engine) {
