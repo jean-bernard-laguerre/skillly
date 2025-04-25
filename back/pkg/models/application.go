@@ -15,7 +15,7 @@ type Application struct {
 	ID        uint                   `json:"id" gorm:"primaryKey"`
 	State     utils.ApplicationState `json:"state" gorm:"default:'pending'"`
 	Score     int                    `json:"score"`
-	AppliedAt time.Time              `json:"Applied_at"`
+	CreatedAt time.Time              `json:"created_at"`
 
 	JobPostID uint    `json:"job_post_id"`
 	JobPost   JobPost `json:"job_post" gorm:"foreignKey:JobPostID;references:ID"`

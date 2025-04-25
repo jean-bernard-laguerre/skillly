@@ -20,8 +20,28 @@ import (
 	"skillly/pkg/models"
 )
 
+type AuthService interface {
+	RegisterCandidate(c *gin.Context)
+	RegisterRecruiter(c *gin.Context)
+	Login(c *gin.Context)
+}
+
+type authService struct {
+	companyRepository   company.CompanyRepository
+	recruiterRepository recruiter.RecruiterRepository
+	candidateRepository candidate.CandidateRepository
+}
+
+func NewAuthService() AuthService {
+	return &authService{
+		companyRepository:   company.NewCompanyRepository(config.DB),
+		recruiterRepository: recruiter.NewRecruiterRepository(config.DB),
+		candidateRepository: candidate.NewCandidateRepository(config.DB),
+	}
+}
+
 // RegisterCandidate is a handler that creates a new candidate and user
-func RegisterCandidate(c *gin.Context) {
+func (s *authService) RegisterCandidate(c *gin.Context) {
 	var savedUser models.User
 	err := config.DB.Transaction(func(tx *gorm.DB) error {
 		candidateRegister := authDto.CandidateRegisterDTO{}
@@ -61,8 +81,7 @@ func RegisterCandidate(c *gin.Context) {
 		}
 
 		// Create the candidate
-		candidateModel := candidate.CandidateRepository{}
-		_, err = candidateModel.Create(newCandidate, tx)
+		_, err = s.candidateRepository.CreateCandidate(newCandidate, tx)
 
 		if err != nil {
 			return err
@@ -107,7 +126,7 @@ func RegisterCandidate(c *gin.Context) {
 }
 
 // RegisterRecruiter is a handler that creates a new recruiter and user
-func RegisterRecruiter(c *gin.Context) {
+func (s *authService) RegisterRecruiter(c *gin.Context) {
 	var savedUser models.User
 	err := config.DB.Transaction(func(tx *gorm.DB) error {
 		recruiterRegister := authDto.RecruterRegisterDTO{}
@@ -139,10 +158,9 @@ func RegisterRecruiter(c *gin.Context) {
 			User:      savedUser,
 		}
 
-		// if the recruiter is creating a new company create it
+		// if the recruiter is creating a new auth create it
 		if recruiterRegister.NewCompany != nil {
-			companyModel := company.CompanyRepository{}
-			savedCompany, err := companyModel.Create(*recruiterRegister.NewCompany, tx)
+			savedCompany, err := s.companyRepository.CreateCompany(*recruiterRegister.NewCompany, tx)
 
 			if err != nil {
 				return err
@@ -153,8 +171,7 @@ func RegisterRecruiter(c *gin.Context) {
 		}
 
 		// Create the recruiter
-		recruiterModel := recruiter.RecruiterRepository{}
-		_, err = recruiterModel.Create(newRecruiter, tx)
+		_, err = s.recruiterRepository.CreateRecruiter(newRecruiter, tx)
 
 		if err != nil {
 			return err
@@ -201,7 +218,7 @@ func RegisterRecruiter(c *gin.Context) {
 	})
 }
 
-func Login(c *gin.Context) {
+func (s *authService) Login(c *gin.Context) {
 	// TODO
 
 	userLogin := authDto.LoginDto{}
@@ -244,7 +261,7 @@ func Login(c *gin.Context) {
 
 	if user.Role == models.RoleRecruiter {
 		token.Claims.(jwt.MapClaims)["companyID"] = user.ProfileRecruiter.CompanyID
-		token.Claims.(jwt.MapClaims)["companyRole"] = user.ProfileRecruiter.Role
+		token.Claims.(jwt.MapClaims)["authRole"] = user.ProfileRecruiter.Role
 		token.Claims.(jwt.MapClaims)["recruiterID"] = user.ProfileRecruiter.ID
 	} else {
 		token.Claims.(jwt.MapClaims)["candidateID"] = user.ProfileCandidate.ID

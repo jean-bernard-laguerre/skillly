@@ -7,12 +7,25 @@ import (
 	"skillly/pkg/models"
 )
 
-type CandidateRepository struct{}
+type CandidateRepository interface {
+	models.Repository[models.ProfileCandidate]
+	CreateCandidate(dto candidateDto.CreateCandidateDTO, tx *gorm.DB) (models.ProfileCandidate, error)
+}
+
+type candidateRepository struct {
+	models.Repository[models.ProfileCandidate]
+	db *gorm.DB
+}
+
+func NewCandidateRepository(db *gorm.DB) CandidateRepository {
+	return &candidateRepository{
+		Repository: models.NewRepository[models.ProfileCandidate](db),
+		db:         db,
+	}
+}
 
 // Create a new candidate
-func (r *CandidateRepository) Create(
-	dto candidateDto.CreateCandidateDTO, tx *gorm.DB,
-) (models.ProfileCandidate, error) {
+func (r *candidateRepository) CreateCandidate(dto candidateDto.CreateCandidateDTO, tx *gorm.DB) (models.ProfileCandidate, error) {
 
 	profile := models.ProfileCandidate{
 		Bio:              dto.Bio,
