@@ -54,20 +54,20 @@ func (s *applicationService) CreateApplication(c *gin.Context) {
 
 func (s *applicationService) GetMe(c *gin.Context) {
 	params := utils.GetUrlParams(c)
-	db := config.DB.Model(&models.Application{})
+	query := config.DB.Model(&models.Application{})
 
-	db.Where("candidate_id = ?", c.Keys["candidate_id"])
+	query.Where("candidate_id = ?", c.Keys["candidate_id"])
 
 	// apply sorting
-	db = db.Order(params.Sort + " " + params.Order)
+	query = query.Order(params.Sort + " " + params.Order)
 
 	// populate fields
 	for _, field := range params.Populate {
-		db = db.Preload(field)
+		query = query.Preload(field)
 	}
 
 	var applications []models.Application
-	db.Find(&applications)
+	query.Find(&applications)
 
 	c.JSON(200, applications)
 }
@@ -75,7 +75,7 @@ func (s *applicationService) GetMe(c *gin.Context) {
 func (s *applicationService) GetOfferApplications(c *gin.Context) {
 
 	params := utils.GetUrlParams(c)
-	db := config.DB.Model(&models.Application{})
+	query := config.DB.Model(&models.Application{})
 
 	jobPostId, _ := utils.GetId(c)
 
@@ -87,22 +87,22 @@ func (s *applicationService) GetOfferApplications(c *gin.Context) {
 		return
 	}
 
-	db.Where("job_post_id", jobPostId)
+	query.Where("job_post_id", jobPostId)
 	// apply sorting
-	db = db.Order(params.Sort + " " + params.Order)
+	query = query.Order(params.Sort + " " + params.Order)
 
 	// apply pagination
 	if params.PageSize != nil {
-		db = db.Limit(*params.PageSize).Offset((params.Page - 1) * *params.PageSize)
+		query = query.Limit(*params.PageSize).Offset((params.Page - 1) * *params.PageSize)
 	}
 
 	// populate fields
 	for _, field := range params.Populate {
-		db = db.Preload(field)
+		query = query.Preload(field)
 	}
 
 	var applications []models.Application
-	db.Find(&applications)
+	query.Find(&applications)
 
 	c.JSON(200, applications)
 }

@@ -53,12 +53,12 @@ func (r *gormRepository[T]) GetAll(params utils.QueryParams) ([]T, error) {
 
 	// Apply filters
 	for key, value := range params.Filters {
-		query.Where(key+" = ?", value)
+		query = query.Where(key+" = ?", value)
 	}
 
 	// Apply sorting
 	if params.Sort != "" && params.Order != "" {
-		query.Order(params.Sort + " " + params.Order)
+		query = query.Order(params.Sort + " " + params.Order)
 	} else {
 		query.Order("id asc") // Default sort
 	}
@@ -66,13 +66,13 @@ func (r *gormRepository[T]) GetAll(params utils.QueryParams) ([]T, error) {
 	// Apply pagination
 	if params.PageSize != nil && params.Page > 0 {
 		offset := (params.Page - 1) * (*params.PageSize)
-		query.Limit(*params.PageSize).Offset(offset)
+		query = query.Limit(*params.PageSize).Offset(offset)
 	}
 
 	// Apply preloading
 	for _, field := range params.Populate {
 		if field != "" { // Basic validation
-			query.Preload(field)
+			query = query.Preload(field)
 		}
 	}
 

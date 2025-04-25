@@ -40,6 +40,7 @@ func GetId(c *gin.Context) (uint, error) {
 	if err != nil {
 		c.JSON(400, gin.H{"error": "Invalid ID"})
 		c.Abort()
+		return uint(0), err
 	}
 
 	return uint(id), nil

@@ -18,15 +18,18 @@ import (
 	"skillly/pkg/handlers/user"
 	userDto "skillly/pkg/handlers/user/dto"
 	"skillly/pkg/models"
+	"skillly/pkg/utils"
 )
 
 type AuthService interface {
 	RegisterCandidate(c *gin.Context)
 	RegisterRecruiter(c *gin.Context)
 	Login(c *gin.Context)
+	GetCurrentUser(c *gin.Context)
 }
 
 type authService struct {
+	userRepository      user.UserRepository
 	companyRepository   company.CompanyRepository
 	recruiterRepository recruiter.RecruiterRepository
 	candidateRepository candidate.CandidateRepository
@@ -34,6 +37,7 @@ type authService struct {
 
 func NewAuthService() AuthService {
 	return &authService{
+		userRepository:      user.NewUserRepository(config.DB),
 		companyRepository:   company.NewCompanyRepository(config.DB),
 		recruiterRepository: recruiter.NewRecruiterRepository(config.DB),
 		candidateRepository: candidate.NewCandidateRepository(config.DB),
@@ -60,8 +64,7 @@ func (s *authService) RegisterCandidate(c *gin.Context) {
 		}
 
 		// Create the user
-		userModel := user.UserRepository{}
-		savedUser, err = userModel.Create(newUser, tx)
+		savedUser, err := s.userRepository.CreateUser(newUser, tx)
 
 		if err != nil {
 			return err
@@ -95,8 +98,7 @@ func (s *authService) RegisterCandidate(c *gin.Context) {
 	}
 
 	// Load the user with its profile
-	userModel := user.UserRepository{}
-	savedUser, err = userModel.GetByID(savedUser.ID)
+	savedUser, err = s.userRepository.GetByID(savedUser.ID, nil)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -104,14 +106,13 @@ func (s *authService) RegisterCandidate(c *gin.Context) {
 
 	// Create the token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"email":     savedUser.Email,
-		"role":      savedUser.Role,
-		"id":        savedUser.ID,
-		"firstName": savedUser.FirstName,
-		"lastName":  savedUser.LastName,
+		"email":       savedUser.Email,
+		"role":        savedUser.Role,
+		"id":          savedUser.ID,
+		"firstName":   savedUser.FirstName,
+		"lastName":    savedUser.LastName,
+		"candidateID": savedUser.ProfileCandidate.ID,
 	})
-
-	token.Claims.(jwt.MapClaims)["candidateID"] = savedUser.ProfileCandidate.ID
 
 	tokenString, err := token.SignedString([]byte("secret"))
 	if err != nil {
@@ -145,8 +146,7 @@ func (s *authService) RegisterRecruiter(c *gin.Context) {
 		}
 
 		// Create the user
-		userModel := user.UserRepository{}
-		savedUser, err = userModel.Create(newUser, tx)
+		savedUser, err := s.userRepository.CreateUser(newUser, tx)
 
 		if err != nil {
 			return err
@@ -186,8 +186,9 @@ func (s *authService) RegisterRecruiter(c *gin.Context) {
 	}
 
 	// Load the user with its profile
-	userModel := user.UserRepository{}
-	savedUser, err = userModel.GetByID(savedUser.ID)
+
+	populate := []string{"ProfileRecruiter"}
+	savedUser, err = s.userRepository.GetByID(savedUser.ID, &populate)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -195,16 +196,15 @@ func (s *authService) RegisterRecruiter(c *gin.Context) {
 
 	// Create the token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"email":     savedUser.Email,
-		"role":      savedUser.Role,
-		"id":        savedUser.ID,
-		"firstName": savedUser.FirstName,
-		"lastName":  savedUser.LastName,
+		"email":        savedUser.Email,
+		"role":         savedUser.Role,
+		"id":           savedUser.ID,
+		"firstName":    savedUser.FirstName,
+		"lastName":     savedUser.LastName,
+		"companyID":    savedUser.ProfileRecruiter.CompanyID,
+		"companyRole:": savedUser.ProfileRecruiter.Role,
+		"recruiterID":  savedUser.ProfileRecruiter.ID,
 	})
-
-	token.Claims.(jwt.MapClaims)["companyID"] = savedUser.ProfileRecruiter.CompanyID
-	token.Claims.(jwt.MapClaims)["companyRole"] = savedUser.ProfileRecruiter.Role
-	token.Claims.(jwt.MapClaims)["recruiterID"] = savedUser.ProfileRecruiter.ID
 
 	tokenString, err := token.SignedString([]byte("secret"))
 	if err != nil {
@@ -229,8 +229,7 @@ func (s *authService) Login(c *gin.Context) {
 		return
 	}
 
-	userModel := user.UserRepository{}
-	user, err := userModel.GetByEmail(userLogin.Email)
+	user, err := s.userRepository.GetByEmail(userLogin.Email)
 
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
@@ -279,21 +278,18 @@ func (s *authService) Login(c *gin.Context) {
 	})
 }
 
-func GetCurrentUser(c *gin.Context) {
-	userIDRaw, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(401, gin.H{"error": "Unauthorized: User ID not found in context"})
-		return
+func (s *authService) GetCurrentUser(c *gin.Context) {
+	userID := c.Keys["user_id"]
+	userRole := c.Keys["user_role"]
+
+	var populate *[]string
+	if utils.RoleType(userRole.(string)) == models.RoleCandidate {
+		populate = &[]string{"ProfileCandidate", "ProfileCandidate.Skills", "ProfileCandidate.Certifications"}
+	} else {
+		populate = &[]string{"ProfileRecruiter"}
 	}
 
-	userID, ok := userIDRaw.(uint)
-	if !ok {
-		c.JSON(500, gin.H{"error": "Internal Server Error: User ID has invalid type in context"})
-		return
-	}
-
-	userModel := user.UserRepository{}
-	currentUser, err := userModel.GetByID(userID)
+	currentUser, err := s.userRepository.GetByID(userID.(uint), populate)
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

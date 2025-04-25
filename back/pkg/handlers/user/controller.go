@@ -9,35 +9,33 @@ import (
 func AddRoutes(r *gin.Engine) {
 	us := r.Group("/user")
 
+	userService := NewUserService()
+
 	us.POST("/", middleware.AuthMiddleware(), func(c *gin.Context) {
-		CreateUser(c)
+		userService.CreateUser(c)
 	})
 
 	us.GET("/", middleware.AuthMiddleware(), func(c *gin.Context) {
-		GetAll(c)
+		userService.GetAll(c)
 	})
 
 	us.GET("/:id", middleware.AuthMiddleware(), func(c *gin.Context) {
-		GetById(c)
+		userService.GetById(c)
 	})
 
 	us.PUT("/:id", middleware.AuthMiddleware(), func(c *gin.Context) {
-		UpdateUser(c)
+		userService.UpdateUser(c)
 	})
 
 	us.DELETE("/:id", middleware.AuthMiddleware(), func(c *gin.Context) {
-		DeleteUser(c)
+		userService.DeleteUser(c)
 	})
 
-	us.PATCH("/:id/skills", middleware.AuthMiddleware(), func(c *gin.Context) {
-		AddUserSkills(c)
+	us.PATCH("/me/skills", middleware.AuthMiddleware(), func(c *gin.Context) {
+		userService.AddUserSkills(c)
 	})
 
-	us.DELETE("/:id/skills/:skillId", middleware.AuthMiddleware(), func(c *gin.Context) {
-		DeleteUserSkill(c)
-	})
-
-	us.DELETE("/:id/certifications/:certificationId", middleware.AuthMiddleware(), func(c *gin.Context) {
-		DeleteUserCertification(c)
+	us.DELETE("/me/skills", middleware.AuthMiddleware(), func(c *gin.Context) {
+		userService.DeleteUserSkill(c)
 	})
 }
