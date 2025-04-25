@@ -6,13 +6,12 @@ import {
   RegisterCredentials,
   User,
 } from "@/types/interfaces";
-import { useNavigation } from "@react-navigation/native";
+import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { TabNavigationProp } from "@/types/navigation";
 
 export const useAuthMutation = () => {
   const queryClient = useQueryClient();
-  const navigation = useNavigation<TabNavigationProp>();
+  const router = useRouter();
 
   // Query pour récupérer l'utilisateur courant
   const {
@@ -82,9 +81,9 @@ export const useAuthMutation = () => {
         await queryClient.invalidateQueries({ queryKey: ["currentUser"] });
         await new Promise((resolve) => setTimeout(resolve, 300));
         if (data.user.role === "candidate") {
-          navigation.navigate("CandidateHome");
+          router.replace("/(protected)/candidate");
         } else if (data.user.role === "recruiter") {
-          navigation.navigate("RecruiterHome");
+          router.replace("/(protected)/recruiter");
         }
       } catch (error) {
         console.error("Erreur lors de la redirection:", error);
@@ -103,7 +102,7 @@ export const useAuthMutation = () => {
       try {
         await queryClient.invalidateQueries({ queryKey: ["currentUser"] });
         await new Promise((resolve) => setTimeout(resolve, 300));
-        navigation.navigate("CandidateHome");
+        router.replace("/(protected)/candidate");
       } catch (error) {
         console.error("Erreur lors de la redirection:", error);
       }
@@ -121,7 +120,7 @@ export const useAuthMutation = () => {
       try {
         await queryClient.invalidateQueries({ queryKey: ["currentUser"] });
         await new Promise((resolve) => setTimeout(resolve, 300));
-        navigation.navigate("RecruiterHome");
+        router.replace("/(protected)/recruiter");
       } catch (error) {
         console.error("Erreur lors de la redirection:", error);
       }
@@ -138,7 +137,7 @@ export const useAuthMutation = () => {
     onSuccess: async () => {
       try {
         await queryClient.clear();
-        await new Promise((resolve) => setTimeout(resolve, 300));
+        await AsyncStorage.removeItem("token");
       } catch (error) {
         console.error("Erreur lors de la déconnexion:", error);
       }

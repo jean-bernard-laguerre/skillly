@@ -20,8 +20,16 @@ export interface Job {
 
 export interface Application {
   id: string;
-  candidate: User;
-  jobPost: JobPost;
+  candidate: {
+    id: string;
+    first_name: string;
+    last_name: string;
+    skills?: Skill[];
+  };
+  jobPost: {
+    id: string;
+    title: string;
+  };
   status: "pending" | "accepted" | "rejected";
   createdAt: string;
 }
@@ -85,11 +93,27 @@ export interface AuthContextType {
 }
 
 export interface User {
-  id: string;
-  name: string;
+  id: number;
+  first_name: string;
+  last_name: string;
   email: string;
-  skills?: Skill[];
   role: "candidate" | "recruiter";
+  profile_candidate?: {
+    bio: string;
+    experienceYears: number;
+    preferedContract: string;
+    preferedJob: string;
+    location: string;
+    availability: string;
+    resumeID: number;
+    certifications: Certification[];
+    skills: Skill[];
+  };
+  profile_recruiter?: {
+    title: string;
+    companyID: number;
+    role: "admin" | "member";
+  };
 }
 
 export type HandleRedirect = (role: "candidate" | "recruiter" | null) => void;
@@ -157,11 +181,15 @@ export interface Certification {
 
 export interface Match {
   id: string;
-  user: User;
+  candidate: {
+    id: string;
+    first_name: string;
+    last_name: string;
+    skills?: Skill[];
+  };
   jobPost: JobPost;
-  createdAt: string;
+  matched_at: string;
 }
-
 export interface JobPost {
   id: string;
   title: string;
