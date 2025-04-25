@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, Pressable, ScrollView } from "react-native";
-import { useAuth } from "@/lib/hooks/useAuth";
+import { useAuthMutation } from "@/lib/hooks/useAuthMutation";
 import { RegisterCredentials } from "@/types/interfaces";
 
 export default function RecruiterSignup() {
   const { registerRecruiter, isRegisteringRecruiter, registerRecruiterError } =
-    useAuth();
+    useAuthMutation();
   const [formData, setFormData] = useState<RegisterCredentials>({
     firstName: "",
     lastName: "",
@@ -89,11 +89,7 @@ export default function RecruiterSignup() {
         />
       </View>
 
-      <Pressable
-        className="p-4 bg-blue-500 rounded"
-        onPress={handleSubmit}
-        disabled={isRegisteringRecruiter}
-      >
+      <Pressable className="p-4 bg-blue-500 rounded" onPress={handleSubmit}>
         <Text className="text-center text-white">
           {isRegisteringRecruiter ? "Inscription en cours..." : "S'inscrire"}
         </Text>

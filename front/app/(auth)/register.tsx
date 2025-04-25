@@ -2,13 +2,13 @@ import React, { useState } from "react";
 import { View, Text, Pressable } from "react-native";
 import CandidateSignup from "./signup/candidate";
 import RecruiterSignup from "./signup/recruiter";
-import { useAuth } from "@/lib/hooks/useAuth";
+import { useAuthMutation } from "@/lib/hooks/useAuthMutation";
 
 type UserType = "candidate" | "recruiter" | null;
 
 export default function Register() {
   const [userType, setUserType] = useState<UserType>(null);
-  const { registerCandidate, registerRecruiter } = useAuth();
+  const { registerCandidate, registerRecruiter } = useAuthMutation();
 
   const handleQuickSignup = (role: "candidate" | "recruiter") => {
     if (role === "candidate") {

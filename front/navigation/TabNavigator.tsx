@@ -11,7 +11,7 @@ import {
   MessageSquare,
   Users,
 } from "lucide-react-native";
-import { useAuth } from "@/lib/hooks/useAuth";
+import { useAuth } from "@/context/AuthContext";
 
 // Public Components
 import HomePage from "@/app/index";
@@ -79,6 +79,7 @@ export default function TabNavigator() {
             tabBarIcon: ({ color, size }) => (
               <MessageSquare size={size} color={color} />
             ),
+            tabBarBadge: 1,
             title: "Messages",
           }}
         />
@@ -138,6 +139,7 @@ export default function TabNavigator() {
             tabBarIcon: ({ color, size }) => (
               <MessageSquare size={size} color={color} />
             ),
+            tabBarBadge: 1,
             title: "Messages",
           }}
         />

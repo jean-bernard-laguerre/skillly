@@ -8,19 +8,24 @@ import {
   ScrollView,
   Alert,
 } from "react-native";
-import { useAuth } from "@/lib/hooks/useAuth";
+import { useAuth } from "@/context/AuthContext";
+import { useAuthMutation } from "@/lib/hooks/useAuthMutation";
 import { useSkills } from "@/lib/hooks/useSkills";
 import { useCertifications } from "@/lib/hooks/useCertifications";
 import { Skill, Certification } from "@/types/interfaces";
 
 export default function Profile() {
+  // Utiliser le contexte pour les données en lecture seule
+  const { user } = useAuth();
+
+  // Utiliser useAuthMutation pour les actions
   const {
     logout,
-    currentUser,
     addUserSkillsMutation,
     deleteUserSkillMutation,
     deleteUserCertificationMutation,
-  } = useAuth();
+  } = useAuthMutation();
+
   const { skills: allSkills, isLoadingSkills } = useSkills();
   const { certifications: allCertifications, isLoadingCertifications } =
     useCertifications();
@@ -32,10 +37,9 @@ export default function Profile() {
     number[]
   >([]);
 
-  const userSkillIds =
-    currentUser?.profile_candidate?.skills.map((s) => s.id) || [];
+  const userSkillIds = user?.profile_candidate?.skills.map((s) => s.id) || [];
   const userCertificationIds =
-    currentUser?.profile_candidate?.certifications.map((c) => c.id) || [];
+    user?.profile_candidate?.certifications.map((c) => c.id) || [];
 
   const handleAddSkills = () => {
     setSelectedSkills(userSkillIds);
@@ -66,7 +70,7 @@ export default function Profile() {
   };
 
   const handleSaveChanges = () => {
-    if (!currentUser) return;
+    if (!user) return;
     const payload: { skills?: number[]; certifications?: number[] } = {};
 
     const newSkills = selectedSkills.filter((id) => !userSkillIds.includes(id));
@@ -83,7 +87,7 @@ export default function Profile() {
 
     if (Object.keys(payload).length > 0) {
       addUserSkillsMutation(
-        { userId: currentUser.id, payload },
+        { userId: user.id, payload },
         {
           onSuccess: () => {
             console.log("Profil mis à jour avec succès");
@@ -106,7 +110,7 @@ export default function Profile() {
   };
 
   const handleDeleteSkill = (skillId: number) => {
-    if (!currentUser) return;
+    if (!user) return;
     Alert.alert(
       "Supprimer la compétence",
       "Êtes-vous sûr de vouloir supprimer cette compétence ?",
@@ -117,7 +121,7 @@ export default function Profile() {
           style: "destructive",
           onPress: () => {
             deleteUserSkillMutation(
-              { userId: currentUser.id, skillId },
+              { userId: user.id, skillId },
               {
                 onSuccess: () => console.log("Compétence supprimée:", skillId),
                 onError: (error) => {
@@ -136,7 +140,7 @@ export default function Profile() {
   };
 
   const handleDeleteCertification = (certificationId: number) => {
-    if (!currentUser) return;
+    if (!user) return;
     Alert.alert(
       "Supprimer la certification",
       "Êtes-vous sûr de vouloir supprimer cette certification ?",
@@ -147,7 +151,7 @@ export default function Profile() {
           style: "destructive",
           onPress: () => {
             deleteUserCertificationMutation(
-              { userId: currentUser.id, certificationId },
+              { userId: user.id, certificationId },
               {
                 onSuccess: () =>
                   console.log("Certification supprimée:", certificationId),
@@ -174,9 +178,9 @@ export default function Profile() {
           source={{ uri: "https://picsum.photos/seed/1745317097928/150/150" }}
         />
         <Text className="mb-2 text-2xl font-bold">
-          {currentUser?.firstName} {currentUser?.lastName}
+          {user?.first_name} {user?.last_name}
         </Text>
-        <Text className="mb-2 text-gray-600">{currentUser?.email}</Text>
+        <Text className="mb-2 text-gray-600">{user?.email}</Text>
         <Text className="mb-5 text-base text-center">
           Je suis à la recherche d'opportunités professionnelles dans le
           développement.
@@ -195,7 +199,7 @@ export default function Profile() {
           </Pressable>
         </View>
         <View className="flex-row flex-wrap">
-          {currentUser?.profile_candidate?.skills.map((skill) => (
+          {user?.profile_candidate?.skills.map((skill) => (
             <Pressable
               key={skill.id}
               onLongPress={() => handleDeleteSkill(skill.id)}
@@ -219,17 +223,15 @@ export default function Profile() {
           </Pressable>
         </View>
         <View className="flex-row flex-wrap">
-          {currentUser?.profile_candidate?.certifications.map(
-            (certification) => (
-              <Pressable
-                key={certification.id}
-                onLongPress={() => handleDeleteCertification(certification.id)}
-                className="px-3 py-1 mb-2 mr-2 bg-gray-200 rounded-full"
-              >
-                <Text>{certification?.name}</Text>
-              </Pressable>
-            )
-          )}
+          {user?.profile_candidate?.certifications.map((certification) => (
+            <Pressable
+              key={certification.id}
+              onLongPress={() => handleDeleteCertification(certification.id)}
+              className="px-3 py-1 mb-2 mr-2 bg-gray-200 rounded-full"
+            >
+              <Text>{certification?.name}</Text>
+            </Pressable>
+          ))}
         </View>
       </View>
 

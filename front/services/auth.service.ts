@@ -155,16 +155,9 @@ export const refreshToken = async (): Promise<string> => {
 
 export const getCurrentUser = async (): Promise<AuthResponse["user"]> => {
   try {
-    console.log("Tentative de récupération de l'utilisateur courant");
     const token = await AsyncStorage.getItem("token");
-    console.log("Token présent:", !!token);
 
     const response = await instance.get<AuthResponse["user"]>("/auth/me");
-    console.log("Utilisateur récupéré avec succès:", {
-      id: response.data.id,
-      email: response.data.email,
-      role: response.data.role,
-    });
 
     return response.data;
   } catch (error) {
