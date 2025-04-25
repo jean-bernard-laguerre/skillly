@@ -16,11 +16,10 @@ import { Skill, Certification } from "@/types/interfaces";
 
 export default function Profile() {
   // Utiliser le contexte pour les données en lecture seule
-  const { user } = useAuth();
+  const { user, handleLogOut } = useAuth();
 
   // Utiliser useAuthMutation pour les actions
   const {
-    logout,
     addUserSkillsMutation,
     deleteUserSkillMutation,
     deleteUserCertificationMutation,
@@ -351,7 +350,7 @@ export default function Profile() {
 
       <Pressable
         className="p-2 mt-5 bg-red-500 rounded-md"
-        onPress={() => logout()}
+        onPress={() => handleLogOut()}
       >
         <Text className="text-white">Se déconnecter</Text>
       </Pressable>

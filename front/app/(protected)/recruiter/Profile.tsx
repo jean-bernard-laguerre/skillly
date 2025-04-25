@@ -4,9 +4,9 @@ import { useAuth } from "@/context/AuthContext";
 import { useAuthMutation } from "@/lib/hooks/useAuthMutation";
 
 export default function Profile() {
-  const { user } = useAuth();
+  const { user, handleLogOut } = useAuth();
 
-  const { logout } = useAuthMutation();
+  // const { logout } = useAuthMutation();
 
   return (
     <View className="items-center justify-center flex-1 p-5">
@@ -24,7 +24,7 @@ export default function Profile() {
       </Text>
       <Pressable
         className="p-2 mt-5 bg-red-500 rounded-md"
-        onPress={() => logout()}
+        onPress={() => handleLogOut()}
       >
         <Text className="text-white">Se déconnecter</Text>
       </Pressable>

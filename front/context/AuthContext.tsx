@@ -35,7 +35,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } else if (role === "recruiter") {
       router.replace("/(protected)/recruiter");
     } else {
-      router.replace("/");
+      router.replace("/(auth)/login");
     }
   };
 

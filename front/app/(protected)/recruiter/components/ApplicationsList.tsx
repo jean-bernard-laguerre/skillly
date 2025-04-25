@@ -16,7 +16,7 @@ const ApplicationCard = ({ application }: { application: Application }) => (
       <View className="flex-row items-center mb-4">
         <User size={24} color="#6366f1" className="mr-2" />
         <Text className="text-xl font-semibold">
-          {application.candidate.name}
+          {application.candidate.first_name} {application.candidate.last_name}
         </Text>
       </View>
       <Text className="mb-2 text-lg text-gray-600">
