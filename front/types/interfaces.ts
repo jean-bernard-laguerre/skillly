@@ -26,11 +26,15 @@ export interface Application {
     last_name: string;
     skills?: Skill[];
   };
+  job_post_id: string;
   jobPost: {
     id: string;
-    title: string;
+    title?: string;
+    location?: string;
+    contract_type?: string;
+    salary_range?: string;
   };
-  status: "pending" | "accepted" | "rejected";
+  state: "pending" | "matched" | "rejected" | "accepted";
   createdAt: string;
 }
 
