@@ -115,8 +115,6 @@ export interface User {
   };
 }
 
-export type HandleRedirect = (role: "candidate" | "recruiter" | null) => void;
-
 // Components
 export type ExternalLinkProps = Omit<ComponentProps<typeof Link>, "href"> & {
   href: ComponentProps<typeof Link>["href"];

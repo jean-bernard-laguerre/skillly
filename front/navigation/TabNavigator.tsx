@@ -33,7 +33,7 @@ import Applications from "@/app/(protected)/recruiter/Applications";
 const Tab = createBottomTabNavigator();
 
 export default function TabNavigator() {
-  const { role } = useAuth();
+  const { role, loading } = useAuth();
 
   if (role === "candidate") {
     return (
@@ -43,6 +43,7 @@ export default function TabNavigator() {
           tabBarActiveTintColor: "#6366f1",
           tabBarInactiveTintColor: "#94a3b8",
         }}
+        initialRouteName="CandidateHome"
       >
         <Tab.Screen
           name="CandidateHome"
@@ -103,6 +104,7 @@ export default function TabNavigator() {
           tabBarActiveTintColor: "#6366f1",
           tabBarInactiveTintColor: "#94a3b8",
         }}
+        initialRouteName="RecruiterHome"
       >
         <Tab.Screen
           name="RecruiterHome"
@@ -162,6 +164,7 @@ export default function TabNavigator() {
         tabBarActiveTintColor: "#6366f1",
         tabBarInactiveTintColor: "#94a3b8",
       }}
+      initialRouteName="HomePage"
     >
       <Tab.Screen
         name="HomePage"

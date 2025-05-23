@@ -1,6 +1,4 @@
 import React from "react";
-import { useEffect, useState } from "react";
-import { Redirect, useRootNavigationState } from "expo-router";
 import { useAuth } from "../context/AuthContext";
 import { View, Text, ActivityIndicator, Pressable } from "react-native";
 import { useNavigation } from "@react-navigation/native";
@@ -8,17 +6,9 @@ import { TabNavigationProp } from "@/types/navigation";
 
 export default function HomePage() {
   const { role, loading } = useAuth();
-  const navigationState = useRootNavigationState();
-  const [isReady, setIsReady] = useState(false);
   const navigation = useNavigation<TabNavigationProp>();
 
-  useEffect(() => {
-    if (navigationState?.key && !isReady) {
-      setIsReady(true);
-    }
-  }, [navigationState, isReady]);
-
-  if (!isReady || loading) {
+  if (loading) {
     return (
       <View className="items-center justify-center flex-1">
         <ActivityIndicator size="large" color="#0000ff" />

@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useRouter, useRootNavigationState } from "expo-router";
-import { AuthContextType, HandleRedirect, User } from "@/types/interfaces";
-import { useAuthMutation } from "@/lib/hooks/useAuthMutation";
+import { AuthContextType, User } from "@/types/interfaces";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import * as AuthService from "@/services/auth.service";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -10,40 +10,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [role, setRole] = useState<"candidate" | "recruiter" | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
-  const navigationState = useRootNavigationState();
-  const [isReady, setIsReady] = useState(false);
+  const queryClient = useQueryClient();
 
-  // Utiliser le hook useAuthMutation
-  const {
-    currentUser,
-    isLoadingUser,
-    logout: logoutMutation,
-  } = useAuthMutation();
-
-  useEffect(() => {
-    if (navigationState?.key && !isReady) {
-      setIsReady(true);
-    }
-  }, [navigationState, isReady]);
-
-  const handleRedirect: HandleRedirect = (role) => {
-    if (!isReady) return;
-
-    if (role === "candidate") {
-      router.replace("/(protected)/candidate");
-    } else if (role === "recruiter") {
-      router.replace("/(protected)/recruiter");
-    } else {
-      router.replace("/(auth)/login");
-    }
-  };
+  // Query simple pour récupérer l'utilisateur courant
+  const { data: currentUser, isLoading: isLoadingUser } = useQuery({
+    queryKey: ["currentUser"],
+    queryFn: async () => {
+      try {
+        const token = await AsyncStorage.getItem("token");
+        if (!token) {
+          return null;
+        }
+        const user = await AuthService.getCurrentUser();
+        return user;
+      } catch (error) {
+        console.error("Error fetching current user:", error);
+        return null;
+      }
+    },
+    retry: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
   const handleLogOut = async () => {
-    await logoutMutation();
-    setRole(null);
-    setUser(null);
-    handleRedirect(null);
+    try {
+      await AsyncStorage.removeItem("token");
+      await queryClient.clear();
+      setRole(null);
+      setUser(null);
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
   };
 
   // Synchroniser l'état du contexte avec les données de TanStack Query

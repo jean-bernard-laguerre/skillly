@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useRef } from "react";
 import { View, Text, Pressable, ActivityIndicator } from "react-native";
 import { useJobPost } from "@/lib/hooks/useJobPost";
-import Swiper from "react-native-deck-swiper";
+import { Swiper, type SwiperCardRefType } from "rn-swiper-list";
 import { Check, X, User, ArrowLeft } from "lucide-react-native";
 import { Application } from "@/types/interfaces";
 import { useApplication } from "@/lib/hooks/useApplication";
@@ -54,21 +54,17 @@ const ApplicationCard = ({ application }: { application: Application }) => {
   );
 };
 
-const OverlayLabel = ({ color }: { color: string }) => {
-  if (color === "red") {
-    return (
-      <View className="flex-1 justify-center items-center absolute z-[1000]">
-        <X size={50} color={color} />
-      </View>
-    );
-  } else {
-    return (
-      <View className="flex-1 justify-center items-center absolute z-[1000]">
-        <Check size={50} color={color} />
-      </View>
-    );
-  }
-};
+const OverlayLabelLeft = () => (
+  <View className="items-center justify-center flex-1">
+    <X size={50} color="red" />
+  </View>
+);
+
+const OverlayLabelRight = () => (
+  <View className="items-center justify-center flex-1">
+    <Check size={50} color="green" />
+  </View>
+);
 
 export default function ApplicationsList({
   jobId,
@@ -93,7 +89,7 @@ export default function ApplicationsList({
 
   const [index, setIndex] = useState(0);
   const [isAllSwiped, setIsAllSwiped] = useState(false);
-  const swiperRef = useRef<Swiper<Application>>(null);
+  const swiperRef = useRef<SwiperCardRefType>(null);
 
   React.useEffect(() => {
     setIsAllSwiped(pendingApplications.length === 0 && !isLoadingJobPosts);
@@ -176,64 +172,28 @@ export default function ApplicationsList({
             <View className="flex-1 pt-4">
               <Swiper
                 ref={swiperRef}
-                cards={pendingApplications}
-                cardIndex={index}
-                renderCard={(application) => (
+                data={pendingApplications}
+                renderCard={(application: Application, cardIndex: number) => (
                   <ApplicationCard application={application} />
                 )}
-                onSwipedLeft={(cardIndex) => handleSwipe("left", cardIndex)}
-                onSwipedRight={(cardIndex) => handleSwipe("right", cardIndex)}
+                onSwipeLeft={(cardIndex: number) =>
+                  handleSwipe("left", cardIndex)
+                }
+                onSwipeRight={(cardIndex: number) =>
+                  handleSwipe("right", cardIndex)
+                }
                 onSwipedAll={() => setIsAllSwiped(true)}
-                cardVerticalMargin={50}
-                stackSize={Math.min(pendingApplications.length, 4)}
-                stackScale={10}
-                stackSeparation={15}
-                verticalSwipe={false}
-                animateOverlayLabelsOpacity
-                animateCardOpacity
-                backgroundColor="transparent"
-                disableBottomSwipe
-                disableTopSwipe
-                overlayLabels={{
-                  left: {
-                    element: <OverlayLabel color="red" />,
-                    title: "REFUSER",
-                    style: {
-                      label: {
-                        backgroundColor: "black",
-                        borderColor: "black",
-                        color: "white",
-                        borderWidth: 1,
-                      },
-                      wrapper: {
-                        flexDirection: "column",
-                        alignItems: "flex-end",
-                        justifyContent: "flex-start",
-                        marginTop: 30,
-                        marginLeft: -30,
-                      },
-                    },
-                  },
-                  right: {
-                    element: <OverlayLabel color="green" />,
-                    title: "ACCEPTER",
-                    style: {
-                      label: {
-                        backgroundColor: "black",
-                        borderColor: "black",
-                        color: "white",
-                        borderWidth: 1,
-                      },
-                      wrapper: {
-                        flexDirection: "column",
-                        alignItems: "flex-start",
-                        justifyContent: "flex-start",
-                        marginTop: 30,
-                        marginLeft: 30,
-                      },
-                    },
-                  },
+                onIndexChange={(newIndex: number) => {
+                  setIndex(newIndex);
                 }}
+                cardStyle={{
+                  width: "90%",
+                  height: "75%",
+                }}
+                disableTopSwipe={true}
+                loop={false}
+                OverlayLabelLeft={OverlayLabelLeft}
+                OverlayLabelRight={OverlayLabelRight}
               />
             </View>
 

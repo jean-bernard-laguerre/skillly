@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
-import Swiper from "react-native-deck-swiper";
+import { Swiper, type SwiperCardRefType } from "rn-swiper-list";
 import { Heart, X } from "lucide-react-native";
 import { JobPost } from "@/types/interfaces";
 import { useJobPost } from "@/lib/hooks/useJobPost";
@@ -25,21 +25,17 @@ const Card = ({ card }: { card: JobPost }) => (
   </View>
 );
 
-const OverlayLabel = ({ color }: { color: string }) => {
-  if (color === "red") {
-    return (
-      <View className="flex-1 justify-center items-center absolute z-[1000]">
-        <X size={50} color={color} />
-      </View>
-    );
-  } else {
-    return (
-      <View className="flex-1 justify-center items-center absolute z-[1000]">
-        <Heart size={50} color={color} />
-      </View>
-    );
-  }
-};
+const OverlayLabelLeft = () => (
+  <View className="items-center justify-center flex-1">
+    <X size={50} color="red" />
+  </View>
+);
+
+const OverlayLabelRight = () => (
+  <View className="items-center justify-center flex-1">
+    <Heart size={50} color="blue" />
+  </View>
+);
 
 export default function JobOffers() {
   const { candidateJobPosts, isLoadingCandidateJobPosts } = useJobPost();
@@ -49,7 +45,7 @@ export default function JobOffers() {
     createApplication,
     isCreatingApplication,
   } = useApplication();
-  const swiperRef = React.useRef<Swiper<JobPost>>(null);
+  const swiperRef = React.useRef<SwiperCardRefType>(null);
   const [index, setIndex] = useState(0);
   const [isAllSwiped, setIsAllSwiped] = useState(false);
 
@@ -113,66 +109,30 @@ export default function JobOffers() {
       <View className="flex-[0.9]">
         <Swiper
           ref={swiperRef}
-          cards={availableJobs}
-          cardIndex={index}
-          renderCard={(card) => <Card card={card} />}
-          onSwipedLeft={(cardIndex) => {
+          data={availableJobs}
+          renderCard={(card: JobPost, cardIndex: number) => (
+            <Card card={card} />
+          )}
+          onSwipeLeft={(cardIndex: number) => {
             handleSwipe("left", availableJobs[cardIndex]);
           }}
-          onSwipedRight={(cardIndex) => {
+          onSwipeRight={(cardIndex: number) => {
             handleSwipe("right", availableJobs[cardIndex]);
           }}
           onSwipedAll={() => {
             setIsAllSwiped(true);
           }}
-          cardVerticalMargin={50}
-          stackSize={4}
-          stackScale={10}
-          stackSeparation={15}
-          verticalSwipe={false}
-          animateOverlayLabelsOpacity
-          animateCardOpacity
-          backgroundColor="transparent"
-          overlayLabels={{
-            left: {
-              element: <OverlayLabel color="red" />,
-              title: "NOPE",
-              style: {
-                label: {
-                  backgroundColor: "black",
-                  borderColor: "black",
-                  color: "white",
-                  borderWidth: 1,
-                },
-                wrapper: {
-                  flexDirection: "column",
-                  alignItems: "flex-end",
-                  justifyContent: "flex-start",
-                  marginTop: 30,
-                  marginLeft: -30,
-                },
-              },
-            },
-            right: {
-              element: <OverlayLabel color="blue" />,
-              title: "LIKE",
-              style: {
-                label: {
-                  backgroundColor: "black",
-                  borderColor: "black",
-                  color: "white",
-                  borderWidth: 1,
-                },
-                wrapper: {
-                  flexDirection: "column",
-                  alignItems: "flex-start",
-                  justifyContent: "flex-start",
-                  marginTop: 30,
-                  marginLeft: 30,
-                },
-              },
-            },
+          onIndexChange={(newIndex: number) => {
+            setIndex(newIndex);
           }}
+          cardStyle={{
+            width: "90%",
+            height: "75%",
+          }}
+          disableTopSwipe={true}
+          loop={false}
+          OverlayLabelLeft={OverlayLabelLeft}
+          OverlayLabelRight={OverlayLabelRight}
         />
       </View>
       <View className="flex-[0.1] items-center z-[100]">
@@ -194,7 +154,8 @@ export default function JobOffers() {
             onPress={() => {
               setIsAllSwiped(false);
               setIndex(0);
-              swiperRef.current?.jumpToCardIndex(0);
+              // Note: rn-swiper-list n'a pas jumpToCardIndex, on utilise swipeBack ou reset
+              swiperRef.current?.swipeBack();
             }}
           >
             <Text>Recommencer</Text>
