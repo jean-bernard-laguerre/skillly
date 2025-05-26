@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useRef } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { Text, TouchableOpacity, View, Dimensions } from "react-native";
 import { Swiper, type SwiperCardRefType } from "rn-swiper-list";
 import { Heart, X, RotateCcw, RefreshCw } from "lucide-react-native";
@@ -36,35 +36,16 @@ const Card = ({ card }: { card: JobPost }) => (
   </View>
 );
 
-// Overlays statiques - pas de useCallback
-const OverlayLabelLeft = () => (
-  <View className="items-center justify-center flex-1 border-4 border-red-500 bg-red-500/20 rounded-xl">
-    <View className="p-4 bg-red-500 rounded-full">
-      <X size={40} color="white" />
-    </View>
-    <Text className="mt-2 text-xl font-bold text-red-500">PASSER</Text>
-  </View>
-);
-
-const OverlayLabelRight = () => (
-  <View className="items-center justify-center flex-1 border-4 border-green-500 bg-green-500/20 rounded-xl">
-    <View className="p-4 bg-green-500 rounded-full">
-      <Heart size={40} color="white" />
-    </View>
-    <Text className="mt-2 text-xl font-bold text-green-500">POSTULER</Text>
-  </View>
-);
-
 export default function JobOffers() {
   const { candidateJobPosts, isLoadingCandidateJobPosts } = useJobPost();
   const { applications, isLoadingApplications, createApplication } =
     useApplication();
-  const swiperRef = useRef<SwiperCardRefType>(null);
+  const ref = useRef<SwiperCardRefType>(null);
+
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isAllSwiped, setIsAllSwiped] = useState(false);
   const [hasPassedCards, setHasPassedCards] = useState(false);
+  const [isAllSwiped, setIsAllSwiped] = useState(false);
   const [swiperKey, setSwiperKey] = useState(0);
-  const [hasSwipedAtLeastOne, setHasSwipedAtLeastOne] = useState(false);
 
   // Filtrer les offres déjà postulées
   const availableJobs = React.useMemo(() => {
@@ -73,57 +54,18 @@ export default function JobOffers() {
     return candidateJobPosts.filter((job) => !appliedJobIds.includes(job.id));
   }, [candidateJobPosts, applications]);
 
-  console.log("🔍 Debug JobOffers:", {
-    candidateJobPosts: candidateJobPosts?.length,
-    applications: applications?.length,
-    availableJobs: availableJobs?.length,
-    isLoadingCandidateJobPosts,
-    isLoadingApplications,
-  });
-
-  // Afficher les détails des cartes disponibles
-  if (availableJobs.length > 0) {
-    console.log(
-      "📋 Available jobs:",
-      availableJobs.map((job) => ({ id: job.id, title: job.title }))
-    );
-  }
-
   const handleSwipe = useCallback(
     (direction: "left" | "right", cardIndex: number) => {
-      console.log("🎯 HandleSwipe called:", {
-        direction,
-        cardIndex,
-        availableJobsLength: availableJobs.length,
-      });
-
-      // Marquer qu'on a swipé au moins une carte
-      setHasSwipedAtLeastOne(true);
-
-      if (cardIndex >= availableJobs.length) {
-        console.log("❌ CardIndex >= availableJobs.length, returning");
-        return;
-      }
+      if (cardIndex >= availableJobs.length) return;
 
       const card = availableJobs[cardIndex];
-      if (!card) {
-        console.log("❌ No card found at index", cardIndex);
-        return;
-      }
+      if (!card) return;
 
-      console.log("✅ Card found:", card.title, "Direction:", direction);
-
-      // Tracker si des cartes ont été passées
       if (direction === "left") {
         setHasPassedCards(true);
-        console.log("👈 Card passed");
       }
 
       if (direction === "right") {
-        console.log("👉 Creating application for:", card.title);
-        console.log("📝 CreateApplication function:", typeof createApplication);
-
-        // TODO: Calculer le score en fonction des compétences du candidat
         const score = 90;
 
         try {
@@ -131,15 +73,13 @@ export default function JobOffers() {
             { jobOfferId: card.id, score },
             {
               onSuccess: () => {
-                console.log("✅ Application created successfully!");
                 Toast.show({
                   type: "success",
                   text1: "Candidature envoyée ! 🎉",
                   text2: `Votre candidature pour ${card.title} a été envoyée avec succès`,
                 });
               },
-              onError: (error) => {
-                console.error("❌ Error creating application:", error);
+              onError: () => {
                 Toast.show({
                   type: "error",
                   text1: "Erreur",
@@ -150,38 +90,45 @@ export default function JobOffers() {
             }
           );
         } catch (error) {
-          console.error("💥 Exception in createApplication:", error);
+          // Gestion silencieuse des erreurs
         }
       }
     },
     [availableJobs, createApplication]
   );
 
+  const renderCard = useCallback((card: JobPost) => {
+    return <Card card={card} />;
+  }, []);
+
+  const OverlayLabelRight = useCallback(() => {
+    return (
+      <View className="items-center justify-center flex-1 border-4 border-green-500 bg-green-500/20 rounded-xl">
+        <View className="p-4 bg-green-500 rounded-full">
+          <Heart size={40} color="white" />
+        </View>
+        <Text className="mt-2 text-xl font-bold text-green-500">POSTULER</Text>
+      </View>
+    );
+  }, []);
+
+  const OverlayLabelLeft = useCallback(() => {
+    return (
+      <View className="items-center justify-center flex-1 border-4 border-red-500 bg-red-500/20 rounded-xl">
+        <View className="p-4 bg-red-500 rounded-full">
+          <X size={40} color="white" />
+        </View>
+        <Text className="mt-2 text-xl font-bold text-red-500">PASSER</Text>
+      </View>
+    );
+  }, []);
+
   const resetSwiper = useCallback(() => {
     setIsAllSwiped(false);
     setCurrentIndex(0);
     setHasPassedCards(false);
-    setHasSwipedAtLeastOne(false);
     setSwiperKey((prev) => prev + 1);
   }, []);
-
-  // Empêcher l'auto-completion pour une seule carte
-  const handleSwipedAll = useCallback(() => {
-    console.log("🏁 All cards swiped callback triggered");
-    console.log("�� Current state:", {
-      currentIndex,
-      availableJobsLength: availableJobs.length,
-      hasSwipedAtLeastOne,
-    });
-
-    // Seulement marquer comme terminé si on a vraiment swipé au moins une carte
-    if (hasSwipedAtLeastOne && currentIndex >= availableJobs.length - 1) {
-      console.log("✅ Really all cards swiped, setting isAllSwiped to true");
-      setIsAllSwiped(true);
-    } else {
-      console.log("❌ Not all cards swiped yet or no swipe detected, ignoring");
-    }
-  }, [currentIndex, availableJobs.length, hasSwipedAtLeastOne]);
 
   if (isLoadingCandidateJobPosts || isLoadingApplications) {
     return (
@@ -218,41 +165,28 @@ export default function JobOffers() {
       <View className="items-center justify-center flex-1 px-4">
         <Swiper
           key={swiperKey}
-          ref={swiperRef}
-          data={availableJobs}
-          renderCard={(card: JobPost, cardIndex: number) => {
-            console.log("🎨 Rendering card:", { cardIndex, title: card.title });
-            return <Card card={card} />;
-          }}
-          onSwipeLeft={(cardIndex: number) => {
-            console.log(
-              "📱 Swiper onSwipeLeft triggered with cardIndex:",
-              cardIndex
-            );
-            handleSwipe("left", cardIndex);
-          }}
-          onSwipeRight={(cardIndex: number) => {
-            console.log(
-              "📱 Swiper onSwipeRight triggered with cardIndex:",
-              cardIndex
-            );
-            handleSwipe("right", cardIndex);
-          }}
-          onSwipedAll={handleSwipedAll}
-          onIndexChange={(newIndex: number) => {
-            console.log("📊 Index changed to:", newIndex);
-            setCurrentIndex(newIndex);
-          }}
+          ref={ref}
           cardStyle={{
             width: screenWidth * 0.9,
             height: screenHeight * 0.6,
             borderRadius: 12,
           }}
-          disableTopSwipe={true}
-          translateYRange={[0, 0, 0]}
-          loop={false}
-          OverlayLabelLeft={OverlayLabelLeft}
+          data={availableJobs}
+          renderCard={renderCard}
+          onIndexChange={(index) => {
+            setCurrentIndex(index);
+          }}
+          onSwipeRight={(cardIndex) => {
+            handleSwipe("right", cardIndex);
+          }}
+          onSwipedAll={() => {
+            setIsAllSwiped(true);
+          }}
+          onSwipeLeft={(cardIndex) => {
+            handleSwipe("left", cardIndex);
+          }}
           OverlayLabelRight={OverlayLabelRight}
+          OverlayLabelLeft={OverlayLabelLeft}
         />
       </View>
 
@@ -262,8 +196,8 @@ export default function JobOffers() {
           {/* Bouton Passer */}
           <TouchableOpacity
             onPress={() => {
-              console.log("🔴 Button swipeLeft pressed");
-              swiperRef.current?.swipeLeft();
+              handleSwipe("left", currentIndex);
+              ref.current?.swipeLeft();
             }}
             className="p-4 bg-white border border-red-200 rounded-full shadow-lg"
             activeOpacity={0.7}
@@ -275,8 +209,7 @@ export default function JobOffers() {
           {currentIndex > 0 && (
             <TouchableOpacity
               onPress={() => {
-                console.log("🔄 Button swipeBack pressed");
-                swiperRef.current?.swipeBack();
+                ref.current?.swipeBack();
               }}
               className="p-3 bg-white border border-gray-200 rounded-full shadow-lg"
               activeOpacity={0.7}
@@ -288,8 +221,8 @@ export default function JobOffers() {
           {/* Bouton Postuler */}
           <TouchableOpacity
             onPress={() => {
-              console.log("🟢 Button swipeRight pressed");
-              swiperRef.current?.swipeRight();
+              handleSwipe("right", currentIndex);
+              ref.current?.swipeRight();
             }}
             className="p-4 bg-white border border-green-200 rounded-full shadow-lg"
             activeOpacity={0.7}
