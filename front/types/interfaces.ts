@@ -199,6 +199,8 @@ export interface JobPost {
   certifications?: Certification[];
   applications?: Application[];
   matches?: Match[];
+  company?: { company_name?: string };
+  description?: string;
 }
 
 export interface CreateJobPostDTO {

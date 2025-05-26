@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Text, TouchableOpacity, View, Dimensions } from "react-native";
 import { Swiper, type SwiperCardRefType } from "rn-swiper-list";
 import { Heart, X, RotateCcw, RefreshCw } from "lucide-react-native";
@@ -6,33 +6,42 @@ import { JobPost } from "@/types/interfaces";
 import { useJobPost } from "@/lib/hooks/useJobPost";
 import { useApplication } from "@/lib/hooks/useApplication";
 import Toast from "react-native-toast-message";
+import Modal from "react-native-modal";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
-const Card = ({ card }: { card: JobPost }) => (
-  <View className="items-start justify-center flex-1 p-6 mx-2 bg-white shadow-lg rounded-xl">
-    <Text className="w-full mb-3 text-2xl font-bold text-center text-black">
-      {card.title}
-    </Text>
-    <View className="w-full mb-4 space-y-2">
-      <Text className="text-lg text-gray-700">📍 {card.location}</Text>
-      <Text className="text-lg text-gray-700">💼 {card.contract_type}</Text>
-      <Text className="text-lg font-semibold text-green-600">
-        💰 {card.salary_range}
+const Card = ({ card, onPress }: { card: JobPost; onPress: () => void }) => (
+  <View className="flex flex-col justify-between flex-1 p-6 mx-2 bg-white shadow-lg rounded-xl">
+    <View className="flex items-start justify-center flex-1">
+      <Text className="w-full mb-3 text-2xl font-bold text-center text-black">
+        {card.title}
       </Text>
+      <View className="w-full mb-4 space-y-2">
+        <Text className="text-lg text-gray-700">📍 {card.location}</Text>
+        <Text className="text-lg text-gray-700">💼 {card.contract_type}</Text>
+        <Text className="text-lg font-semibold text-green-600">
+          💰 {card.salary_range}
+        </Text>
+      </View>
+      <View className="flex-row flex-wrap w-full gap-2">
+        <Text className="w-full mb-2 text-sm text-gray-500">
+          Compétences requises :
+        </Text>
+        {card.skills?.map((skill) => (
+          <View key={skill.id} className="px-3 py-1.5 bg-blue-100 rounded-full">
+            <Text className="text-sm font-medium text-blue-800">
+              {skill.name}
+            </Text>
+          </View>
+        ))}
+      </View>
     </View>
-    <View className="flex-row flex-wrap w-full gap-2">
-      <Text className="w-full mb-2 text-sm text-gray-500">
-        Compétences requises :
-      </Text>
-      {card.skills?.map((skill) => (
-        <View key={skill.id} className="px-3 py-1.5 bg-blue-100 rounded-full">
-          <Text className="text-sm font-medium text-blue-800">
-            {skill.name}
-          </Text>
-        </View>
-      ))}
-    </View>
+    <TouchableOpacity
+      className="self-center px-4 py-2 mt-6 bg-blue-500 rounded-lg"
+      onPress={onPress}
+    >
+      <Text className="font-semibold text-white">Voir plus</Text>
+    </TouchableOpacity>
   </View>
 );
 
@@ -43,9 +52,10 @@ export default function JobOffers() {
   const ref = useRef<SwiperCardRefType>(null);
 
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [hasPassedCards, setHasPassedCards] = useState(false);
   const [isAllSwiped, setIsAllSwiped] = useState(false);
   const [swiperKey, setSwiperKey] = useState(0);
+  const [selectedJob, setSelectedJob] = useState<JobPost | null>(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   // Filtrer les offres déjà postulées
   const availableJobs = React.useMemo(() => {
@@ -54,16 +64,19 @@ export default function JobOffers() {
     return candidateJobPosts.filter((job) => !appliedJobIds.includes(job.id));
   }, [candidateJobPosts, applications]);
 
+  useEffect(() => {
+    console.log(
+      "Offres d'emploi disponibles:",
+      JSON.stringify(availableJobs, null, 2)
+    );
+  }, [availableJobs]);
+
   const handleSwipe = useCallback(
     (direction: "left" | "right", cardIndex: number) => {
       if (cardIndex >= availableJobs.length) return;
 
       const card = availableJobs[cardIndex];
       if (!card) return;
-
-      if (direction === "left") {
-        setHasPassedCards(true);
-      }
 
       if (direction === "right") {
         const score = 90;
@@ -97,9 +110,37 @@ export default function JobOffers() {
     [availableJobs, createApplication]
   );
 
-  const renderCard = useCallback((card: JobPost) => {
-    return <Card card={card} />;
-  }, []);
+  const handleOpenModal = (card: JobPost) => {
+    setSelectedJob(card);
+    setIsModalVisible(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalVisible(false);
+    setTimeout(() => setSelectedJob(null), 300);
+  };
+
+  const handleModalAction = (direction: "left" | "right") => {
+    if (!selectedJob) return;
+    const cardIndex = availableJobs.findIndex(
+      (job) => job.id === selectedJob.id
+    );
+    handleSwipe(direction, cardIndex);
+    setIsModalVisible(false);
+    setTimeout(() => {
+      setSelectedJob(null);
+      if (direction === "right" || direction === "left") {
+        setCurrentIndex((prev) => Math.min(prev + 1, availableJobs.length - 1));
+      }
+    }, 300);
+  };
+
+  const renderCard = useCallback(
+    (card: JobPost) => {
+      return <Card card={card} onPress={() => handleOpenModal(card)} />;
+    },
+    [availableJobs]
+  );
 
   const OverlayLabelRight = useCallback(() => {
     return (
@@ -126,7 +167,6 @@ export default function JobOffers() {
   const resetSwiper = useCallback(() => {
     setIsAllSwiped(false);
     setCurrentIndex(0);
-    setHasPassedCards(false);
     setSwiperKey((prev) => prev + 1);
   }, []);
 
@@ -247,7 +287,7 @@ export default function JobOffers() {
               Vous avez parcouru toutes les offres disponibles
             </Text>
 
-            {hasPassedCards && (
+            {availableJobs.length > 0 && (
               <TouchableOpacity
                 className="flex-row items-center px-6 py-3 bg-blue-500 rounded-lg"
                 onPress={resetSwiper}
@@ -260,7 +300,7 @@ export default function JobOffers() {
               </TouchableOpacity>
             )}
 
-            {!hasPassedCards && (
+            {availableJobs.length === 0 && (
               <Text className="text-sm text-center text-gray-500">
                 Vous avez regardé toutes les offres. Revenez plus tard pour de
                 nouvelles opportunités !
@@ -269,6 +309,80 @@ export default function JobOffers() {
           </View>
         </View>
       )}
+
+      <Modal
+        isVisible={isModalVisible}
+        onBackdropPress={handleCloseModal}
+        onBackButtonPress={handleCloseModal}
+        style={{ justifyContent: "flex-end", margin: 0 }}
+        backdropTransitionOutTiming={0}
+      >
+        {selectedJob && (
+          <View className="p-6 bg-white rounded-t-2xl">
+            <Text className="mb-2 text-2xl font-bold text-black">
+              {selectedJob.title}
+            </Text>
+            <Text className="mb-1 text-lg text-black">
+              Entreprise :{" "}
+              {selectedJob.company?.company_name || "Entreprise inconnue"}
+            </Text>
+            <Text className="mb-1 text-black">📍 {selectedJob.location}</Text>
+            <Text className="mb-1 text-black">
+              💼 {selectedJob.contract_type}
+            </Text>
+            <Text className="mb-1 text-black">
+              💰 {selectedJob.salary_range}
+            </Text>
+            <Text className="mb-1 text-black">
+              Stack technique :{" "}
+              {selectedJob.skills?.map((s) => s.name).join(", ")}
+            </Text>
+            <Text className="mb-2 text-black">
+              {selectedJob.description || "Aucune description fournie."}
+            </Text>
+            {selectedJob.certifications &&
+              selectedJob.certifications.length > 0 && (
+                <View className="mb-2">
+                  <Text className="font-semibold text-black">
+                    Certifications :
+                  </Text>
+                  <View className="flex-row flex-wrap gap-2 mt-1">
+                    {selectedJob.certifications.map((cert) => (
+                      <View
+                        key={cert.id}
+                        className="px-2 py-1 bg-gray-200 rounded-full"
+                      >
+                        <Text className="text-xs text-gray-700">
+                          {cert.name}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              )}
+            <View className="flex-row justify-center mt-6 space-x-4">
+              <TouchableOpacity
+                className="px-6 py-2 bg-green-500 rounded-lg"
+                onPress={() => handleModalAction("right")}
+              >
+                <Text className="font-semibold text-white">Postuler</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className="px-6 py-2 bg-red-500 rounded-lg"
+                onPress={() => handleModalAction("left")}
+              >
+                <Text className="font-semibold text-white">Passer</Text>
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity
+              className="self-center px-4 py-2 mt-4 bg-gray-200 rounded-lg"
+              onPress={handleCloseModal}
+            >
+              <Text className="font-semibold text-gray-800">Fermer</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </Modal>
     </View>
   );
 }

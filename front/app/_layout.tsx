@@ -1,3 +1,4 @@
+import "react-native-reanimated";
 import "react-native-gesture-handler";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import TabNavigator from "@/navigation/TabNavigator";
