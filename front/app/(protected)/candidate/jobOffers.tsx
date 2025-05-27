@@ -37,22 +37,22 @@ function Card({ card, onPress }: { card: JobPost; onPress: () => void }) {
         <Text className="w-full mb-1 text-2xl font-bold text-center text-black">
           {card.title}
         </Text>
-        <View className="flex-row items-center justify-center w-full mb-2">
+        <View className="flex-row items-center justify-center w-full gap-2 mb-2">
           <Building2 size={16} color="#374151" className="mr-1" />
           <Text className="text-base font-semibold text-center text-gray-700">
             {card.company?.company_name || "Entreprise inconnue"}
           </Text>
         </View>
         <View className="w-full mb-4 space-y-2">
-          <View className="flex-row items-center">
+          <View className="flex-row items-center gap-2">
             <MapPin size={18} color="#374151" className="mr-2" />
             <Text className="text-lg text-gray-700">{card.location}</Text>
           </View>
-          <View className="flex-row items-center">
+          <View className="flex-row items-center gap-2">
             <Briefcase size={18} color="#374151" className="mr-2" />
             <Text className="text-lg text-gray-700">{card.contract_type}</Text>
           </View>
-          <View className="flex-row items-center">
+          <View className="flex-row items-center gap-2">
             <DollarSign size={18} color="#22c55e" className="mr-2" />
             <Text className="text-lg font-semibold text-green-600">
               {card.salary_range}
@@ -380,6 +380,7 @@ export default function JobOffers() {
         </View>
       )}
 
+      {/* BOTTOM SHEET */}
       {isSheetVisible && (
         <Animated.View
           style={{
@@ -404,7 +405,12 @@ export default function JobOffers() {
             {...panResponder.panHandlers}
           >
             <View className="w-12 h-1 mx-auto mt-2 bg-gray-300 rounded-full" />
-            <ScrollView className="px-6 py-4">
+            <ScrollView
+              className="px-6 py-4"
+              showsVerticalScrollIndicator={true}
+              bounces={true}
+              contentContainerStyle={{ paddingBottom: 20 }}
+            >
               {/* En-tête */}
               <View className="mb-6">
                 <Text className="mb-2 text-2xl font-bold text-black">
@@ -506,7 +512,7 @@ export default function JobOffers() {
                 )}
 
               {/* Boutons d'action */}
-              <View className="flex-row justify-center gap-4 mt-6 mb-4 space-x-6">
+              <View className="flex-row justify-center gap-4 mt-6 mb-4">
                 <TouchableOpacity
                   className="flex-1 px-6 py-3 bg-green-500 rounded-lg"
                   onPress={() => handleModalAction("right")}
