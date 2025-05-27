@@ -411,9 +411,6 @@ export default function ApplicationsList({
     );
     handleSwipe(direction, cardIndex);
     setIsModalVisible(false);
-    if (direction === "right" || direction === "left") {
-      setIndex((prev) => Math.min(prev + 1, pendingApplications.length - 1));
-    }
   };
 
   const renderCard = useCallback((application: Application) => {
@@ -457,9 +454,7 @@ export default function ApplicationsList({
             }}
             data={pendingApplications}
             renderCard={renderCard}
-            onIndexChange={(index) => {
-              setIndex(index);
-            }}
+            onIndexChange={setIndex}
             onSwipeRight={(cardIndex) => {
               handleSwipe("right", cardIndex);
             }}
@@ -469,6 +464,8 @@ export default function ApplicationsList({
             }}
             OverlayLabelRight={OverlayLabelRight}
             OverlayLabelLeft={OverlayLabelLeft}
+            disableTopSwipe={true}
+            disableBottomSwipe={true}
           />
         </View>
 
@@ -512,8 +509,11 @@ export default function ApplicationsList({
 
       {isAllSwiped && (
         <Animated.View
-          className="absolute inset-0 flex flex-col items-center justify-center bg-black/80"
-          style={{ opacity: fadeAnim }}
+          className="absolute inset-x-0 bottom-0 flex flex-col items-center justify-center bg-black/80"
+          style={{
+            opacity: fadeAnim,
+            top: 56, // Hauteur de la barre de navigation
+          }}
         >
           <View className="items-center max-w-sm p-8 mx-6 bg-white rounded-xl">
             <Text className="mb-2 text-2xl font-bold text-gray-800">
