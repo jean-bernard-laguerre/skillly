@@ -41,6 +41,28 @@ interface ApplicationsListProps {
   onBack: () => void;
 }
 
+function OverlayLabelLeft() {
+  return (
+    <View className="items-center justify-center flex-1 border-4 border-red-500 bg-red-500/20 rounded-xl">
+      <View className="p-4 bg-red-500 rounded-full">
+        <X size={40} color="white" />
+      </View>
+      <Text className="mt-2 text-xl font-bold text-red-500">PASSER</Text>
+    </View>
+  );
+}
+
+function OverlayLabelRight() {
+  return (
+    <View className="items-center justify-center flex-1 border-4 border-green-500 bg-green-500/20 rounded-xl">
+      <View className="p-4 bg-green-500 rounded-full">
+        <Check size={40} color="white" />
+      </View>
+      <Text className="mt-2 text-xl font-bold text-green-500">MATCH</Text>
+    </View>
+  );
+}
+
 const ApplicationCard = ({
   application,
   onPress,
@@ -237,6 +259,7 @@ export default function ApplicationsList({
   const slideAnim = useRef(new Animated.Value(screenHeight)).current;
   const backdropAnim = useRef(new Animated.Value(0)).current;
   const [isSheetVisible, setIsSheetVisible] = useState(false);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
   const panResponder = useRef(
     PanResponder.create({
@@ -278,9 +301,15 @@ export default function ApplicationsList({
   }, [job]);
 
   const resetSwiper = () => {
-    setIsAllSwiped(false);
-    setIndex(0);
-    setSwiperKey((prev) => prev + 1);
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 200,
+      useNativeDriver: true,
+    }).start(() => {
+      setIsAllSwiped(false);
+      setIndex(0);
+      setSwiperKey((prev) => prev + 1);
+    });
   };
 
   useEffect(() => {
@@ -357,6 +386,15 @@ export default function ApplicationsList({
     [pendingApplications, createMatch, jobId]
   );
 
+  const onSwipedAll = useCallback(() => {
+    setIsAllSwiped(true);
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [fadeAnim]);
+
   const handleOpenModal = (application: Application) => {
     setSelectedApplication(application);
     setIsModalVisible(true);
@@ -387,30 +425,6 @@ export default function ApplicationsList({
     );
   }, []);
 
-  const OverlayLabelLeft = useCallback(
-    () => (
-      <View className="items-center justify-center flex-1 border-4 border-red-500 bg-red-500/20 rounded-xl">
-        <View className="p-4 bg-red-500 rounded-full">
-          <X size={40} color="white" />
-        </View>
-        <Text className="mt-2 text-xl font-bold text-red-500">PASSER</Text>
-      </View>
-    ),
-    []
-  );
-
-  const OverlayLabelRight = useCallback(
-    () => (
-      <View className="items-center justify-center flex-1 border-4 border-green-500 bg-green-500/20 rounded-xl">
-        <View className="p-4 bg-green-500 rounded-full">
-          <Check size={40} color="white" />
-        </View>
-        <Text className="mt-2 text-xl font-bold text-green-500">MATCH</Text>
-      </View>
-    ),
-    []
-  );
-
   if (isLoadingJobPosts) {
     return (
       <View className="items-center justify-center flex-1">
@@ -431,8 +445,8 @@ export default function ApplicationsList({
         </Text>
       </View>
 
-      <View className="flex-1 mb-10">
-        <View className="items-center justify-center h-[85%]">
+      <View className="flex-1">
+        <View className="items-center justify-center h-[80%]">
           <Swiper
             key={swiperKey}
             ref={ref}
@@ -449,9 +463,7 @@ export default function ApplicationsList({
             onSwipeRight={(cardIndex) => {
               handleSwipe("right", cardIndex);
             }}
-            onSwipedAll={() => {
-              setIsAllSwiped(true);
-            }}
+            onSwipedAll={onSwipedAll}
             onSwipeLeft={(cardIndex) => {
               handleSwipe("left", cardIndex);
             }}
@@ -499,7 +511,10 @@ export default function ApplicationsList({
       </View>
 
       {isAllSwiped && (
-        <View className="absolute inset-0 flex flex-col items-center justify-center bg-black/80">
+        <Animated.View
+          className="absolute inset-0 flex flex-col items-center justify-center bg-black/80"
+          style={{ opacity: fadeAnim }}
+        >
           <View className="items-center max-w-sm p-8 mx-6 bg-white rounded-xl">
             <Text className="mb-2 text-2xl font-bold text-gray-800">
               Terminé ! 🎉
@@ -527,7 +542,7 @@ export default function ApplicationsList({
               </Text>
             )}
           </View>
-        </View>
+        </Animated.View>
       )}
 
       {isSheetVisible && (

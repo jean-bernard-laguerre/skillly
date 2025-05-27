@@ -129,6 +129,7 @@ export default function JobOffers() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const slideAnim = useRef(new Animated.Value(screenHeight)).current;
   const backdropAnim = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
   const [isSheetVisible, setIsSheetVisible] = useState(false);
 
   // PanResponder pour swipe-to-close
@@ -264,10 +265,25 @@ export default function JobOffers() {
     }
   };
 
+  const onSwipedAll = useCallback(() => {
+    setIsAllSwiped(true);
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [fadeAnim]);
+
   const resetSwiper = () => {
-    setIsAllSwiped(false);
-    setCurrentIndex(0);
-    setSwiperKey((prev) => prev + 1);
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 200,
+      useNativeDriver: true,
+    }).start(() => {
+      setIsAllSwiped(false);
+      setCurrentIndex(0);
+      setSwiperKey((prev) => prev + 1);
+    });
   };
 
   if (isLoadingCandidateJobPosts || isLoadingApplications) {
@@ -305,7 +321,7 @@ export default function JobOffers() {
           )}
           onIndexChange={setCurrentIndex}
           onSwipeRight={(cardIndex) => handleSwipe("right", cardIndex)}
-          onSwipedAll={() => setIsAllSwiped(true)}
+          onSwipedAll={onSwipedAll}
           onSwipeLeft={(cardIndex) => handleSwipe("left", cardIndex)}
           OverlayLabelRight={OverlayLabelRight}
           OverlayLabelLeft={OverlayLabelLeft}
@@ -350,7 +366,10 @@ export default function JobOffers() {
       </View>
 
       {isAllSwiped && (
-        <View className="absolute inset-0 flex flex-col items-center justify-center bg-black/80">
+        <Animated.View
+          className="absolute inset-0 flex flex-col items-center justify-center bg-black/80"
+          style={{ opacity: fadeAnim }}
+        >
           <View className="items-center max-w-sm p-8 mx-6 bg-white rounded-xl">
             <Text className="mb-2 text-2xl font-bold text-gray-800">
               Terminé ! 🎉
@@ -377,7 +396,7 @@ export default function JobOffers() {
               </Text>
             )}
           </View>
-        </View>
+        </Animated.View>
       )}
 
       {/* BOTTOM SHEET */}
