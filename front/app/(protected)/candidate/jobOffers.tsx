@@ -55,7 +55,7 @@ export default function JobOffers() {
   const [isAllSwiped, setIsAllSwiped] = useState(false);
   const [swiperKey, setSwiperKey] = useState(0);
   const [selectedJob, setSelectedJob] = useState<JobPost | null>(null);
-  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(true);
 
   // Filtrer les offres déjà postulées
   const availableJobs = React.useMemo(() => {
@@ -70,6 +70,11 @@ export default function JobOffers() {
       JSON.stringify(availableJobs, null, 2)
     );
   }, [availableJobs]);
+
+  useEffect(() => {
+    console.log("isModalVisible", isModalVisible);
+    console.log("selectedJob", selectedJob);
+  }, [isModalVisible, selectedJob]);
 
   const handleSwipe = useCallback(
     (direction: "left" | "right", cardIndex: number) => {
@@ -193,16 +198,17 @@ export default function JobOffers() {
   }
 
   return (
-    <View className="flex-1 bg-gray-50">
+    // <View className="flex flex-col flex-1 bg-gray-50">
+    <View className="flex-col flex-1 bg-red-500">
       {/* Header avec compteur */}
-      <View className="px-4 pt-4 pb-2">
+      {/* <View className="px-4 pt-4 pb-2">
         <Text className="text-lg font-semibold text-center text-gray-700">
           {currentIndex + 1} / {availableJobs.length}
         </Text>
-      </View>
+      </View> */}
 
       {/* Swiper Container */}
-      <View className="items-center justify-center flex-1 px-4">
+      <View className="items-center justify-center px-4 basis-[70%]">
         <Swiper
           key={swiperKey}
           ref={ref}
@@ -314,11 +320,13 @@ export default function JobOffers() {
         isVisible={isModalVisible}
         onBackdropPress={handleCloseModal}
         onBackButtonPress={handleCloseModal}
-        style={{ justifyContent: "flex-end", margin: 0 }}
         backdropTransitionOutTiming={0}
       >
-        {selectedJob && (
-          <View className="p-6 bg-white rounded-t-2xl">
+        <View className="relative flex-1 w-full p-6 bg-red-500 rounded-t-2xl">
+          <Text className="text-center text-white">Modal</Text>
+        </View>
+        {/* {selectedJob && (
+          <View className="z-50 flex-1 w-full p-6 bg-red-500 rounded-t-2xl">
             <Text className="mb-2 text-2xl font-bold text-black">
               {selectedJob.title}
             </Text>
@@ -381,7 +389,7 @@ export default function JobOffers() {
               <Text className="font-semibold text-gray-800">Fermer</Text>
             </TouchableOpacity>
           </View>
-        )}
+        )} */}
       </Modal>
     </View>
   );
