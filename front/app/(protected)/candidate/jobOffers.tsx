@@ -32,7 +32,7 @@ function Card({ card, onPress }: { card: JobPost; onPress: () => void }) {
   const DESCRIPTION_PREVIEW_LINES = 3;
 
   return (
-    <View className="flex flex-col justify-between w-full h-full p-6 mx-2 bg-white shadow-lg rounded-xl">
+    <View className="flex flex-col justify-between w-full h-full p-6 bg-white shadow-lg rounded-xl">
       <View className="flex items-center justify-center h-[80%]">
         <Text className="w-full mb-1 text-2xl font-bold text-center text-black">
           {card.title}
@@ -313,7 +313,7 @@ export default function JobOffers() {
       </View>
 
       <View className="pt-4 pb-8">
-        <View className="flex-row items-center justify-center space-x-8">
+        <View className="flex-row items-center justify-center gap-4 space-x-8">
           <TouchableOpacity
             onPress={() => {
               handleSwipe("left", currentIndex);

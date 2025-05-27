@@ -26,11 +26,19 @@ export interface Application {
     user: User;
     skills?: Skill[];
     certifications?: Certification[];
+    bio?: string;
+    experience_year?: number;
+    prefered_contract?: string;
+    prefered_job?: string;
+    location?: string;
+    availability?: string;
+    resume_id?: number;
   };
   job_post_id: string;
   job_post: JobPost;
   state: "pending" | "matched" | "rejected" | "accepted";
   created_at: string;
+  score?: number;
 }
 
 export interface JobSelectorProps {
