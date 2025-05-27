@@ -110,9 +110,13 @@ export default function Profile() {
 
   const handleDeleteSkill = (skillId: number) => {
     if (!user) return;
-    const payload: { skills?: number[]; certifications?: number[] } = {};
+    const payload = {
+      data: {
+        skills: [skillId],
+        certifications: [],
+      },
+    };
 
-    payload.skills = [skillId]
     Alert.alert(
       "Supprimer la compétence",
       "Êtes-vous sûr de vouloir supprimer cette compétence ?",
@@ -125,7 +129,7 @@ export default function Profile() {
             deleteUserSkillMutation(
               { userId: user.id, payload },
               {
-                onSuccess: () => console.log("Compétence supprimée:", payload.skills),
+                onSuccess: () => console.log("Compétence supprimée:", skillId),
                 onError: (error) => {
                   console.error("Erreur suppression compétence:", error);
                   Alert.alert(
@@ -143,9 +147,13 @@ export default function Profile() {
 
   const handleDeleteCertification = (certificationId: number) => {
     if (!user) return;
-    const payload: { skills?: number[]; certifications?: number[] } = {};
+    const payload = {
+      data: {
+        skills: [],
+        certifications: [certificationId],
+      },
+    };
 
-    payload.certifications = [certificationId]
     Alert.alert(
       "Supprimer la certification",
       "Êtes-vous sûr de vouloir supprimer cette certification ?",
@@ -155,12 +163,11 @@ export default function Profile() {
           text: "Supprimer",
           style: "destructive",
           onPress: () => {
-            console.log(payload)
             deleteUserSkillMutation(
               { userId: user.id, payload },
               {
                 onSuccess: () =>
-                  console.log("Certification supprimée:", payload.certifications),
+                  console.log("Certification supprimée:", certificationId),
                 onError: (error) => {
                   console.error("Erreur suppression certification:", error);
                   Alert.alert(

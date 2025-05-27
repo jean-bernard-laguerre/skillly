@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from "react";
+import React, { useState, useMemo, useRef, useCallback } from "react";
 import { View, Text, Pressable, ActivityIndicator } from "react-native";
 import { useJobPost } from "@/lib/hooks/useJobPost";
 import { Swiper, type SwiperCardRefType } from "rn-swiper-list";
@@ -54,18 +54,6 @@ const ApplicationCard = ({ application }: { application: Application }) => {
   );
 };
 
-const OverlayLabelLeft = () => (
-  <View className="items-center justify-center flex-1">
-    <X size={50} color="red" />
-  </View>
-);
-
-const OverlayLabelRight = () => (
-  <View className="items-center justify-center flex-1">
-    <Check size={50} color="green" />
-  </View>
-);
-
 export default function ApplicationsList({
   jobId,
   onBack,
@@ -74,9 +62,11 @@ export default function ApplicationsList({
     applications: companyJobPosts,
     isLoadingApplications: isLoadingJobPosts,
   } = useJobPost();
-  const { updateApplicationState, isUpdatingApplicationState } =
-    useApplication();
-  const { createMatch, isCreatingMatch } = useMatch();
+  const { createMatch } = useMatch();
+  const ref = useRef<SwiperCardRefType>(null);
+
+  const [index, setIndex] = useState(0);
+  const [isAllSwiped, setIsAllSwiped] = useState(false);
 
   const job = useMemo(
     () => companyJobPosts?.find((job) => job.id === jobId),
@@ -87,64 +77,73 @@ export default function ApplicationsList({
     return job?.applications?.filter((app) => app.state === "pending") || [];
   }, [job]);
 
-  const [index, setIndex] = useState(0);
-  const [isAllSwiped, setIsAllSwiped] = useState(false);
-  const swiperRef = useRef<SwiperCardRefType>(null);
-
   React.useEffect(() => {
     setIsAllSwiped(pendingApplications.length === 0 && !isLoadingJobPosts);
   }, [pendingApplications, isLoadingJobPosts]);
 
-  const handleSwipe = (direction: "left" | "right", cardIndex: number) => {
-    if (cardIndex >= pendingApplications.length) return;
+  const handleSwipe = useCallback(
+    (direction: "left" | "right", cardIndex: number) => {
+      if (cardIndex >= pendingApplications.length) return;
 
-    const application = pendingApplications[cardIndex];
-    if (!application) return;
+      const application = pendingApplications[cardIndex];
+      if (!application) return;
 
-    if (direction === "right") {
-      console.log(
-        "Swipe Right - Processing Match for Application ID:",
-        application.id
-      );
-      createMatch(
-        {
-          application_id: parseInt(application.id, 10),
-          candidate_id: parseInt(application.candidate.id, 10),
-          job_post_id: parseInt(jobId, 10),
-        },
-        {
-          onSuccess: () => {
-            console.log(`Match créé pour la candidature ${application.id}`);
-            Toast.show({
-              type: "success",
-              text1: "Match!",
-              text2: `Match créé avec ${application.candidate.user.first_name}.`,
-            });
+      if (direction === "right") {
+        createMatch(
+          {
+            application_id: parseInt(application.id, 10),
+            candidate_id: parseInt(application.candidate.id, 10),
+            job_post_id: parseInt(jobId, 10),
           },
-          onError: (error) => {
-            console.error("Error creating match:", error);
-            Toast.show({
-              type: "error",
-              text1: "Erreur",
-              text2: "Impossible de créer le match.",
-            });
-          },
-        }
-      );
-    } else {
-      console.log(
-        "Swipe Left - No state change for Application ID:",
-        application.id
-      );
-    }
+          {
+            onSuccess: () => {
+              Toast.show({
+                type: "success",
+                text1: "Match!",
+                text2: `Match créé avec ${application.candidate.user.first_name}.`,
+              });
+            },
+            onError: () => {
+              Toast.show({
+                type: "error",
+                text1: "Erreur",
+                text2: "Impossible de créer le match.",
+              });
+            },
+          }
+        );
+      }
+    },
+    [pendingApplications, createMatch, jobId]
+  );
 
-    // Advance index regardless of success/error for swiper animation
-    if (direction === "left") {
-      swiperRef.current?.swipeLeft();
-    } else if (direction === "right") {
-      swiperRef.current?.swipeRight();
-    }
-  };
+  const renderCard = useCallback((application: Application) => {
+    return <ApplicationCard application={application} />;
+  }, []);
+
+  const OverlayLabelLeft = useCallback(
+    () => (
+      <View className="items-center justify-center flex-1 border-4 border-red-500 bg-red-500/20 rounded-xl">
+        <View className="p-4 bg-red-500 rounded-full">
+          <X size={40} color="white" />
+        </View>
+        <Text className="mt-2 text-xl font-bold text-red-500">PASSER</Text>
+      </View>
+    ),
+    []
+  );
+
+  const OverlayLabelRight = useCallback(
+    () => (
+      <View className="items-center justify-center flex-1 border-4 border-green-500 bg-green-500/20 rounded-xl">
+        <View className="p-4 bg-green-500 rounded-full">
+          <Check size={40} color="white" />
+        </View>
+        <Text className="mt-2 text-xl font-bold text-green-500">MATCH</Text>
+      </View>
+    ),
+    []
+  );
 
   if (isLoadingJobPosts) {
     return (
@@ -171,41 +170,49 @@ export default function ApplicationsList({
           <>
             <View className="flex-1 pt-4">
               <Swiper
-                ref={swiperRef}
-                data={pendingApplications}
-                renderCard={(application: Application, cardIndex: number) => (
-                  <ApplicationCard application={application} />
-                )}
-                onSwipeLeft={(cardIndex: number) =>
-                  handleSwipe("left", cardIndex)
-                }
-                onSwipeRight={(cardIndex: number) =>
-                  handleSwipe("right", cardIndex)
-                }
-                onSwipedAll={() => setIsAllSwiped(true)}
-                onIndexChange={(newIndex: number) => {
-                  setIndex(newIndex);
-                }}
+                ref={ref}
                 cardStyle={{
                   width: "90%",
                   height: "75%",
                 }}
-                disableTopSwipe={true}
-                loop={false}
-                OverlayLabelLeft={OverlayLabelLeft}
+                data={pendingApplications}
+                renderCard={renderCard}
+                onIndexChange={(index) => {
+                  setIndex(index);
+                }}
+                onSwipeRight={(cardIndex) => {
+                  handleSwipe("right", cardIndex);
+                }}
+                onSwipedAll={() => {
+                  setIsAllSwiped(true);
+                }}
+                onSwipeLeft={(cardIndex) => {
+                  handleSwipe("left", cardIndex);
+                }}
                 OverlayLabelRight={OverlayLabelRight}
+                OverlayLabelLeft={OverlayLabelLeft}
               />
             </View>
 
             <View className="absolute bottom-0 left-0 right-0 z-50">
               <View className="flex-row items-center w-full p-4 justify-evenly">
-                <Pressable onPress={() => swiperRef.current?.swipeLeft()}>
+                <Pressable
+                  onPress={() => {
+                    handleSwipe("left", index);
+                    ref.current?.swipeLeft();
+                  }}
+                >
                   <X size={28} color="red" />
                 </Pressable>
                 <Text className="text-gray-600">
                   Swipez les cartes pour les classer
                 </Text>
-                <Pressable onPress={() => swiperRef.current?.swipeRight()}>
+                <Pressable
+                  onPress={() => {
+                    handleSwipe("right", index);
+                    ref.current?.swipeRight();
+                  }}
+                >
                   <Check size={28} color="green" />
                 </Pressable>
               </View>
