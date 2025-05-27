@@ -1,49 +1,120 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Text, TouchableOpacity, View, Dimensions } from "react-native";
+import {
+  Text,
+  TouchableOpacity,
+  View,
+  Dimensions,
+  ScrollView,
+  Animated,
+  Easing,
+  PanResponder,
+} from "react-native";
 import { Swiper, type SwiperCardRefType } from "rn-swiper-list";
-import { Heart, X, RotateCcw, RefreshCw } from "lucide-react-native";
+import {
+  Heart,
+  X,
+  RotateCcw,
+  RefreshCw,
+  MapPin,
+  Briefcase,
+  DollarSign,
+  Building2,
+  CheckCircle2,
+} from "lucide-react-native";
 import { JobPost } from "@/types/interfaces";
 import { useJobPost } from "@/lib/hooks/useJobPost";
 import { useApplication } from "@/lib/hooks/useApplication";
 import Toast from "react-native-toast-message";
-import Modal from "react-native-modal";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
-const Card = ({ card, onPress }: { card: JobPost; onPress: () => void }) => (
-  <View className="flex flex-col justify-between flex-1 p-6 mx-2 bg-white shadow-lg rounded-xl">
-    <View className="flex items-start justify-center flex-1">
-      <Text className="w-full mb-3 text-2xl font-bold text-center text-black">
-        {card.title}
-      </Text>
-      <View className="w-full mb-4 space-y-2">
-        <Text className="text-lg text-gray-700">📍 {card.location}</Text>
-        <Text className="text-lg text-gray-700">💼 {card.contract_type}</Text>
-        <Text className="text-lg font-semibold text-green-600">
-          💰 {card.salary_range}
+function Card({ card, onPress }: { card: JobPost; onPress: () => void }) {
+  const DESCRIPTION_PREVIEW_LINES = 3;
+
+  return (
+    <View className="flex flex-col justify-between w-full h-full p-6 mx-2 bg-white shadow-lg rounded-xl">
+      <View className="flex items-center justify-center h-[80%]">
+        <Text className="w-full mb-1 text-2xl font-bold text-center text-black">
+          {card.title}
         </Text>
-      </View>
-      <View className="flex-row flex-wrap w-full gap-2">
-        <Text className="w-full mb-2 text-sm text-gray-500">
-          Compétences requises :
-        </Text>
-        {card.skills?.map((skill) => (
-          <View key={skill.id} className="px-3 py-1.5 bg-blue-100 rounded-full">
-            <Text className="text-sm font-medium text-blue-800">
-              {skill.name}
+        <View className="flex-row items-center justify-center w-full mb-2">
+          <Building2 size={16} color="#374151" className="mr-1" />
+          <Text className="text-base font-semibold text-center text-gray-700">
+            {card.company?.company_name || "Entreprise inconnue"}
+          </Text>
+        </View>
+        <View className="w-full mb-4 space-y-2">
+          <View className="flex-row items-center">
+            <MapPin size={18} color="#374151" className="mr-2" />
+            <Text className="text-lg text-gray-700">{card.location}</Text>
+          </View>
+          <View className="flex-row items-center">
+            <Briefcase size={18} color="#374151" className="mr-2" />
+            <Text className="text-lg text-gray-700">{card.contract_type}</Text>
+          </View>
+          <View className="flex-row items-center">
+            <DollarSign size={18} color="#22c55e" className="mr-2" />
+            <Text className="text-lg font-semibold text-green-600">
+              {card.salary_range}
             </Text>
           </View>
-        ))}
+        </View>
+        <View className="flex-row flex-wrap w-full gap-2">
+          <Text className="w-full mb-2 text-sm text-gray-500">
+            Compétences requises :
+          </Text>
+          {card.skills?.map((skill) => (
+            <View
+              key={skill.id}
+              className="px-3 py-1.5 bg-blue-100 rounded-full"
+            >
+              <Text className="text-sm font-medium text-blue-800">
+                {skill.name}
+              </Text>
+            </View>
+          ))}
+        </View>
+        {card.description && (
+          <Text
+            className="w-full mt-4 text-sm italic text-gray-600"
+            numberOfLines={DESCRIPTION_PREVIEW_LINES}
+            ellipsizeMode="tail"
+          >
+            {card.description}
+          </Text>
+        )}
       </View>
+      <TouchableOpacity
+        className="self-center px-4 py-2 mt-6 bg-blue-500 rounded-lg"
+        onPress={onPress}
+      >
+        <Text className="font-semibold text-white">Voir plus</Text>
+      </TouchableOpacity>
     </View>
-    <TouchableOpacity
-      className="self-center px-4 py-2 mt-6 bg-blue-500 rounded-lg"
-      onPress={onPress}
-    >
-      <Text className="font-semibold text-white">Voir plus</Text>
-    </TouchableOpacity>
-  </View>
-);
+  );
+}
+
+function OverlayLabelRight() {
+  return (
+    <View className="items-center justify-center w-full h-full border-4 border-green-500 bg-green-500/20 rounded-xl">
+      <View className="p-4 bg-green-500 rounded-full">
+        <Heart size={40} color="white" />
+      </View>
+      <Text className="mt-2 text-xl font-bold text-green-500">POSTULER</Text>
+    </View>
+  );
+}
+
+function OverlayLabelLeft() {
+  return (
+    <View className="items-center justify-center w-full h-full border-4 border-red-500 bg-red-500/20 rounded-xl">
+      <View className="p-4 bg-red-500 rounded-full">
+        <X size={40} color="white" />
+      </View>
+      <Text className="mt-2 text-xl font-bold text-red-500">PASSER</Text>
+    </View>
+  );
+}
 
 export default function JobOffers() {
   const { candidateJobPosts, isLoadingCandidateJobPosts } = useJobPost();
@@ -55,9 +126,46 @@ export default function JobOffers() {
   const [isAllSwiped, setIsAllSwiped] = useState(false);
   const [swiperKey, setSwiperKey] = useState(0);
   const [selectedJob, setSelectedJob] = useState<JobPost | null>(null);
-  const [isModalVisible, setIsModalVisible] = useState(true);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const slideAnim = useRef(new Animated.Value(screenHeight)).current;
+  const backdropAnim = useRef(new Animated.Value(0)).current;
+  const [isSheetVisible, setIsSheetVisible] = useState(false);
 
-  // Filtrer les offres déjà postulées
+  // PanResponder pour swipe-to-close
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        // On active le pan responder uniquement si le mouvement est vertical et vers le bas
+        return Math.abs(gestureState.dy) > 10 && gestureState.dy > 0;
+      },
+      onPanResponderMove: (_, gestureState) => {
+        // On suit le doigt, mais on ne permet pas de remonter la sheet
+        if (gestureState.dy > 0) {
+          slideAnim.setValue(gestureState.dy);
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        if (gestureState.dy > 250) {
+          // Si le swipe vers le bas est suffisant, on ferme la sheet
+          Animated.timing(slideAnim, {
+            toValue: screenHeight,
+            duration: 200,
+            useNativeDriver: true,
+          }).start(() => {
+            setIsModalVisible(false);
+          });
+        } else {
+          // Sinon, on ramène la sheet à sa position initiale
+          Animated.timing(slideAnim, {
+            toValue: 0,
+            duration: 200,
+            useNativeDriver: true,
+          }).start();
+        }
+      },
+    })
+  ).current;
+
   const availableJobs = React.useMemo(() => {
     if (!candidateJobPosts || !applications) return [];
     const appliedJobIds = applications.map((app) => app.job_post_id);
@@ -65,55 +173,75 @@ export default function JobOffers() {
   }, [candidateJobPosts, applications]);
 
   useEffect(() => {
-    console.log(
-      "Offres d'emploi disponibles:",
-      JSON.stringify(availableJobs, null, 2)
-    );
-  }, [availableJobs]);
-
-  useEffect(() => {
-    console.log("isModalVisible", isModalVisible);
-    console.log("selectedJob", selectedJob);
-  }, [isModalVisible, selectedJob]);
-
-  const handleSwipe = useCallback(
-    (direction: "left" | "right", cardIndex: number) => {
-      if (cardIndex >= availableJobs.length) return;
-
-      const card = availableJobs[cardIndex];
-      if (!card) return;
-
-      if (direction === "right") {
-        const score = 90;
-
-        try {
-          createApplication(
-            { jobOfferId: card.id, score },
-            {
-              onSuccess: () => {
-                Toast.show({
-                  type: "success",
-                  text1: "Candidature envoyée ! 🎉",
-                  text2: `Votre candidature pour ${card.title} a été envoyée avec succès`,
-                });
-              },
-              onError: () => {
-                Toast.show({
-                  type: "error",
-                  text1: "Erreur",
-                  text2:
-                    "Une erreur est survenue lors de l'envoi de votre candidature",
-                });
-              },
-            }
-          );
-        } catch (error) {
-          // Gestion silencieuse des erreurs
+    if (isModalVisible) {
+      setIsSheetVisible(true);
+      Animated.parallel([
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 300,
+          easing: Easing.out(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(backdropAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else if (isSheetVisible) {
+      Animated.parallel([
+        Animated.timing(slideAnim, {
+          toValue: screenHeight,
+          duration: 300,
+          easing: Easing.in(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(backdropAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start(({ finished }) => {
+        if (finished) {
+          setIsSheetVisible(false);
+          setTimeout(() => setSelectedJob(null), 0);
         }
+      });
+    }
+  }, [isModalVisible]);
+
+  const handleSwipe = (direction: "left" | "right", cardIndex: number) => {
+    if (cardIndex >= availableJobs.length) return;
+    const card = availableJobs[cardIndex];
+    if (!card) return;
+    if (direction === "right") {
+      const score = 90;
+      try {
+        createApplication(
+          { jobOfferId: card.id, score },
+          {
+            onSuccess: () => {
+              Toast.show({
+                type: "success",
+                text1: "Candidature envoyée ! 🎉",
+                text2: `Votre candidature pour ${card.title} a été envoyée avec succès`,
+              });
+            },
+            onError: () => {
+              Toast.show({
+                type: "error",
+                text1: "Erreur",
+                text2:
+                  "Une erreur est survenue lors de l'envoi de votre candidature",
+              });
+            },
+          }
+        );
+      } catch (error) {
+        // Gestion silencieuse des erreurs
       }
-    },
-    [availableJobs, createApplication]
-  );
+    }
+  };
 
   const handleOpenModal = (card: JobPost) => {
     setSelectedJob(card);
@@ -122,7 +250,6 @@ export default function JobOffers() {
 
   const handleCloseModal = () => {
     setIsModalVisible(false);
-    setTimeout(() => setSelectedJob(null), 300);
   };
 
   const handleModalAction = (direction: "left" | "right") => {
@@ -132,48 +259,16 @@ export default function JobOffers() {
     );
     handleSwipe(direction, cardIndex);
     setIsModalVisible(false);
-    setTimeout(() => {
-      setSelectedJob(null);
-      if (direction === "right" || direction === "left") {
-        setCurrentIndex((prev) => Math.min(prev + 1, availableJobs.length - 1));
-      }
-    }, 300);
+    if (direction === "right" || direction === "left") {
+      setCurrentIndex((prev) => Math.min(prev + 1, availableJobs.length - 1));
+    }
   };
 
-  const renderCard = useCallback(
-    (card: JobPost) => {
-      return <Card card={card} onPress={() => handleOpenModal(card)} />;
-    },
-    [availableJobs]
-  );
-
-  const OverlayLabelRight = useCallback(() => {
-    return (
-      <View className="items-center justify-center flex-1 border-4 border-green-500 bg-green-500/20 rounded-xl">
-        <View className="p-4 bg-green-500 rounded-full">
-          <Heart size={40} color="white" />
-        </View>
-        <Text className="mt-2 text-xl font-bold text-green-500">POSTULER</Text>
-      </View>
-    );
-  }, []);
-
-  const OverlayLabelLeft = useCallback(() => {
-    return (
-      <View className="items-center justify-center flex-1 border-4 border-red-500 bg-red-500/20 rounded-xl">
-        <View className="p-4 bg-red-500 rounded-full">
-          <X size={40} color="white" />
-        </View>
-        <Text className="mt-2 text-xl font-bold text-red-500">PASSER</Text>
-      </View>
-    );
-  }, []);
-
-  const resetSwiper = useCallback(() => {
+  const resetSwiper = () => {
     setIsAllSwiped(false);
     setCurrentIndex(0);
     setSwiperKey((prev) => prev + 1);
-  }, []);
+  };
 
   if (isLoadingCandidateJobPosts || isLoadingApplications) {
     return (
@@ -198,48 +293,27 @@ export default function JobOffers() {
   }
 
   return (
-    // <View className="flex flex-col flex-1 bg-gray-50">
-    <View className="flex-col flex-1 bg-red-500">
-      {/* Header avec compteur */}
-      {/* <View className="px-4 pt-4 pb-2">
-        <Text className="text-lg font-semibold text-center text-gray-700">
-          {currentIndex + 1} / {availableJobs.length}
-        </Text>
-      </View> */}
-
-      {/* Swiper Container */}
-      <View className="items-center justify-center px-4 basis-[70%]">
+    <View className="flex flex-col justify-between h-full pt-10 bg-gray-50">
+      <View className="items-center justify-center px-4 basis-[80%]">
         <Swiper
           key={swiperKey}
           ref={ref}
-          cardStyle={{
-            width: screenWidth * 0.9,
-            height: screenHeight * 0.6,
-            borderRadius: 12,
-          }}
+          cardStyle={{ width: "90%", height: "80%", borderRadius: 12 }}
           data={availableJobs}
-          renderCard={renderCard}
-          onIndexChange={(index) => {
-            setCurrentIndex(index);
-          }}
-          onSwipeRight={(cardIndex) => {
-            handleSwipe("right", cardIndex);
-          }}
-          onSwipedAll={() => {
-            setIsAllSwiped(true);
-          }}
-          onSwipeLeft={(cardIndex) => {
-            handleSwipe("left", cardIndex);
-          }}
+          renderCard={(card) => (
+            <Card card={card} onPress={() => handleOpenModal(card)} />
+          )}
+          onIndexChange={setCurrentIndex}
+          onSwipeRight={(cardIndex) => handleSwipe("right", cardIndex)}
+          onSwipedAll={() => setIsAllSwiped(true)}
+          onSwipeLeft={(cardIndex) => handleSwipe("left", cardIndex)}
           OverlayLabelRight={OverlayLabelRight}
           OverlayLabelLeft={OverlayLabelLeft}
         />
       </View>
 
-      {/* Boutons d'action en bas */}
       <View className="pt-4 pb-8">
         <View className="flex-row items-center justify-center space-x-8">
-          {/* Bouton Passer */}
           <TouchableOpacity
             onPress={() => {
               handleSwipe("left", currentIndex);
@@ -250,21 +324,15 @@ export default function JobOffers() {
           >
             <X size={32} color="#ef4444" />
           </TouchableOpacity>
-
-          {/* Bouton Retour */}
           {currentIndex > 0 && (
             <TouchableOpacity
-              onPress={() => {
-                ref.current?.swipeBack();
-              }}
+              onPress={() => ref.current?.swipeBack()}
               className="p-3 bg-white border border-gray-200 rounded-full shadow-lg"
               activeOpacity={0.7}
             >
               <RotateCcw size={24} color="#6b7280" />
             </TouchableOpacity>
           )}
-
-          {/* Bouton Postuler */}
           <TouchableOpacity
             onPress={() => {
               handleSwipe("right", currentIndex);
@@ -276,13 +344,11 @@ export default function JobOffers() {
             <Heart size={32} color="#22c55e" />
           </TouchableOpacity>
         </View>
-
         <Text className="mt-4 text-sm text-center text-gray-500">
           Swipez ou utilisez les boutons pour naviguer
         </Text>
       </View>
 
-      {/* Overlay fin */}
       {isAllSwiped && (
         <View className="absolute inset-0 flex flex-col items-center justify-center bg-black/80">
           <View className="items-center max-w-sm p-8 mx-6 bg-white rounded-xl">
@@ -292,7 +358,6 @@ export default function JobOffers() {
             <Text className="mb-6 text-lg text-center text-gray-600">
               Vous avez parcouru toutes les offres disponibles
             </Text>
-
             {availableJobs.length > 0 && (
               <TouchableOpacity
                 className="flex-row items-center px-6 py-3 bg-blue-500 rounded-lg"
@@ -305,7 +370,6 @@ export default function JobOffers() {
                 </Text>
               </TouchableOpacity>
             )}
-
             {availableJobs.length === 0 && (
               <Text className="text-sm text-center text-gray-500">
                 Vous avez regardé toutes les offres. Revenez plus tard pour de
@@ -316,81 +380,160 @@ export default function JobOffers() {
         </View>
       )}
 
-      <Modal
-        isVisible={isModalVisible}
-        onBackdropPress={handleCloseModal}
-        onBackButtonPress={handleCloseModal}
-        backdropTransitionOutTiming={0}
-      >
-        <View className="relative flex-1 w-full p-6 bg-red-500 rounded-t-2xl">
-          <Text className="text-center text-white">Modal</Text>
-        </View>
-        {/* {selectedJob && (
-          <View className="z-50 flex-1 w-full p-6 bg-red-500 rounded-t-2xl">
-            <Text className="mb-2 text-2xl font-bold text-black">
-              {selectedJob.title}
-            </Text>
-            <Text className="mb-1 text-lg text-black">
-              Entreprise :{" "}
-              {selectedJob.company?.company_name || "Entreprise inconnue"}
-            </Text>
-            <Text className="mb-1 text-black">📍 {selectedJob.location}</Text>
-            <Text className="mb-1 text-black">
-              💼 {selectedJob.contract_type}
-            </Text>
-            <Text className="mb-1 text-black">
-              💰 {selectedJob.salary_range}
-            </Text>
-            <Text className="mb-1 text-black">
-              Stack technique :{" "}
-              {selectedJob.skills?.map((s) => s.name).join(", ")}
-            </Text>
-            <Text className="mb-2 text-black">
-              {selectedJob.description || "Aucune description fournie."}
-            </Text>
-            {selectedJob.certifications &&
-              selectedJob.certifications.length > 0 && (
-                <View className="mb-2">
-                  <Text className="font-semibold text-black">
-                    Certifications :
-                  </Text>
-                  <View className="flex-row flex-wrap gap-2 mt-1">
-                    {selectedJob.certifications.map((cert) => (
-                      <View
-                        key={cert.id}
-                        className="px-2 py-1 bg-gray-200 rounded-full"
-                      >
-                        <Text className="text-xs text-gray-700">
-                          {cert.name}
-                        </Text>
-                      </View>
-                    ))}
+      {isSheetVisible && (
+        <Animated.View
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            top: 0,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            opacity: backdropAnim,
+            justifyContent: "flex-end",
+            zIndex: 100,
+          }}
+        >
+          <Animated.View
+            className="w-full bg-white rounded-t-2xl"
+            style={{
+              maxHeight: screenHeight * 0.9,
+              alignSelf: "flex-end",
+              transform: [{ translateY: slideAnim }],
+            }}
+            {...panResponder.panHandlers}
+          >
+            <View className="w-12 h-1 mx-auto mt-2 bg-gray-300 rounded-full" />
+            <ScrollView className="px-6 py-4">
+              {/* En-tête */}
+              <View className="mb-6">
+                <Text className="mb-2 text-2xl font-bold text-black">
+                  {selectedJob?.title}
+                </Text>
+                <Text className="text-lg font-semibold text-gray-700">
+                  {selectedJob?.company?.company_name || "Entreprise inconnue"}
+                </Text>
+              </View>
+
+              {/* Informations principales */}
+              <View className="flex flex-col gap-4 mb-6">
+                <View className="flex-row items-center">
+                  <View className="items-center w-24">
+                    <MapPin size={20} color="#374151" className="mb-1" />
+                    <Text className="text-sm font-medium text-gray-600">
+                      Localisation
+                    </Text>
                   </View>
+                  <Text className="flex-1 text-base text-gray-800">
+                    {selectedJob?.location}
+                  </Text>
                 </View>
-              )}
-            <View className="flex-row justify-center mt-6 space-x-4">
+
+                <View className="flex-row items-center">
+                  <View className="items-center w-24">
+                    <Briefcase size={20} color="#374151" className="mb-1" />
+                    <Text className="text-sm font-medium text-gray-600">
+                      Contrat
+                    </Text>
+                  </View>
+                  <Text className="flex-1 text-base text-gray-800">
+                    {selectedJob?.contract_type}
+                  </Text>
+                </View>
+
+                <View className="flex-row items-center">
+                  <View className="items-center w-24">
+                    <DollarSign size={20} color="#22c55e" className="mb-1" />
+                    <Text className="text-sm font-medium text-gray-600">
+                      Salaire
+                    </Text>
+                  </View>
+                  <Text className="flex-1 text-base text-gray-800">
+                    {selectedJob?.salary_range}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Description */}
+              <View className="mb-6">
+                <Text className="mb-2 text-lg font-semibold text-gray-800">
+                  Description
+                </Text>
+                <Text className="text-base leading-6 text-gray-700">
+                  {selectedJob?.description || "Aucune description fournie."}
+                </Text>
+              </View>
+
+              {/* Stack technique */}
+              <View className="mb-6">
+                <Text className="mb-3 text-lg font-semibold text-gray-800">
+                  Stack technique
+                </Text>
+                <View className="flex-row flex-wrap gap-2">
+                  {selectedJob?.skills?.map((skill) => (
+                    <View
+                      key={skill.id}
+                      className="px-3 py-1.5 bg-blue-100 rounded-full"
+                    >
+                      <Text className="text-sm font-medium text-blue-800">
+                        {skill.name}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+
+              {/* Certifications */}
+              {selectedJob?.certifications &&
+                selectedJob?.certifications.length > 0 && (
+                  <View className="mb-6">
+                    <Text className="mb-3 text-lg font-semibold text-gray-800">
+                      Certifications
+                    </Text>
+                    <View className="flex-row flex-wrap gap-2">
+                      {selectedJob.certifications.map((cert) => (
+                        <View
+                          key={cert.id}
+                          className="px-3 py-1.5 bg-gray-100 rounded-full"
+                        >
+                          <Text className="text-sm font-medium text-gray-700">
+                            {cert.name}
+                          </Text>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                )}
+
+              {/* Boutons d'action */}
+              <View className="flex-row justify-center gap-4 mt-6 mb-4 space-x-6">
+                <TouchableOpacity
+                  className="flex-1 px-6 py-3 bg-green-500 rounded-lg"
+                  onPress={() => handleModalAction("right")}
+                >
+                  <Text className="font-semibold text-center text-white">
+                    Postuler
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  className="flex-1 px-6 py-3 bg-red-500 rounded-lg"
+                  onPress={() => handleModalAction("left")}
+                >
+                  <Text className="font-semibold text-center text-white">
+                    Passer
+                  </Text>
+                </TouchableOpacity>
+              </View>
               <TouchableOpacity
-                className="px-6 py-2 bg-green-500 rounded-lg"
-                onPress={() => handleModalAction("right")}
+                className="self-center px-6 py-3 mt-2 mb-4 bg-gray-200 rounded-lg"
+                onPress={handleCloseModal}
               >
-                <Text className="font-semibold text-white">Postuler</Text>
+                <Text className="font-semibold text-gray-800">Fermer</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                className="px-6 py-2 bg-red-500 rounded-lg"
-                onPress={() => handleModalAction("left")}
-              >
-                <Text className="font-semibold text-white">Passer</Text>
-              </TouchableOpacity>
-            </View>
-            <TouchableOpacity
-              className="self-center px-4 py-2 mt-4 bg-gray-200 rounded-lg"
-              onPress={handleCloseModal}
-            >
-              <Text className="font-semibold text-gray-800">Fermer</Text>
-            </TouchableOpacity>
-          </View>
-        )} */}
-      </Modal>
+            </ScrollView>
+          </Animated.View>
+        </Animated.View>
+      )}
     </View>
   );
 }
