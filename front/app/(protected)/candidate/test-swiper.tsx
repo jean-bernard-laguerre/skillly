@@ -19,8 +19,6 @@ import {
   Briefcase,
   DollarSign,
   Building2,
-  Mail,
-  User,
 } from "lucide-react-native";
 import { JobPost } from "@/types/interfaces";
 import { useJobPost } from "@/lib/hooks/useJobPost";
@@ -29,17 +27,64 @@ import Toast from "react-native-toast-message";
 
 const { height: screenHeight } = Dimensions.get("window");
 
-export default function JobOffers() {
+// Test avec des données statiques d'abord
+const STATIC_TEST_DATA: any[] = [
+  {
+    id: "1",
+    title: "Développeur React Native",
+    company: { company_name: "Tech Corp" },
+    location: "Paris",
+    contract_type: "CDI",
+    salary_range: "45-55k€",
+    skills: [
+      { id: "1", name: "React Native" },
+      { id: "2", name: "TypeScript" },
+    ],
+    description:
+      "Poste de développeur React Native dans une startup innovante.",
+  },
+  {
+    id: "2",
+    title: "Développeur Full Stack",
+    company: { company_name: "Web Solutions" },
+    location: "Lyon",
+    contract_type: "CDI",
+    salary_range: "50-60k€",
+    skills: [
+      { id: "3", name: "React" },
+      { id: "4", name: "Node.js" },
+    ],
+    description: "Développement d'applications web modernes.",
+  },
+  {
+    id: "3",
+    title: "Développeur Mobile",
+    company: { company_name: "Mobile First" },
+    location: "Marseille",
+    contract_type: "CDI",
+    salary_range: "40-50k€",
+    skills: [
+      { id: "5", name: "Flutter" },
+      { id: "6", name: "Dart" },
+    ],
+    description: "Création d'applications mobiles cross-platform.",
+  },
+];
+
+export default function TestSwiper() {
   const { candidateJobPosts, isLoadingCandidateJobPosts } = useJobPost();
   const { applications, isLoadingApplications, createApplication } =
     useApplication();
   const ref = useRef<SwiperCardRefType>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedJob, setSelectedJob] = useState<JobPost | null>(null);
+  const [useStaticData, setUseStaticData] = useState(true);
+  const [selectedJob, setSelectedJob] = useState<any | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const slideAnim = useRef(new Animated.Value(screenHeight)).current;
   const backdropAnim = useRef(new Animated.Value(0)).current;
   const [isSheetVisible, setIsSheetVisible] = useState(false);
+
+  console.log("TestSwiper render - useStaticData:", useStaticData);
 
   const panResponder = useRef(
     PanResponder.create({
@@ -72,10 +117,27 @@ export default function JobOffers() {
   ).current;
 
   const availableJobs = React.useMemo(() => {
+    if (useStaticData) {
+      console.log("Using static data:", STATIC_TEST_DATA.length, "jobs");
+      return STATIC_TEST_DATA;
+    }
+
     if (!candidateJobPosts || !applications) return [];
     const appliedJobIds = applications.map((app) => app.job_post_id);
-    return candidateJobPosts.filter((job) => !appliedJobIds.includes(job.id));
-  }, [candidateJobPosts, applications]);
+    const filtered = candidateJobPosts.filter(
+      (job) => !appliedJobIds.includes(job.id)
+    );
+    console.log("Using real data:", filtered.length, "jobs");
+    return filtered;
+  }, [candidateJobPosts, applications, useStaticData]);
+
+  React.useEffect(() => {
+    console.log("TestSwiper - availableJobs changed:", {
+      length: availableJobs.length,
+      useStaticData: useStaticData,
+      jobs: availableJobs.map((job) => ({ id: job.id, title: job.title })),
+    });
+  }, [availableJobs, useStaticData]);
 
   React.useEffect(() => {
     if (isModalVisible) {
@@ -113,7 +175,7 @@ export default function JobOffers() {
     }
   }, [isModalVisible]);
 
-  const handleOpenModal = useCallback((job: JobPost) => {
+  const handleOpenModal = useCallback((job: any) => {
     setSelectedJob(job);
     setIsModalVisible(true);
   }, []);
@@ -132,10 +194,10 @@ export default function JobOffers() {
   };
 
   const renderCard = useCallback(
-    (job: JobPost) => {
-      console.log("renderCard called for:", job.title);
+    (job: any) => {
+      console.log("Test renderCard called for:", job.title);
       return (
-        <View style={styles.cardContainer}>
+        <View style={styles.renderCardContainer}>
           <View style={styles.cardContent}>
             <View style={styles.mainContent}>
               <View style={styles.cardHeader}>
@@ -226,7 +288,7 @@ export default function JobOffers() {
   }, []);
 
   const handleSwipe = (direction: string, cardIndex: number) => {
-    console.log("handleSwipe:", {
+    console.log("Test handleSwipe:", {
       direction,
       cardIndex,
       availableJobsLength: availableJobs.length,
@@ -266,14 +328,14 @@ export default function JobOffers() {
   };
 
   const handleIndexChange = (index: number) => {
-    console.log("Index changed to:", index);
+    console.log("Test index changed to:", index);
     setCurrentIndex(index);
   };
 
   if (isLoadingCandidateJobPosts || isLoadingApplications) {
     return (
       <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>Chargement des offres...</Text>
+        <Text>Chargement des offres...</Text>
       </View>
     );
   }
@@ -281,11 +343,7 @@ export default function JobOffers() {
   if (availableJobs.length === 0) {
     return (
       <View style={styles.emptyContainer}>
-        <Text style={styles.emptyTitle}>Aucune nouvelle offre disponible</Text>
-        <Text style={styles.emptyText}>
-          Vous avez déjà postulé à toutes les offres disponibles. Revenez plus
-          tard pour de nouvelles opportunités !
-        </Text>
+        <Text>Aucune offre disponible</Text>
       </View>
     );
   }
@@ -294,19 +352,55 @@ export default function JobOffers() {
     <GestureHandlerRootView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerText}>
-          {currentIndex + 1} / {availableJobs.length}
+          Test Complet - {currentIndex + 1} / {availableJobs.length}
         </Text>
+        <TouchableOpacity
+          style={styles.toggleButton}
+          onPress={() => {
+            console.log(
+              "Toggling data source from",
+              useStaticData,
+              "to",
+              !useStaticData
+            );
+            setUseStaticData(!useStaticData);
+            setCurrentIndex(0);
+          }}
+        >
+          <Text style={styles.toggleButtonText}>
+            {useStaticData
+              ? "Utiliser données réelles"
+              : "Utiliser données statiques"}
+          </Text>
+        </TouchableOpacity>
       </View>
 
-      <View style={styles.swiperContainer}>
+      <View style={styles.subContainer}>
         <Swiper
+          key={`swiper-${useStaticData ? "static" : "real"}-${
+            availableJobs.length
+          }`}
           ref={ref}
           cardStyle={styles.cardStyle}
           data={availableJobs}
           renderCard={renderCard}
-          onIndexChange={handleIndexChange}
-          onSwipeRight={(cardIndex) => handleSwipe("right", cardIndex)}
-          onSwipeLeft={(cardIndex) => handleSwipe("left", cardIndex)}
+          onIndexChange={(index) => {
+            console.log(
+              "Test onIndexChange:",
+              index,
+              "total jobs:",
+              availableJobs.length
+            );
+            handleIndexChange(index);
+          }}
+          onSwipeRight={(cardIndex) => {
+            console.log("Test onSwipeRight:", cardIndex);
+            handleSwipe("right", cardIndex);
+          }}
+          onSwipeLeft={(cardIndex) => {
+            console.log("Test onSwipeLeft:", cardIndex);
+            handleSwipe("left", cardIndex);
+          }}
           OverlayLabelRight={OverlayLabelRight}
           OverlayLabelLeft={OverlayLabelLeft}
         />
@@ -314,26 +408,22 @@ export default function JobOffers() {
 
       <View style={styles.buttonsContainer}>
         <TouchableOpacity
+          style={styles.button}
           onPress={() => ref.current?.swipeLeft()}
-          style={[styles.button, styles.buttonRed]}
         >
-          <X size={30} color="white" />
+          <X size={32} color="white" />
         </TouchableOpacity>
-
-        {currentIndex > 0 && (
-          <TouchableOpacity
-            onPress={() => ref.current?.swipeBack()}
-            style={[styles.button, styles.buttonGray]}
-          >
-            <RotateCcw size={24} color="white" />
-          </TouchableOpacity>
-        )}
-
         <TouchableOpacity
-          onPress={() => ref.current?.swipeRight()}
-          style={[styles.button, styles.buttonGreen]}
+          style={[styles.button, { height: 60, marginHorizontal: 10 }]}
+          onPress={() => ref.current?.swipeBack()}
         >
-          <Heart size={30} color="white" />
+          <RotateCcw size={24} color="white" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => ref.current?.swipeRight()}
+        >
+          <Heart size={32} color="white" />
         </TouchableOpacity>
       </View>
 
@@ -443,21 +533,6 @@ export default function JobOffers() {
                 </View>
               )}
 
-              {/* Certifications */}
-              {selectedJob?.certifications &&
-                selectedJob.certifications.length > 0 && (
-                  <View style={styles.sheetSection}>
-                    <Text style={styles.sheetSectionTitle}>Certifications</Text>
-                    <View style={styles.sheetSkillsWrapper}>
-                      {selectedJob.certifications.map((cert) => (
-                        <View key={cert.id} style={styles.sheetCertTag}>
-                          <Text style={styles.sheetCertText}>{cert.name}</Text>
-                        </View>
-                      ))}
-                    </View>
-                  </View>
-                )}
-
               {/* Boutons d'action */}
               <View style={styles.sheetActions}>
                 <TouchableOpacity
@@ -490,6 +565,8 @@ export default function JobOffers() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
     backgroundColor: "#f3f4f6",
   },
   header: {
@@ -502,7 +579,19 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
   },
-  swiperContainer: {
+  toggleButton: {
+    backgroundColor: "#3b82f6",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginTop: 10,
+  },
+  toggleButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  subContainer: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
@@ -510,16 +599,18 @@ const styles = StyleSheet.create({
   cardStyle: {
     width: "90%",
     height: "80%",
-    borderRadius: 12,
+    borderRadius: 15,
+    marginVertical: 20,
   },
-  cardContainer: {
+  renderCardContainer: {
+    flex: 1,
+    borderRadius: 15,
     width: "100%",
     height: "100%",
-    borderRadius: 12,
+    backgroundColor: "white",
+    padding: 24,
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 24,
-    backgroundColor: "white",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
@@ -555,6 +646,10 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     textAlign: "center",
     marginBottom: 5,
+  },
+  companyRow: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   cardDetails: {
     width: "100%",
@@ -604,11 +699,31 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "500",
   },
+  description: {
+    marginTop: 10,
+    color: "#6b7280",
+    textAlign: "left",
+    fontStyle: "italic",
+    fontSize: 14,
+    width: "100%",
+  },
+  seeMoreButton: {
+    backgroundColor: "#3b82f6",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginTop: 10,
+  },
+  seeMoreText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
   overlayContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    borderRadius: 12,
+    borderRadius: 15,
     borderWidth: 4,
   },
   overlayRight: {
@@ -631,73 +746,35 @@ const styles = StyleSheet.create({
   },
   buttonsContainer: {
     flexDirection: "row",
+    bottom: 34,
+    alignItems: "center",
     justifyContent: "center",
-    gap: 40,
-    paddingBottom: 50,
   },
   button: {
-    padding: 15,
-    borderRadius: 50,
-    width: 60,
-    height: 60,
+    height: 80,
+    borderRadius: 40,
+    marginHorizontal: 20,
+    aspectRatio: 1,
+    backgroundColor: "#3A3D45",
+    elevation: 4,
     justifyContent: "center",
     alignItems: "center",
-  },
-  buttonRed: {
-    backgroundColor: "#ef4444",
-  },
-  buttonGreen: {
-    backgroundColor: "#22c55e",
-  },
-  buttonGray: {
-    backgroundColor: "#6b7280",
+    shadowColor: "black",
+    shadowOpacity: 0.1,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
   },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
-  loadingText: {
-    fontSize: 20,
-    fontWeight: "bold",
-  },
   emptyContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-  },
-  emptyTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
-  },
-  emptyText: {
-    fontSize: 16,
-    textAlign: "center",
-  },
-  companyRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  seeMoreButton: {
-    backgroundColor: "#3b82f6",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-    marginTop: 10,
-  },
-  seeMoreText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  description: {
-    marginTop: 10,
-    color: "#6b7280",
-    textAlign: "left",
-    fontStyle: "italic",
-    fontSize: 14,
-    width: "100%",
   },
   bottomSheet: {
     width: "100%",
@@ -795,17 +872,6 @@ const styles = StyleSheet.create({
   },
   sheetSkillText: {
     color: "#1e40af",
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  sheetCertTag: {
-    backgroundColor: "#f3e8ff",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-  sheetCertText: {
-    color: "#7c3aed",
     fontSize: 14,
     fontWeight: "500",
   },

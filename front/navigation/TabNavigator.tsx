@@ -25,6 +25,7 @@ import Messages from "@/app/(protected)/messages";
 import MyApplications from "@/app/(protected)/candidate/MyApplications";
 import JobOffers from "@/app/(protected)/candidate/jobOffers";
 import CandidateHome from "@/app/(protected)/candidate";
+import TestSwiper from "@/app/(protected)/candidate/test-swiper";
 // Components Recruiter
 import RecruiterHome from "@/app/(protected)/recruiter";
 import Jobs from "@/app/(protected)/recruiter/jobs";
@@ -61,6 +62,16 @@ export default function TabNavigator() {
               <Briefcase size={size} color={color} />
             ),
             title: "Offres",
+          }}
+        />
+        <Tab.Screen
+          name="TestSwiper"
+          component={TestSwiper}
+          options={{
+            tabBarIcon: ({ color, size }) => (
+              <LayoutDashboard size={size} color={color} />
+            ),
+            title: "Test",
           }}
         />
         <Tab.Screen
