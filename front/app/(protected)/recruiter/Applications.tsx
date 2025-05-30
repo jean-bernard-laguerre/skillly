@@ -54,7 +54,7 @@ export default function Applications() {
   };
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex flex-col h-full bg-gray-50">
       <View className="flex-row border-b border-gray-200">
         <Pressable
           className={`flex-1 p-4 ${
@@ -86,7 +86,7 @@ export default function Applications() {
         </Pressable>
       </View>
 
-      {renderTabContent()}
+      <View className="flex-1">{renderTabContent()}</View>
     </View>
   );
 }

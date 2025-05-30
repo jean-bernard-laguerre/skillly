@@ -362,12 +362,14 @@ export default function Profile() {
         </View>
       </Modal>
 
-      <Pressable
-        className="p-2 mt-5 bg-red-500 rounded-md"
-        onPress={() => handleLogOut()}
-      >
-        <Text className="text-white">Se déconnecter</Text>
-      </Pressable>
+      <View className="flex-row items-center justify-center gap-4 pb-4">
+        <Pressable
+          className="p-2 mt-5 bg-red-500 rounded-md"
+          onPress={() => handleLogOut()}
+        >
+          <Text className="text-white">Se déconnecter</Text>
+        </Pressable>
+      </View>
     </ScrollView>
   );
 }

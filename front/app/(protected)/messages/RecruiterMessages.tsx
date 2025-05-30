@@ -1,3 +1,4 @@
+import MessageItem from "@/components/messages/ChatroomItem";
 import { View, Text } from "react-native";
 
 export default function RecruiterMessages() {
@@ -8,6 +9,7 @@ export default function RecruiterMessages() {
       </Text>
       <Text className="text-gray-600">
         Vous pourrez ici gérer vos conversations avec les candidats
+        <MessageItem />
       </Text>
     </View>
   );

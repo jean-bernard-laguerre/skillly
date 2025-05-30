@@ -8,7 +8,7 @@ export default function Layout() {
   const { role } = useAuth();
   return (
     <DrawerNavigator>
-      <TabNavigator role={role} />
+      <TabNavigator />
     </DrawerNavigator>
   );
 }
