@@ -1,16 +1,26 @@
-import React, { useRef, useState, useCallback } from "react";
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
-  StyleSheet,
   Animated,
   Dimensions,
   PanResponder,
   ScrollView,
 } from "react-native";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { Swiper, type SwiperCardRefType } from "rn-swiper-list";
+import {
+  GestureHandlerRootView,
+  GestureDetector,
+  Gesture,
+} from "react-native-gesture-handler";
+import ReanimatedAnimated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  runOnJS,
+  interpolate,
+  Extrapolation,
+} from "react-native-reanimated";
 import {
   Heart,
   X,
@@ -19,21 +29,19 @@ import {
   Briefcase,
   DollarSign,
   Building2,
-  Mail,
-  User,
 } from "lucide-react-native";
 import { JobPost } from "@/types/interfaces";
 import { useJobPost } from "@/lib/hooks/useJobPost";
 import { useApplication } from "@/lib/hooks/useApplication";
 import Toast from "react-native-toast-message";
 
+const SWIPE_THRESHOLD = 100;
 const { height: screenHeight } = Dimensions.get("window");
 
 export default function JobOffers() {
   const { candidateJobPosts, isLoadingCandidateJobPosts } = useJobPost();
   const { applications, isLoadingApplications, createApplication } =
     useApplication();
-  const ref = useRef<SwiperCardRefType>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedJob, setSelectedJob] = useState<JobPost | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -41,10 +49,21 @@ export default function JobOffers() {
   const backdropAnim = useRef(new Animated.Value(0)).current;
   const [isSheetVisible, setIsSheetVisible] = useState(false);
 
+  // Valeurs animées pour les gestes
+  const translateX = useSharedValue(0);
+  const translateY = useSharedValue(0);
+  const scale = useSharedValue(1);
+  const opacity = useSharedValue(1);
+  const isSwipeDisabled = useSharedValue(false);
+
   const panResponder = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: (_, gestureState) => {
-        return Math.abs(gestureState.dy) > 5 && gestureState.dy > 0;
+        // Ne se déclencher que si le mouvement est vers le bas et assez significatif
+        return (
+          gestureState.dy > 10 &&
+          Math.abs(gestureState.dy) > Math.abs(gestureState.dx)
+        );
       },
       onPanResponderMove: (_, gestureState) => {
         if (gestureState.dy > 0) {
@@ -71,6 +90,7 @@ export default function JobOffers() {
     })
   ).current;
 
+  // Calculer les jobs disponibles
   const availableJobs = React.useMemo(() => {
     if (!candidateJobPosts || !applications) return [];
     const appliedJobIds = applications.map((app) => app.job_post_id);
@@ -113,10 +133,10 @@ export default function JobOffers() {
     }
   }, [isModalVisible]);
 
-  const handleOpenModal = useCallback((job: JobPost) => {
+  const handleOpenModal = (job: JobPost) => {
     setSelectedJob(job);
     setIsModalVisible(true);
-  }, []);
+  };
 
   const handleCloseModal = () => {
     setIsModalVisible(false);
@@ -124,165 +144,187 @@ export default function JobOffers() {
 
   const handleModalAction = (direction: "left" | "right") => {
     if (!selectedJob) return;
-    const cardIndex = availableJobs.findIndex(
-      (job) => job.id === selectedJob.id
-    );
-    handleSwipe(direction, cardIndex);
+    if (direction === "right") {
+      handleApply();
+    } else {
+      handlePass();
+    }
     setIsModalVisible(false);
   };
 
-  const renderCard = useCallback(
-    (job: JobPost) => {
-      console.log("renderCard called for:", job.title);
-      return (
-        <View style={styles.cardContainer}>
-          <View style={styles.cardContent}>
-            <View style={styles.mainContent}>
-              <View style={styles.cardHeader}>
-                <Text style={styles.cardTitle}>{job.title}</Text>
-                <View style={styles.companyRow}>
-                  <Building2 size={16} color="#374151" />
-                  <Text style={styles.cardCompany}>
-                    {job.company?.company_name || "Entreprise inconnue"}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.cardDetails}>
-                <View style={styles.detailRow}>
-                  <MapPin size={18} color="#374151" />
-                  <Text style={styles.detailText}>{job.location}</Text>
-                </View>
-                <View style={styles.detailRow}>
-                  <Briefcase size={18} color="#374151" />
-                  <Text style={styles.detailText}>{job.contract_type}</Text>
-                </View>
-                <View style={styles.detailRow}>
-                  <DollarSign size={18} color="#22c55e" />
-                  <Text style={styles.cardSalary}>{job.salary_range}</Text>
-                </View>
-              </View>
-
-              {job.skills && job.skills.length > 0 && (
-                <View style={styles.skillsContainer}>
-                  <Text style={styles.skillsTitle}>Compétences requises :</Text>
-                  <View style={styles.skillsWrapper}>
-                    {job.skills.slice(0, 3).map((skill) => (
-                      <View key={skill.id} style={styles.skillTag}>
-                        <Text style={styles.skillText}>{skill.name}</Text>
-                      </View>
-                    ))}
-                    {job.skills.length > 3 && (
-                      <View style={styles.skillTag}>
-                        <Text style={styles.skillText}>
-                          +{job.skills.length - 3}
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-                </View>
-              )}
-
-              {job.description && (
-                <Text
-                  style={styles.description}
-                  numberOfLines={3}
-                  ellipsizeMode="tail"
-                >
-                  {job.description}
-                </Text>
-              )}
-            </View>
-
-            <TouchableOpacity
-              style={styles.seeMoreButton}
-              onPress={() => handleOpenModal(job)}
-            >
-              <Text style={styles.seeMoreText}>Voir plus</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      );
-    },
-    [handleOpenModal]
-  );
-
-  const OverlayLabelRight = useCallback(() => {
-    return (
-      <View style={[styles.overlayContainer, styles.overlayRight]}>
-        <Heart size={40} color="#22c55e" />
-        <Text style={styles.overlayText}>LIKE</Text>
-      </View>
-    );
-  }, []);
-
-  const OverlayLabelLeft = useCallback(() => {
-    return (
-      <View style={[styles.overlayContainer, styles.overlayLeft]}>
-        <X size={40} color="#ef4444" />
-        <Text style={styles.overlayTextRed}>PASS</Text>
-      </View>
-    );
-  }, []);
-
-  const handleSwipe = (direction: string, cardIndex: number) => {
-    console.log("handleSwipe:", {
-      direction,
-      cardIndex,
-      availableJobsLength: availableJobs.length,
-    });
-
-    if (cardIndex >= availableJobs.length) return;
-    const job = availableJobs[cardIndex];
+  // Fonction pour postuler
+  const handleApply = () => {
+    const job = availableJobs[currentIndex];
     if (!job) return;
 
-    if (direction === "right") {
-      const score = 90;
-      try {
-        createApplication(
-          { jobOfferId: job.id, score },
-          {
-            onSuccess: () => {
-              Toast.show({
-                type: "success",
-                text1: "Candidature envoyée ! 🎉",
-                text2: `Votre candidature pour ${job.title} a été envoyée avec succès`,
-              });
-            },
-            onError: () => {
-              Toast.show({
-                type: "error",
-                text1: "Erreur",
-                text2:
-                  "Une erreur est survenue lors de l'envoi de votre candidature",
-              });
-            },
-          }
-        );
-      } catch (error) {
-        console.error("Error creating application:", error);
-      }
+    animateCardExit("right", () => {
+      createApplication(
+        { jobOfferId: job.id, score: 90 },
+        {
+          onSuccess: () => {
+            Toast.show({
+              type: "success",
+              text1: "Candidature envoyée ! 🎉",
+              text2: `Votre candidature pour ${job.title} a été envoyée avec succès`,
+            });
+            goToNext();
+          },
+          onError: () => {
+            Toast.show({
+              type: "error",
+              text1: "Erreur",
+              text2:
+                "Une erreur est survenue lors de l'envoi de votre candidature",
+            });
+          },
+        }
+      );
+    });
+  };
+
+  // Fonction pour passer
+  const handlePass = () => {
+    animateCardExit("left", () => {
+      goToNext();
+    });
+  };
+
+  // Fonction pour aller à la suivante
+  const goToNext = () => {
+    setCurrentIndex(currentIndex + 1);
+  };
+
+  // Fonction pour revenir en arrière
+  const goToPrevious = () => {
+    if (currentIndex > 0) {
+      resetAnimations();
+      setCurrentIndex(currentIndex - 1);
     }
   };
 
-  const handleIndexChange = (index: number) => {
-    console.log("Index changed to:", index);
-    setCurrentIndex(index);
+  // Réinitialiser les animations
+  const resetAnimations = () => {
+    translateX.value = withSpring(0);
+    translateY.value = withSpring(0);
+    scale.value = withSpring(1);
+    opacity.value = withSpring(1);
   };
+
+  // Fonction pour animer la sortie de la card
+  const animateCardExit = (
+    direction: "left" | "right",
+    callback: () => void
+  ) => {
+    const exitX = direction === "left" ? -400 : 400;
+
+    translateX.value = withSpring(exitX, { damping: 15 });
+    opacity.value = withSpring(0, { damping: 15 });
+
+    setTimeout(() => {
+      callback();
+      // Réinitialiser pour la prochaine card
+      translateX.value = 0;
+      translateY.value = 0;
+      scale.value = 1;
+      opacity.value = 1;
+    }, 300);
+  };
+
+  // Gestionnaire de gestes avec la nouvelle API
+  const panGesture = Gesture.Pan()
+    .onStart(() => {
+      if (isSwipeDisabled.value) return;
+      scale.value = withSpring(0.95);
+    })
+    .onUpdate((event) => {
+      if (isSwipeDisabled.value) return;
+      translateX.value = event.translationX;
+      translateY.value = event.translationY * 0.5; // Réduire le mouvement vertical
+    })
+    .onEnd((event) => {
+      if (isSwipeDisabled.value) return;
+      scale.value = withSpring(1);
+
+      if (Math.abs(event.translationX) > SWIPE_THRESHOLD) {
+        // Swipe détecté
+        const direction = event.translationX > 0 ? "right" : "left";
+
+        if (direction === "right") {
+          runOnJS(handleApply)();
+        } else {
+          runOnJS(handlePass)();
+        }
+      } else {
+        // Retour à la position initiale
+        translateX.value = withSpring(0);
+        translateY.value = withSpring(0);
+      }
+    });
+
+  const tapGesture = Gesture.Tap().onStart(() => {
+    // Ne pas ouvrir la modal si un swipe est en cours
+    if (Math.abs(translateX.value) < 10) {
+      runOnJS(handleOpenModal)(currentJob);
+    }
+  });
+
+  // Composition des gestes
+  const composedGestures = Gesture.Simultaneous(panGesture, tapGesture);
+
+  // Styles animés
+  const animatedCardStyle = useAnimatedStyle(() => {
+    const rotation = interpolate(
+      translateX.value,
+      [-200, 0, 200],
+      [-10, 0, 10],
+      Extrapolation.CLAMP
+    );
+
+    return {
+      transform: [
+        { translateX: translateX.value },
+        { translateY: translateY.value },
+        { scale: scale.value },
+        { rotate: `${rotation}deg` },
+      ],
+      opacity: opacity.value,
+    };
+  });
+
+  // Styles des overlays
+  const leftOverlayStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(
+      translateX.value,
+      [-150, -50, 0],
+      [1, 0.5, 0],
+      Extrapolation.CLAMP
+    ),
+  }));
+
+  const rightOverlayStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(
+      translateX.value,
+      [0, 50, 150],
+      [0, 0.5, 1],
+      Extrapolation.CLAMP
+    ),
+  }));
 
   if (isLoadingCandidateJobPosts || isLoadingApplications) {
     return (
-      <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>Chargement des offres...</Text>
+      <View className="items-center justify-center flex-1">
+        <Text className="text-xl font-bold">Chargement des offres...</Text>
       </View>
     );
   }
 
   if (availableJobs.length === 0) {
     return (
-      <View style={styles.emptyContainer}>
-        <Text style={styles.emptyTitle}>Aucune nouvelle offre disponible</Text>
-        <Text style={styles.emptyText}>
+      <View className="items-center justify-center flex-1 px-5">
+        <Text className="mb-5 text-2xl font-bold text-center">
+          Aucune nouvelle offre disponible
+        </Text>
+        <Text className="text-base text-center text-gray-500">
           Vous avez déjà postulé à toutes les offres disponibles. Revenez plus
           tard pour de nouvelles opportunités !
         </Text>
@@ -290,51 +332,199 @@ export default function JobOffers() {
     );
   }
 
+  if (currentIndex >= availableJobs.length) {
+    return (
+      <View className="items-center justify-center flex-1 px-5">
+        <Text className="mb-5 text-2xl font-bold text-center">
+          Toutes les offres parcourues ! 🎉
+        </Text>
+        <TouchableOpacity
+          className="px-4 py-2 mt-5 bg-blue-500 rounded-lg"
+          onPress={() => setCurrentIndex(0)}
+        >
+          <Text className="text-base font-bold text-white">Recommencer</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  const currentJob = availableJobs[currentIndex];
+
   return (
-    <GestureHandlerRootView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerText}>
+    <GestureHandlerRootView className="flex-1 bg-gray-100">
+      <View className="items-center pt-4 pb-2">
+        <Text className="text-base font-semibold text-center">
           {currentIndex + 1} / {availableJobs.length}
         </Text>
       </View>
 
-      <View style={styles.swiperContainer}>
-        <Swiper
-          ref={ref}
-          cardStyle={styles.cardStyle}
-          data={availableJobs}
-          renderCard={renderCard}
-          onIndexChange={handleIndexChange}
-          onSwipeRight={(cardIndex) => handleSwipe("right", cardIndex)}
-          onSwipeLeft={(cardIndex) => handleSwipe("left", cardIndex)}
-          OverlayLabelRight={OverlayLabelRight}
-          OverlayLabelLeft={OverlayLabelLeft}
-        />
-      </View>
+      <GestureDetector gesture={composedGestures}>
+        <ReanimatedAnimated.View
+          className="flex-1 mx-5 my-5 rounded-xl bg-white shadow-2xl border border-gray-100"
+          style={[
+            animatedCardStyle,
+            {
+              shadowColor: "#000",
+              shadowOffset: {
+                width: 0,
+                height: 8,
+              },
+              shadowOpacity: 0.15,
+              shadowRadius: 12,
+              elevation: 8,
+            },
+          ]}
+        >
+          <View className="justify-between flex-1 p-6">
+            <View className="items-center justify-center flex-1">
+              <View className="items-center w-full mb-5">
+                <Text className="mb-2 text-2xl font-bold text-center text-black">
+                  {currentJob.title}
+                </Text>
+                <View className="flex-row items-center">
+                  <Building2 size={16} color="#374151" />
+                  <Text className="ml-1 text-lg font-semibold text-center text-gray-700">
+                    {currentJob.company?.company_name || "Entreprise inconnue"}
+                  </Text>
+                </View>
+              </View>
 
-      <View style={styles.buttonsContainer}>
+              <View className="w-full mt-2">
+                <View className="flex-row items-center mb-1">
+                  <MapPin size={18} color="#374151" />
+                  <Text className="ml-1 text-base text-gray-500">
+                    {currentJob.location}
+                  </Text>
+                </View>
+                <View className="flex-row items-center mb-1">
+                  <Briefcase size={18} color="#374151" />
+                  <Text className="ml-1 text-base text-gray-500">
+                    {currentJob.contract_type}
+                  </Text>
+                </View>
+                <View className="flex-row items-center mb-1">
+                  <DollarSign size={18} color="#22c55e" />
+                  <Text className="ml-1 text-lg font-bold text-green-500">
+                    {currentJob.salary_range}
+                  </Text>
+                </View>
+              </View>
+
+              {currentJob.skills && currentJob.skills.length > 0 && (
+                <View className="w-full mt-5">
+                  <Text className="mb-2 text-sm text-left text-gray-500">
+                    Compétences requises :
+                  </Text>
+                  <View className="flex-row flex-wrap justify-start gap-1">
+                    {currentJob.skills.slice(0, 3).map((skill) => (
+                      <View
+                        key={skill.id}
+                        className="bg-blue-100 px-2 py-1 rounded-xl mx-0.5"
+                      >
+                        <Text className="text-xs font-medium text-blue-800">
+                          {skill.name}
+                        </Text>
+                      </View>
+                    ))}
+                    {currentJob.skills.length > 3 && (
+                      <View className="bg-blue-100 px-2 py-1 rounded-xl mx-0.5">
+                        <Text className="text-xs font-medium text-blue-800">
+                          +{currentJob.skills.length - 3}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                </View>
+              )}
+
+              {currentJob.description && (
+                <Text
+                  className="w-full mt-5 text-sm italic text-left text-gray-500"
+                  numberOfLines={3}
+                  ellipsizeMode="tail"
+                >
+                  {currentJob.description}
+                </Text>
+              )}
+            </View>
+
+            <View className="relative z-10 items-center">
+              <TouchableOpacity
+                className="items-center self-center justify-center px-4 py-2 bg-blue-500 rounded-lg"
+                onPressIn={() => {
+                  isSwipeDisabled.value = true;
+                }}
+                onPressOut={() => {
+                  setTimeout(() => {
+                    isSwipeDisabled.value = false;
+                  }, 100);
+                }}
+                onPress={() => handleOpenModal(currentJob)}
+              >
+                <Text className="text-base font-bold text-white">
+                  Voir plus
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Overlays animés */}
+          <ReanimatedAnimated.View
+            className="absolute inset-0 items-center justify-center bg-red-500/10 rounded-xl"
+            style={[leftOverlayStyle]}
+          >
+            <View className="items-center justify-center px-5 py-4 shadow-lg bg-white/90 rounded-2xl">
+              <X size={50} color="#ef4444" />
+              <Text className="mt-1 text-lg font-bold text-red-500">
+                PASSER
+              </Text>
+            </View>
+          </ReanimatedAnimated.View>
+
+          <ReanimatedAnimated.View
+            className="absolute inset-0 items-center justify-center bg-green-500/10 rounded-xl"
+            style={[rightOverlayStyle]}
+          >
+            <View className="items-center justify-center px-5 py-4 shadow-lg bg-white/90 rounded-2xl">
+              <Heart size={50} color="#22c55e" />
+              <Text className="mt-1 text-lg font-bold text-green-500">
+                POSTULER
+              </Text>
+            </View>
+          </ReanimatedAnimated.View>
+        </ReanimatedAnimated.View>
+      </GestureDetector>
+
+      <View className="flex-row justify-center gap-10 pb-4">
         <TouchableOpacity
-          onPress={() => ref.current?.swipeLeft()}
-          style={[styles.button, styles.buttonRed]}
+          onPress={handlePass}
+          className="items-center justify-center p-4 bg-red-500 rounded-full w-15 h-15"
         >
           <X size={30} color="white" />
         </TouchableOpacity>
 
         {currentIndex > 0 && (
           <TouchableOpacity
-            onPress={() => ref.current?.swipeBack()}
-            style={[styles.button, styles.buttonGray]}
+            onPress={goToPrevious}
+            className="items-center justify-center p-4 bg-gray-500 rounded-full w-15 h-15"
           >
             <RotateCcw size={24} color="white" />
           </TouchableOpacity>
         )}
 
         <TouchableOpacity
-          onPress={() => ref.current?.swipeRight()}
-          style={[styles.button, styles.buttonGreen]}
+          onPress={handleApply}
+          className="items-center justify-center p-4 bg-green-500 rounded-full w-15 h-15"
         >
           <Heart size={30} color="white" />
         </TouchableOpacity>
+      </View>
+
+      {/* Légende explicative */}
+      <View className="px-6 pb-8">
+        <Text className="text-sm italic text-center text-gray-500">
+          Swipez ou utilisez les boutons pour trier les offres
+        </Text>
       </View>
 
       {isSheetVisible && (
@@ -352,91 +542,102 @@ export default function JobOffers() {
           }}
         >
           <Animated.View
-            style={[
-              styles.bottomSheet,
-              {
-                transform: [{ translateY: slideAnim }],
-              },
-            ]}
+            className="flex-1 w-full bg-white rounded-t-3xl"
+            style={{
+              transform: [{ translateY: slideAnim }],
+              maxHeight: screenHeight * 0.5,
+              alignSelf: "flex-end",
+            }}
           >
-            <View style={styles.sheetDragArea} {...panResponder.panHandlers}>
-              <View style={styles.sheetHandle} />
+            <View
+              className="items-center py-4 bg-white rounded-t-3xl"
+              {...panResponder.panHandlers}
+            >
+              <View className="self-center w-12 h-1 bg-gray-300 rounded-full" />
             </View>
             <ScrollView
-              style={styles.sheetContent}
+              className="flex-1 px-6 pb-1"
               showsVerticalScrollIndicator={true}
               bounces={true}
               contentContainerStyle={{ paddingBottom: 20 }}
             >
               {/* En-tête */}
-              <View style={styles.sheetHeader}>
-                <View style={styles.sheetTitleRow}>
+              <View className="items-center mb-6">
+                <View className="flex-row items-center gap-2 mb-2">
                   <Building2 size={24} color="#374151" />
-                  <Text style={styles.sheetTitle}>{selectedJob?.title}</Text>
+                  <Text className="text-2xl font-bold text-black">
+                    {selectedJob?.title}
+                  </Text>
                 </View>
-                <Text style={styles.sheetCompany}>
+                <Text className="text-base text-center text-gray-500">
                   {selectedJob?.company?.company_name || "Entreprise inconnue"}
                 </Text>
               </View>
 
               {/* Informations principales */}
-              <View style={styles.sheetInfoSection}>
-                <View style={styles.sheetInfoRow}>
-                  <View style={styles.sheetInfoIcon}>
+              <View className="mb-6">
+                <View className="flex-row items-center mb-4">
+                  <View className="items-center w-24">
                     <MapPin size={20} color="#374151" />
-                    <Text style={styles.sheetInfoLabel}>Localisation</Text>
+                    <Text className="mt-1 text-sm font-medium text-gray-500">
+                      Localisation
+                    </Text>
                   </View>
-                  <Text style={styles.sheetInfoText}>
+                  <Text className="flex-1 text-base text-gray-700">
                     {selectedJob?.location || "Non renseigné"}
                   </Text>
                 </View>
 
-                <View style={styles.sheetInfoRow}>
-                  <View style={styles.sheetInfoIcon}>
+                <View className="flex-row items-center mb-4">
+                  <View className="items-center w-24">
                     <Briefcase size={20} color="#374151" />
-                    <Text style={styles.sheetInfoLabel}>Contrat</Text>
+                    <Text className="mt-1 text-sm font-medium text-gray-500">
+                      Contrat
+                    </Text>
                   </View>
-                  <Text style={styles.sheetInfoText}>
+                  <Text className="flex-1 text-base text-gray-700">
                     {selectedJob?.contract_type || "Non renseigné"}
                   </Text>
                 </View>
 
-                <View style={styles.sheetInfoRow}>
-                  <View style={styles.sheetInfoIcon}>
+                <View className="flex-row items-center mb-4">
+                  <View className="items-center w-24">
                     <DollarSign size={20} color="#22c55e" />
-                    <Text style={styles.sheetInfoLabel}>Salaire</Text>
+                    <Text className="mt-1 text-sm font-medium text-gray-500">
+                      Salaire
+                    </Text>
                   </View>
-                  <Text
-                    style={[
-                      styles.sheetInfoText,
-                      { color: "#22c55e", fontWeight: "bold" },
-                    ]}
-                  >
+                  <Text className="flex-1 text-base font-bold text-green-500">
                     {selectedJob?.salary_range || "Non renseigné"}
                   </Text>
                 </View>
               </View>
 
               {/* Description complète */}
-              <View style={styles.sheetSection}>
-                <Text style={styles.sheetSectionTitle}>
+              <View className="mb-6">
+                <Text className="mb-3 text-lg font-semibold text-gray-700">
                   Description du poste
                 </Text>
-                <Text style={styles.sheetDescription}>
+                <Text className="text-base leading-6 text-gray-500">
                   {selectedJob?.description || "Aucune description fournie."}
                 </Text>
               </View>
 
               {/* Compétences */}
               {selectedJob?.skills && selectedJob.skills.length > 0 && (
-                <View style={styles.sheetSection}>
-                  <Text style={styles.sheetSectionTitle}>
+                <View className="mb-6">
+                  <Text className="mb-3 text-lg font-semibold text-gray-700">
                     Compétences requises
                   </Text>
-                  <View style={styles.sheetSkillsWrapper}>
+                  <View className="flex-row flex-wrap gap-2">
                     {selectedJob.skills.map((skill) => (
-                      <View key={skill.id} style={styles.sheetSkillTag}>
-                        <Text style={styles.sheetSkillText}>{skill.name}</Text>
+                      <View
+                        key={skill.id}
+                        className="bg-blue-100 px-3 py-1.5 rounded-2xl"
+                      >
+                        <Text className="text-sm font-medium text-blue-800">
+                          {skill.name}
+                        </Text>
                       </View>
                     ))}
                   </View>
@@ -446,12 +647,19 @@ export default function JobOffers() {
               {/* Certifications */}
               {selectedJob?.certifications &&
                 selectedJob.certifications.length > 0 && (
-                  <View style={styles.sheetSection}>
-                    <Text style={styles.sheetSectionTitle}>Certifications</Text>
-                    <View style={styles.sheetSkillsWrapper}>
+                  <View className="mb-6">
+                    <Text className="mb-3 text-lg font-semibold text-gray-700">
+                      Certifications
+                    </Text>
+                    <View className="flex-row flex-wrap gap-2">
                       {selectedJob.certifications.map((cert) => (
-                        <View key={cert.id} style={styles.sheetCertTag}>
-                          <Text style={styles.sheetCertText}>{cert.name}</Text>
+                        <View
+                          key={cert.id}
+                          className="bg-purple-100 px-3 py-1.5 rounded-2xl"
+                        >
+                          <Text className="text-sm font-medium text-purple-700">
+                            {cert.name}
+                          </Text>
                         </View>
                       ))}
                     </View>
@@ -459,25 +667,31 @@ export default function JobOffers() {
                 )}
 
               {/* Boutons d'action */}
-              <View style={styles.sheetActions}>
+              <View className="flex-row justify-center gap-4 mt-6 mb-4">
                 <TouchableOpacity
-                  style={styles.sheetActionButton}
+                  className="items-center flex-1 px-6 py-3 bg-green-500 rounded-lg"
                   onPress={() => handleModalAction("right")}
                 >
-                  <Text style={styles.sheetActionText}>Postuler</Text>
+                  <Text className="text-base font-semibold text-white">
+                    Postuler
+                  </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={styles.sheetRejectButton}
+                  className="items-center flex-1 px-6 py-3 bg-red-500 rounded-lg"
                   onPress={() => handleModalAction("left")}
                 >
-                  <Text style={styles.sheetRejectText}>Passer</Text>
+                  <Text className="text-base font-semibold text-white">
+                    Passer
+                  </Text>
                 </TouchableOpacity>
               </View>
               <TouchableOpacity
-                style={styles.sheetCloseButton}
+                className="items-center self-center px-6 py-3 mt-2 mb-4 bg-gray-200 rounded-lg"
                 onPress={handleCloseModal}
               >
-                <Text style={styles.sheetCloseText}>Fermer</Text>
+                <Text className="text-base font-semibold text-gray-700">
+                  Fermer
+                </Text>
               </TouchableOpacity>
             </ScrollView>
           </Animated.View>
@@ -486,375 +700,3 @@ export default function JobOffers() {
     </GestureHandlerRootView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f3f4f6",
-  },
-  header: {
-    paddingTop: 50,
-    paddingBottom: 20,
-    alignItems: "center",
-  },
-  headerText: {
-    fontSize: 20,
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-  swiperContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  cardStyle: {
-    width: "90%",
-    height: "80%",
-    borderRadius: 12,
-  },
-  cardContainer: {
-    width: "100%",
-    height: "100%",
-    borderRadius: 12,
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 24,
-    backgroundColor: "white",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  cardContent: {
-    width: "100%",
-    height: "100%",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  mainContent: {
-    width: "100%",
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  cardHeader: {
-    width: "100%",
-    alignItems: "center",
-  },
-  cardTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "black",
-    textAlign: "center",
-    marginBottom: 10,
-  },
-  cardCompany: {
-    fontSize: 18,
-    color: "#374151",
-    fontWeight: "600",
-    textAlign: "center",
-    marginBottom: 5,
-  },
-  cardDetails: {
-    width: "100%",
-    marginTop: 10,
-  },
-  detailRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 5,
-  },
-  detailText: {
-    fontSize: 16,
-    color: "#6b7280",
-    marginLeft: 5,
-  },
-  cardSalary: {
-    fontSize: 18,
-    color: "#22c55e",
-    fontWeight: "bold",
-    marginLeft: 5,
-  },
-  skillsContainer: {
-    marginTop: 10,
-    width: "100%",
-  },
-  skillsTitle: {
-    fontSize: 14,
-    color: "#6b7280",
-    marginBottom: 8,
-    textAlign: "left",
-  },
-  skillsWrapper: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "flex-start",
-    gap: 5,
-  },
-  skillTag: {
-    backgroundColor: "#dbeafe",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginHorizontal: 2,
-  },
-  skillText: {
-    color: "#1e40af",
-    fontSize: 12,
-    fontWeight: "500",
-  },
-  overlayContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 12,
-    borderWidth: 4,
-  },
-  overlayRight: {
-    backgroundColor: "rgba(34, 197, 94, 0.2)",
-    borderColor: "#22c55e",
-  },
-  overlayLeft: {
-    backgroundColor: "rgba(239, 68, 68, 0.2)",
-    borderColor: "#ef4444",
-  },
-  overlayText: {
-    color: "#22c55e",
-    fontWeight: "bold",
-    marginTop: 8,
-  },
-  overlayTextRed: {
-    color: "#ef4444",
-    fontWeight: "bold",
-    marginTop: 8,
-  },
-  buttonsContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 40,
-    paddingBottom: 50,
-  },
-  button: {
-    padding: 15,
-    borderRadius: 50,
-    width: 60,
-    height: 60,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  buttonRed: {
-    backgroundColor: "#ef4444",
-  },
-  buttonGreen: {
-    backgroundColor: "#22c55e",
-  },
-  buttonGray: {
-    backgroundColor: "#6b7280",
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  loadingText: {
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  emptyTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
-  },
-  emptyText: {
-    fontSize: 16,
-    textAlign: "center",
-  },
-  companyRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  seeMoreButton: {
-    backgroundColor: "#3b82f6",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-    marginTop: 10,
-  },
-  seeMoreText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  description: {
-    marginTop: 10,
-    color: "#6b7280",
-    textAlign: "left",
-    fontStyle: "italic",
-    fontSize: 14,
-    width: "100%",
-  },
-  bottomSheet: {
-    width: "100%",
-    backgroundColor: "white",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: screenHeight * 0.5,
-    alignSelf: "flex-end",
-  },
-  sheetDragArea: {
-    paddingVertical: 16,
-    alignItems: "center",
-    backgroundColor: "white",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-  },
-  sheetHandle: {
-    width: 48,
-    height: 4,
-    backgroundColor: "#d1d5db",
-    borderRadius: 2,
-    alignSelf: "center",
-  },
-  sheetContent: {
-    paddingHorizontal: 24,
-    paddingBottom: 4,
-  },
-  sheetHeader: {
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  sheetTitleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginBottom: 8,
-  },
-  sheetTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#000000",
-  },
-  sheetCompany: {
-    fontSize: 16,
-    color: "#6b7280",
-    textAlign: "center",
-  },
-  sheetInfoSection: {
-    marginBottom: 24,
-  },
-  sheetInfoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  sheetInfoIcon: {
-    alignItems: "center",
-    width: 96,
-  },
-  sheetInfoLabel: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#6b7280",
-    marginTop: 4,
-  },
-  sheetInfoText: {
-    flex: 1,
-    fontSize: 16,
-    color: "#374151",
-  },
-  sheetSection: {
-    marginBottom: 24,
-  },
-  sheetSectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#374151",
-    marginBottom: 12,
-  },
-  sheetDescription: {
-    fontSize: 16,
-    color: "#6b7280",
-    lineHeight: 24,
-  },
-  sheetSkillsWrapper: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  sheetSkillTag: {
-    backgroundColor: "#dbeafe",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-  sheetSkillText: {
-    color: "#1e40af",
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  sheetCertTag: {
-    backgroundColor: "#f3e8ff",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-  sheetCertText: {
-    color: "#7c3aed",
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  sheetActions: {
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 16,
-    marginTop: 24,
-    marginBottom: 16,
-  },
-  sheetActionButton: {
-    flex: 1,
-    backgroundColor: "#22c55e",
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  sheetRejectButton: {
-    flex: 1,
-    backgroundColor: "#ef4444",
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  sheetActionText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  sheetRejectText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  sheetCloseButton: {
-    backgroundColor: "#e5e7eb",
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    alignItems: "center",
-    alignSelf: "center",
-    marginTop: 8,
-    marginBottom: 16,
-  },
-  sheetCloseText: {
-    color: "#374151",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-});
