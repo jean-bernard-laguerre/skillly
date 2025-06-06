@@ -8,10 +8,16 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Animated, {
+  FadeIn,
+  FadeOut,
+  LinearTransition,
+} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const { width } = Dimensions.get("window");
-
+const AnimatedTouchableOpacity =
+  Animated.createAnimatedComponent(TouchableOpacity);
 export default function CustomTabBar({
   state,
   descriptors,
@@ -22,7 +28,7 @@ export default function CustomTabBar({
   return (
     <LinearGradient
       colors={["rgba(242, 242, 242, 0.3)", "rgba(242, 242, 242, 0)", "#4717F6"]}
-      locations={[0, 0.6, 1]}
+      locations={[0, 0.7, 1]}
       start={{ x: -12, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={style.container}
@@ -58,7 +64,8 @@ export default function CustomTabBar({
         };
 
         return (
-          <TouchableOpacity
+          <AnimatedTouchableOpacity
+            layout={LinearTransition.springify().mass(0.5)}
             key={index}
             accessibilityRole="button"
             accessibilityState={isFocused ? { selected: true } : {}}
@@ -76,11 +83,11 @@ export default function CustomTabBar({
             {isFocused ? (
               <LinearGradient
                 colors={[
-                  "rgba(242, 242, 242, 0.3)",
-                  "rgba(242, 242, 242, 0)",
-                  "#8464f9",
+                  "rgb(132, 100, 249)",
+                  "rgb(242, 242, 242)",
+                  "rgba(242, 242, 242, 0.1)",
                 ]}
-                locations={[0, 0.6, 1]}
+                locations={[0, 0.8, 1]}
                 start={{ x: -12, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={style.tabItem}
@@ -91,7 +98,9 @@ export default function CustomTabBar({
                     color: "#4717F6",
                     size: 26,
                   })}
-                <Text
+                <Animated.Text
+                  entering={FadeIn.duration(200)}
+                  exiting={FadeOut.duration(200)}
                   style={{
                     color: "white",
                     fontSize: 16,
@@ -99,7 +108,7 @@ export default function CustomTabBar({
                   }}
                 >
                   {typeof label === "string" ? label : ""}
-                </Text>
+                </Animated.Text>
               </LinearGradient>
             ) : (
               <View
@@ -143,7 +152,7 @@ export default function CustomTabBar({
                 </Text>
               </View>
             )}
-          </TouchableOpacity>
+          </AnimatedTouchableOpacity>
         );
       })}
     </LinearGradient>
@@ -170,7 +179,7 @@ const style = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 20,
     elevation: 10,
-    gap: 12,
+    gap: 4,
   },
   tabDefault: {
     flexDirection: "row",
