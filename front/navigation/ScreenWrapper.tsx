@@ -15,7 +15,7 @@ export default function ScreenWrapper({ children, style }: ScreenWrapperProps) {
       style={[
         {
           flex: 1,
-          paddingBottom: insets.bottom + 56 + 40 + 8, // navbar + bottom + marge
+          paddingBottom: insets.bottom + 56 + 20, // navbar + bottom
         },
         style,
       ]}
