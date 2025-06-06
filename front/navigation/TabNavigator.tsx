@@ -12,6 +12,7 @@ import {
   Users,
 } from "lucide-react-native";
 import { useAuth } from "@/context/AuthContext";
+import CustomTabBar from "@/components/CustomTabBar";
 
 // Public Components
 import HomePage from "@/app/index";
@@ -43,6 +44,7 @@ export default function TabNavigator() {
           tabBarActiveTintColor: "#6366f1",
           tabBarInactiveTintColor: "#94a3b8",
         }}
+        tabBar={(props) => <CustomTabBar {...props} />}
         initialRouteName="CandidateHome"
       >
         <Tab.Screen
@@ -104,6 +106,7 @@ export default function TabNavigator() {
           tabBarActiveTintColor: "#6366f1",
           tabBarInactiveTintColor: "#94a3b8",
         }}
+        tabBar={(props) => <CustomTabBar {...props} />}
         initialRouteName="RecruiterHome"
       >
         <Tab.Screen
@@ -164,6 +167,7 @@ export default function TabNavigator() {
         tabBarActiveTintColor: "#6366f1",
         tabBarInactiveTintColor: "#94a3b8",
       }}
+      tabBar={(props) => <CustomTabBar {...props} />}
       initialRouteName="HomePage"
     >
       <Tab.Screen
