@@ -1,35 +1,33 @@
-import React from "react";
+import { useAuth } from "@/context/AuthContext";
+import CustomTabBar from "@/navigation/CustomTabBar";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import {
+  Briefcase,
   Home,
   LogIn,
-  UserPlus,
-  LayoutDashboard,
-  Briefcase,
-  Building2,
-  User,
   MessageSquare,
+  User,
+  UserPlus,
   Users,
 } from "lucide-react-native";
-import { useAuth } from "@/context/AuthContext";
-import CustomTabBar from "@/components/CustomTabBar";
+import React from "react";
 
 // Public Components
-import HomePage from "@/app/index";
 import Login from "@/app/(auth)/login";
 import Register from "@/app/(auth)/register";
+import HomePage from "@/app/index";
 // Components Profile
 import Profile from "@/app/(protected)/index";
 // Components Messages
 import Messages from "@/app/(protected)/messages";
 // Components Candidate
+import CandidateHome from "@/app/(protected)/candidate";
 import MyApplications from "@/app/(protected)/candidate/MyApplications";
 import JobOffers from "@/app/(protected)/candidate/jobOffers";
-import CandidateHome from "@/app/(protected)/candidate";
 // Components Recruiter
 import RecruiterHome from "@/app/(protected)/recruiter";
-import Jobs from "@/app/(protected)/recruiter/jobs";
 import Applications from "@/app/(protected)/recruiter/Applications";
+import Jobs from "@/app/(protected)/recruiter/jobs";
 
 const Tab = createBottomTabNavigator();
 
@@ -56,16 +54,6 @@ export default function TabNavigator() {
           }}
         />
         <Tab.Screen
-          name="JobOffers"
-          component={JobOffers}
-          options={{
-            tabBarIcon: ({ color, size }) => (
-              <Briefcase size={size} color={color} />
-            ),
-            title: "Offres",
-          }}
-        />
-        <Tab.Screen
           name="MyApplications"
           component={MyApplications}
           options={{
@@ -73,6 +61,16 @@ export default function TabNavigator() {
               <Users size={size} color={color} />
             ),
             title: "Candidatures",
+          }}
+        />
+        <Tab.Screen
+          name="JobOffers"
+          component={JobOffers}
+          options={{
+            tabBarIcon: ({ color, size }) => (
+              <Briefcase size={size} color={color} />
+            ),
+            title: "Offres",
           }}
         />
         <Tab.Screen
