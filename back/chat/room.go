@@ -19,11 +19,11 @@ type Room struct {
 }
 
 type Message struct {
-	Type      string `json:"type"`
-	Sender    string `json:"sender"`
-	Recipient string `json:"recipient"`
-	Content   []byte `json:"content"`
-	ID        string `json:"id"`
+	Type    string `json:"type"`
+	Sender  string `json:"sender"`
+	Room    string `json:"recipient"`
+	Content []byte `json:"content"`
+	ID      string `json:"id"`
 }
 
 func NewHub() *Hub {
@@ -58,7 +58,7 @@ func (h *Hub) RunHub() {
 			}
 		case message := <-h.broadcast:
 			fmt.Println("message", message)
-			if room, ok := h.rooms[message.Recipient]; ok {
+			if room, ok := h.rooms[message.Room]; ok {
 				room.broadcast <- message
 			}
 		}

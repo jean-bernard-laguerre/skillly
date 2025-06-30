@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"skillly/chat"
+	chatDB "skillly/chat/db"
 
 	"skillly/pkg/db"
 	"skillly/pkg/handlers"
@@ -19,6 +20,7 @@ func main() {
 
 	// Init the database
 	db.SetupDB()
+	chatDB.SetupDB()
 
 	// Create a new gin router
 	r := gin.Default()

@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"log"
 	"net/http"
+	"skillly/chat/config"
+	"skillly/chat/handlers/message"
+	messageDto "skillly/chat/handlers/message/dto"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -39,16 +42,18 @@ type Client struct {
 	rooms map[string]*Room
 	conn  *websocket.Conn
 	// Buffered channel of outbound messages.
-	send chan []byte
+	send                 chan []byte
+	clientMessageService message.MessageService
 }
 
 func NewClient(id string, hub *Hub, conn *websocket.Conn) *Client {
 	return &Client{
-		id:    id,
-		hub:   hub,
-		rooms: make(map[string]*Room),
-		conn:  conn,
-		send:  make(chan []byte, 256),
+		id:                   id,
+		hub:                  hub,
+		rooms:                make(map[string]*Room),
+		conn:                 conn,
+		send:                 make(chan []byte, 256),
+		clientMessageService: message.NewMessageService(message.NewMessageRepository(config.DBMongo)),
 	}
 }
 
@@ -64,18 +69,33 @@ func (c *Client) readPump(room string) {
 	c.conn.SetReadDeadline(time.Now().Add(pongWait))
 	c.conn.SetPongHandler(func(string) error { c.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 	for {
-		_, message, err := c.conn.ReadMessage()
+		_, content, err := c.conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				log.Printf("error: %v", err)
 			}
 			break
 		}
-		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
+		content = bytes.TrimSpace(bytes.Replace(content, newline, space, -1))
 		if room, ok := c.rooms[room]; ok {
+
+			// Create a message DTO
+			messageDto := messageDto.CreateMessageDTO{
+				Room:     "testField", // Assuming room has a name field
+				SenderID: c.id,
+				Content:  string(content),
+			}
+
+			_, err := c.clientMessageService.CreateMessage(messageDto)
+
+			if err != nil {
+				log.Printf("error creating message: %v", err)
+				continue
+			}
+
 			room.broadcast <- Message{
 				Sender:  c.id,
-				Content: message,
+				Content: content,
 			}
 		}
 	}
