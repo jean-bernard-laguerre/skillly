@@ -7,6 +7,8 @@ import { queryClient } from "@/lib/queryClient";
 import "../global.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { SafeAreaView } from "react-native-safe-area-context";
+import SplashScreen from "@/components/SplashScreen";
+import { useState } from "react";
 
 // Configuration Reanimated pour désactiver tous les warnings
 import { LogBox } from "react-native";
@@ -32,12 +34,19 @@ if (__DEV__) {
 }
 
 export default function RootLayout() {
+  const [showSplashScreen, setShowSplashScreen] = useState(true);
+
+  const handleSplashFinish = () => {
+    setShowSplashScreen(false);
+  };
+
   return (
     <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <GestureHandlerRootView style={{ flex: 1 }}>
             <TabNavigator />
+            {showSplashScreen && <SplashScreen onFinish={handleSplashFinish} />}
           </GestureHandlerRootView>
         </AuthProvider>
       </QueryClientProvider>
