@@ -37,6 +37,7 @@ import { useJobPost } from "@/lib/hooks/useJobPost";
 import { Application } from "@/types/interfaces";
 import { useMatch } from "@/lib/hooks/useMatch";
 import Toast from "react-native-toast-message";
+import { Portal } from "react-native-portalize";
 
 const SWIPE_THRESHOLD = 100;
 const { height: screenHeight } = Dimensions.get("window");
@@ -616,256 +617,260 @@ export default function ApplicationsList({
         </Text>
       </View>
 
-      {isSheetVisible && (
-        <Animated.View
-          style={{
-            position: "absolute",
-            left: 0,
-            right: 0,
-            bottom: 0,
-            top: 0,
-            backgroundColor: "rgba(0,0,0,0.5)",
-            opacity: backdropAnim,
-            justifyContent: "flex-end",
-            zIndex: 100,
-          }}
-        >
+      <Portal>
+        {isSheetVisible && (
           <Animated.View
-            className="flex-1 w-full bg-white rounded-t-3xl"
             style={{
-              transform: [{ translateY: slideAnim }],
-              maxHeight: screenHeight * 0.5,
-              alignSelf: "flex-end",
+              position: "absolute",
+              left: 0,
+              right: 0,
+              bottom: 0,
+              top: 0,
+              backgroundColor: "rgba(0,0,0,0.5)",
+              opacity: backdropAnim,
+              justifyContent: "flex-end",
+              zIndex: 100,
             }}
           >
-            <View
-              className="items-center py-4 bg-white rounded-t-3xl"
-              {...panResponder.panHandlers}
+            <Animated.View
+              className="flex-1 w-full bg-white rounded-t-3xl"
+              style={{
+                transform: [{ translateY: slideAnim }],
+                maxHeight: screenHeight * 0.5,
+                alignSelf: "flex-end",
+              }}
             >
-              <View className="self-center w-12 h-1 bg-gray-300 rounded-full" />
-            </View>
-            <ScrollView
-              className="flex-1 px-6 pb-1"
-              showsVerticalScrollIndicator={true}
-              bounces={true}
-              contentContainerStyle={{ paddingBottom: 20 }}
-            >
-              {/* En-tête */}
-              <View className="items-center mb-6">
-                <View className="flex-row items-center gap-2 mb-2">
-                  <User size={24} color="#374151" />
-                  <Text className="text-2xl font-bold text-black">
-                    {selectedApplication?.candidate.user.first_name}{" "}
-                    {selectedApplication?.candidate.user.last_name}
-                  </Text>
-                </View>
-                <Text className="text-base text-center text-gray-500">
-                  Candidat depuis le{" "}
-                  {selectedApplication &&
-                    new Date(
-                      selectedApplication.created_at
-                    ).toLocaleDateString()}
-                </Text>
+              <View
+                className="items-center py-4 bg-white rounded-t-3xl"
+                {...panResponder.panHandlers}
+              >
+                <View className="self-center w-12 h-1 bg-gray-300 rounded-full" />
               </View>
-
-              {/* Informations principales */}
-              <View className="mb-6">
-                <View className="flex-row items-center mb-4">
-                  <View className="items-center w-24">
-                    <MapPin size={20} color="#374151" />
-                    <Text className="mt-1 text-sm font-medium text-gray-500">
-                      Localisation
+              <ScrollView
+                className="flex-1 px-6 pb-1"
+                showsVerticalScrollIndicator={true}
+                bounces={true}
+                contentContainerStyle={{ paddingBottom: 20 }}
+              >
+                {/* En-tête */}
+                <View className="items-center mb-6">
+                  <View className="flex-row items-center gap-2 mb-2">
+                    <User size={24} color="#374151" />
+                    <Text className="text-2xl font-bold text-black">
+                      {selectedApplication?.candidate.user.first_name}{" "}
+                      {selectedApplication?.candidate.user.last_name}
                     </Text>
                   </View>
-                  <Text className="flex-1 text-base text-gray-700">
-                    {selectedApplication?.candidate.location || "Non renseigné"}
+                  <Text className="text-base text-center text-gray-500">
+                    Candidat depuis le{" "}
+                    {selectedApplication &&
+                      new Date(
+                        selectedApplication.created_at
+                      ).toLocaleDateString()}
                   </Text>
                 </View>
 
-                <View className="flex-row items-center mb-4">
-                  <View className="items-center w-24">
-                    <Briefcase size={20} color="#374151" />
-                    <Text className="mt-1 text-sm font-medium text-gray-500">
-                      Expérience
+                {/* Informations principales */}
+                <View className="mb-6">
+                  <View className="flex-row items-center mb-4">
+                    <View className="items-center w-24">
+                      <MapPin size={20} color="#374151" />
+                      <Text className="mt-1 text-sm font-medium text-gray-500">
+                        Localisation
+                      </Text>
+                    </View>
+                    <Text className="flex-1 text-base text-gray-700">
+                      {selectedApplication?.candidate.location ||
+                        "Non renseigné"}
                     </Text>
                   </View>
-                  <Text className="flex-1 text-base text-gray-700">
-                    {selectedApplication?.candidate.experience_year
-                      ? `${selectedApplication.candidate.experience_year} ans`
-                      : "Non renseigné"}
-                  </Text>
-                </View>
 
-                <View className="flex-row items-center mb-4">
-                  <View className="items-center w-24">
-                    <Mail size={20} color="#374151" />
-                    <Text className="mt-1 text-sm font-medium text-gray-500">
-                      Email
+                  <View className="flex-row items-center mb-4">
+                    <View className="items-center w-24">
+                      <Briefcase size={20} color="#374151" />
+                      <Text className="mt-1 text-sm font-medium text-gray-500">
+                        Expérience
+                      </Text>
+                    </View>
+                    <Text className="flex-1 text-base text-gray-700">
+                      {selectedApplication?.candidate.experience_year
+                        ? `${selectedApplication.candidate.experience_year} ans`
+                        : "Non renseigné"}
                     </Text>
                   </View>
-                  <Text className="flex-1 text-base text-gray-700">
-                    {selectedApplication?.candidate.user.email}
-                  </Text>
-                </View>
-              </View>
 
-              {/* Bio et métier souhaité */}
-              <View className="mb-6">
-                <View className="mb-4">
+                  <View className="flex-row items-center mb-4">
+                    <View className="items-center w-24">
+                      <Mail size={20} color="#374151" />
+                      <Text className="mt-1 text-sm font-medium text-gray-500">
+                        Email
+                      </Text>
+                    </View>
+                    <Text className="flex-1 text-base text-gray-700">
+                      {selectedApplication?.candidate.user.email}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Bio et métier souhaité */}
+                <View className="mb-6">
+                  <View className="mb-4">
+                    <Text className="mb-3 text-lg font-semibold text-gray-700">
+                      Métier souhaité
+                    </Text>
+                    <Text className="text-base leading-6 text-gray-500">
+                      {selectedApplication?.candidate.prefered_job ||
+                        "Non renseigné"}
+                    </Text>
+                  </View>
+
+                  <View>
+                    <Text className="mb-3 text-lg font-semibold text-gray-700">
+                      À propos
+                    </Text>
+                    <Text className="text-base leading-6 text-gray-500">
+                      {selectedApplication?.candidate.bio ||
+                        "Aucune biographie fournie."}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Compétences */}
+                <View className="mb-6">
                   <Text className="mb-3 text-lg font-semibold text-gray-700">
-                    Métier souhaité
+                    Compétences
                   </Text>
-                  <Text className="text-base leading-6 text-gray-500">
-                    {selectedApplication?.candidate.prefered_job ||
-                      "Non renseigné"}
-                  </Text>
-                </View>
-
-                <View>
-                  <Text className="mb-3 text-lg font-semibold text-gray-700">
-                    À propos
-                  </Text>
-                  <Text className="text-base leading-6 text-gray-500">
-                    {selectedApplication?.candidate.bio ||
-                      "Aucune biographie fournie."}
-                  </Text>
-                </View>
-              </View>
-
-              {/* Compétences */}
-              <View className="mb-6">
-                <Text className="mb-3 text-lg font-semibold text-gray-700">
-                  Compétences
-                </Text>
-                <View className="flex-row flex-wrap gap-2">
-                  {selectedApplication?.candidate.skills
-                    ?.filter((skill) =>
-                      (selectedApplication.job_post?.skills ?? []).some(
-                        (jobSkill) => jobSkill.id === skill.id
-                      )
-                    )
-                    .map((skill) => (
-                      <View
-                        key={skill.id}
-                        className="px-3 py-1.5 bg-blue-100 rounded-full"
-                      >
-                        <Text className="text-sm font-medium text-blue-800">
-                          {skill.name}
-                        </Text>
-                      </View>
-                    ))}
-                  {selectedApplication?.candidate.skills
-                    ?.filter(
-                      (skill) =>
-                        !(selectedApplication.job_post?.skills ?? []).some(
+                  <View className="flex-row flex-wrap gap-2">
+                    {selectedApplication?.candidate.skills
+                      ?.filter((skill) =>
+                        (selectedApplication.job_post?.skills ?? []).some(
                           (jobSkill) => jobSkill.id === skill.id
                         )
-                    )
-                    .map((skill) => (
-                      <View
-                        key={skill.id}
-                        className="px-3 py-1.5 bg-gray-100 rounded-full"
-                      >
-                        <Text className="text-sm font-medium text-gray-700">
-                          {skill.name}
-                        </Text>
-                      </View>
-                    ))}
+                      )
+                      .map((skill) => (
+                        <View
+                          key={skill.id}
+                          className="px-3 py-1.5 bg-blue-100 rounded-full"
+                        >
+                          <Text className="text-sm font-medium text-blue-800">
+                            {skill.name}
+                          </Text>
+                        </View>
+                      ))}
+                    {selectedApplication?.candidate.skills
+                      ?.filter(
+                        (skill) =>
+                          !(selectedApplication.job_post?.skills ?? []).some(
+                            (jobSkill) => jobSkill.id === skill.id
+                          )
+                      )
+                      .map((skill) => (
+                        <View
+                          key={skill.id}
+                          className="px-3 py-1.5 bg-gray-100 rounded-full"
+                        >
+                          <Text className="text-sm font-medium text-gray-700">
+                            {skill.name}
+                          </Text>
+                        </View>
+                      ))}
+                  </View>
                 </View>
-              </View>
 
-              {/* Certifications */}
-              {selectedApplication?.candidate.certifications &&
-                selectedApplication?.candidate.certifications.length > 0 && (
-                  <View className="mb-6">
-                    <Text className="mb-3 text-lg font-semibold text-gray-700">
-                      Certifications
-                    </Text>
-                    <View className="flex-row flex-wrap gap-2">
-                      {selectedApplication.candidate.certifications
-                        .filter((cert) =>
-                          (
-                            selectedApplication.job_post?.certifications ?? []
-                          ).some((jobCert) => jobCert.id === cert.id)
-                        )
-                        .map((cert) => (
-                          <View
-                            key={cert.id}
-                            className="px-3 py-1.5 bg-blue-100 rounded-full"
-                          >
-                            <Text className="text-sm font-medium text-blue-800">
-                              {cert.name}
-                            </Text>
-                          </View>
-                        ))}
-                      {selectedApplication.candidate.certifications
-                        .filter(
-                          (cert) =>
-                            !(
+                {/* Certifications */}
+                {selectedApplication?.candidate.certifications &&
+                  selectedApplication?.candidate.certifications.length > 0 && (
+                    <View className="mb-6">
+                      <Text className="mb-3 text-lg font-semibold text-gray-700">
+                        Certifications
+                      </Text>
+                      <View className="flex-row flex-wrap gap-2">
+                        {selectedApplication.candidate.certifications
+                          .filter((cert) =>
+                            (
                               selectedApplication.job_post?.certifications ?? []
                             ).some((jobCert) => jobCert.id === cert.id)
-                        )
-                        .map((cert) => (
-                          <View
-                            key={cert.id}
-                            className="px-3 py-1.5 bg-gray-100 rounded-full"
-                          >
-                            <Text className="text-sm font-medium text-gray-700">
-                              {cert.name}
-                            </Text>
-                          </View>
-                        ))}
+                          )
+                          .map((cert) => (
+                            <View
+                              key={cert.id}
+                              className="px-3 py-1.5 bg-blue-100 rounded-full"
+                            >
+                              <Text className="text-sm font-medium text-blue-800">
+                                {cert.name}
+                              </Text>
+                            </View>
+                          ))}
+                        {selectedApplication.candidate.certifications
+                          .filter(
+                            (cert) =>
+                              !(
+                                selectedApplication.job_post?.certifications ??
+                                []
+                              ).some((jobCert) => jobCert.id === cert.id)
+                          )
+                          .map((cert) => (
+                            <View
+                              key={cert.id}
+                              className="px-3 py-1.5 bg-gray-100 rounded-full"
+                            >
+                              <Text className="text-sm font-medium text-gray-700">
+                                {cert.name}
+                              </Text>
+                            </View>
+                          ))}
+                      </View>
                     </View>
+                  )}
+
+                {/* Légende */}
+                <View className="flex-row items-center justify-center gap-4 mt-2 mb-4">
+                  <View className="flex-row items-center gap-1">
+                    <View className="w-3 h-3 bg-blue-100 rounded-full" />
+                    <Text className="text-xs text-gray-500">
+                      Correspond à l'offre
+                    </Text>
                   </View>
-                )}
-
-              {/* Légende */}
-              <View className="flex-row items-center justify-center gap-4 mt-2 mb-4">
-                <View className="flex-row items-center gap-1">
-                  <View className="w-3 h-3 bg-blue-100 rounded-full" />
-                  <Text className="text-xs text-gray-500">
-                    Correspond à l'offre
-                  </Text>
+                  <View className="flex-row items-center gap-1">
+                    <View className="w-3 h-3 bg-gray-100 rounded-full" />
+                    <Text className="text-xs text-gray-500">
+                      Autre(s) compétence(s)
+                    </Text>
+                  </View>
                 </View>
-                <View className="flex-row items-center gap-1">
-                  <View className="w-3 h-3 bg-gray-100 rounded-full" />
-                  <Text className="text-xs text-gray-500">
-                    Autre(s) compétence(s)
-                  </Text>
-                </View>
-              </View>
 
-              {/* Boutons d'action */}
-              <View className="flex-row justify-center gap-4 mt-6 mb-4">
+                {/* Boutons d'action */}
+                <View className="flex-row justify-center gap-4 mt-6 mb-4">
+                  <TouchableOpacity
+                    className="items-center flex-1 px-6 py-3 bg-green-500 rounded-lg"
+                    onPress={() => handleModalAction("right")}
+                  >
+                    <Text className="text-base font-semibold text-white">
+                      Match
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    className="items-center flex-1 px-6 py-3 bg-red-500 rounded-lg"
+                    onPress={() => handleModalAction("left")}
+                  >
+                    <Text className="text-base font-semibold text-white">
+                      Passer
+                    </Text>
+                  </TouchableOpacity>
+                </View>
                 <TouchableOpacity
-                  className="items-center flex-1 px-6 py-3 bg-green-500 rounded-lg"
-                  onPress={() => handleModalAction("right")}
+                  className="items-center self-center px-6 py-3 mt-2 mb-4 bg-gray-200 rounded-lg"
+                  onPress={handleCloseModal}
                 >
-                  <Text className="text-base font-semibold text-white">
-                    Match
+                  <Text className="text-base font-semibold text-gray-700">
+                    Fermer
                   </Text>
                 </TouchableOpacity>
-                <TouchableOpacity
-                  className="items-center flex-1 px-6 py-3 bg-red-500 rounded-lg"
-                  onPress={() => handleModalAction("left")}
-                >
-                  <Text className="text-base font-semibold text-white">
-                    Passer
-                  </Text>
-                </TouchableOpacity>
-              </View>
-              <TouchableOpacity
-                className="items-center self-center px-6 py-3 mt-2 mb-4 bg-gray-200 rounded-lg"
-                onPress={handleCloseModal}
-              >
-                <Text className="text-base font-semibold text-gray-700">
-                  Fermer
-                </Text>
-              </TouchableOpacity>
-            </ScrollView>
+              </ScrollView>
+            </Animated.View>
           </Animated.View>
-        </Animated.View>
-      )}
+        )}
+      </Portal>
     </GestureHandlerRootView>
   );
 }

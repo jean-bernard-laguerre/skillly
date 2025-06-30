@@ -9,6 +9,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import SplashScreen from "@/components/SplashScreen";
 import { useState } from "react";
 import "../global.css";
+import { Host } from "react-native-portalize";
 
 // Configuration Reanimated pour désactiver tous les warnings
 import { LogBox } from "react-native";
@@ -45,8 +46,12 @@ export default function RootLayout() {
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <GestureHandlerRootView style={{ flex: 1 }}>
-            <TabNavigator />
-            {showSplashScreen && <SplashScreen onFinish={handleSplashFinish} />}
+            <Host>
+              <TabNavigator />
+              {showSplashScreen && (
+                <SplashScreen onFinish={handleSplashFinish} />
+              )}
+            </Host>
           </GestureHandlerRootView>
         </AuthProvider>
       </QueryClientProvider>

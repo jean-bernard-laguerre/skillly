@@ -23,7 +23,7 @@ export default function JobSelector({
             }`}
             onPress={() => onSelectJob(job.id)}
           >
-            <View className="flex-row items-center gap-2">
+            <View className="flex-row gap-2 items-center">
               <Briefcase size={20} color="#6366f1" className="mr-2" />
               <View className="flex-1">
                 <Text className="font-medium">{job.title}</Text>
