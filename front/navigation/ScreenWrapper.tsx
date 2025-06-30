@@ -1,6 +1,9 @@
 import React from "react";
-import { View, ViewStyle } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ViewStyle } from "react-native";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
 interface ScreenWrapperProps {
   children: React.ReactNode;
@@ -11,16 +14,16 @@ export default function ScreenWrapper({ children, style }: ScreenWrapperProps) {
   const insets = useSafeAreaInsets();
 
   return (
-    <View
+    <SafeAreaView
       style={[
         {
           flex: 1,
-          paddingBottom: insets.bottom + 100, // 70px navbar height + 20px margin + 10px extra
+          paddingBottom: insets.bottom, // navbar + bottom
         },
         style,
       ]}
     >
       {children}
-    </View>
+    </SafeAreaView>
   );
 }

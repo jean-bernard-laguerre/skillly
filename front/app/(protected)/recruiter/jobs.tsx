@@ -1,13 +1,14 @@
+import Modal from "@/components/ui/Modal";
+import { useJobPost } from "@/lib/hooks/useJobPost";
+import ScreenWrapper from "@/navigation/ScreenWrapper";
 import React, { useState } from "react";
 import {
-  View,
-  Text,
-  ScrollView,
   ActivityIndicator,
   Pressable,
+  ScrollView,
+  Text,
+  View,
 } from "react-native";
-import { useJobPost } from "@/lib/hooks/useJobPost";
-import Modal from "@/components/ui/Modal";
 import CreateJobPost from "./jobs/create";
 
 export default function Jobs() {
@@ -17,7 +18,7 @@ export default function Jobs() {
   const renderContent = () => {
     if (isLoadingJobPosts) {
       return (
-        <View className="items-center justify-center flex-1">
+        <View className="flex-1 justify-center items-center">
           <ActivityIndicator size="large" color="#0000ff" />
         </View>
       );
@@ -25,7 +26,7 @@ export default function Jobs() {
 
     if (jobPostsError) {
       return (
-        <View className="items-center justify-center flex-1">
+        <View className="flex-1 justify-center items-center">
           <Text className="mb-4 text-red-500">
             Erreur lors du chargement des offres d'emploi
           </Text>
@@ -35,7 +36,7 @@ export default function Jobs() {
 
     if (jobPosts?.length === 0) {
       return (
-        <View className="items-center justify-center flex-1">
+        <View className="flex-1 justify-center items-center">
           <Text className="mb-4 text-center text-gray-500">
             Aucune offre d'emploi pour le moment
           </Text>
@@ -90,27 +91,29 @@ export default function Jobs() {
   };
 
   return (
-    <View className="flex-1 bg-gray-100">
-      {renderContent()}
+    <ScreenWrapper>
+      <View className="flex-1 bg-gray-100">
+        {renderContent()}
 
-      <View className="p-4 bg-white border-t border-gray-200">
-        <Pressable
-          className="p-4 bg-blue-500 rounded-lg"
-          onPress={() => setIsCreateModalVisible(true)}
+        <View className="p-4 bg-white border-t border-gray-200">
+          <Pressable
+            className="p-4 bg-blue-500 rounded-lg"
+            onPress={() => setIsCreateModalVisible(true)}
+          >
+            <Text className="font-semibold text-center text-white">
+              Créer une offre
+            </Text>
+          </Pressable>
+        </View>
+
+        <Modal
+          isVisible={isCreateModalVisible}
+          onClose={() => setIsCreateModalVisible(false)}
+          title="Créer une offre d'emploi"
         >
-          <Text className="font-semibold text-center text-white">
-            Créer une offre
-          </Text>
-        </Pressable>
+          <CreateJobPost onSuccess={() => setIsCreateModalVisible(false)} />
+        </Modal>
       </View>
-
-      <Modal
-        isVisible={isCreateModalVisible}
-        onClose={() => setIsCreateModalVisible(false)}
-        title="Créer une offre d'emploi"
-      >
-        <CreateJobPost onSuccess={() => setIsCreateModalVisible(false)} />
-      </Modal>
-    </View>
+    </ScreenWrapper>
   );
 }
