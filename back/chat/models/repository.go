@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"log"
 	"reflect"
 	"skillly/pkg/utils"
@@ -39,6 +40,7 @@ func (r *mongoRepository[T]) getCollectionName() string {
 
 func (r *mongoRepository[T]) Create(entity *T) error {
 	collectionName := r.getCollectionName()
+	fmt.Printf("Inserting entity into collection: %s\n", collectionName)
 	collection := r.db.Collection(collectionName)
 	_, err := collection.InsertOne(nil, entity)
 	if err != nil {

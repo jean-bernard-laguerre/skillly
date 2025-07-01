@@ -1,6 +1,7 @@
 package message
 
 import (
+	"skillly/chat/config"
 	messageDto "skillly/chat/handlers/message/dto"
 	"skillly/chat/models"
 	"skillly/pkg/utils"
@@ -16,9 +17,9 @@ type messageService struct {
 }
 
 // NewMessageService creates a new instance of MessageService
-func NewMessageService(repository MessageRepository) MessageService {
+func NewMessageService() MessageService {
 	return &messageService{
-		repository: repository,
+		repository: NewMessageRepository(config.DBMongo),
 	}
 }
 

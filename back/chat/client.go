@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"log"
 	"net/http"
-	"skillly/chat/config"
 	"skillly/chat/handlers/message"
 	messageDto "skillly/chat/handlers/message/dto"
 	"time"
@@ -53,7 +52,7 @@ func NewClient(id string, hub *Hub, conn *websocket.Conn) *Client {
 		rooms:                make(map[string]*Room),
 		conn:                 conn,
 		send:                 make(chan []byte, 256),
-		clientMessageService: message.NewMessageService(message.NewMessageRepository(config.DBMongo)),
+		clientMessageService: message.NewMessageService(),
 	}
 }
 
