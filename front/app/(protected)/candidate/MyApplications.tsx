@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { useApplication } from "@/lib/hooks/useApplication";
 import { Check, X, Clock, Star } from "lucide-react-native";
+import ScreenWrapper from "@/navigation/ScreenWrapper";
 
 type Status = "all" | "pending" | "matched" | "rejected" | "accepted";
 
@@ -86,7 +87,7 @@ const MyApplications = () => {
 
   if (isLoadingApplications) {
     return (
-      <View className="items-center justify-center flex-1">
+      <View className="flex-1 justify-center items-center">
         <ActivityIndicator size="large" color="#0000ff" />
       </View>
     );
@@ -94,85 +95,89 @@ const MyApplications = () => {
 
   if (!applications || applications.length === 0) {
     return (
-      <View className="items-center justify-center flex-1 bg-gray-100">
-        <Text className="mb-5 text-2xl font-bold">Mes candidatures</Text>
-        <Text className="text-gray-600">
-          Vous n'avez pas encore de candidatures
-        </Text>
-      </View>
+      <ScreenWrapper>
+        <View className="flex-1 justify-center items-center bg-gray-100">
+          <Text className="mb-5 text-2xl font-bold">Mes candidatures</Text>
+          <Text className="text-gray-600">
+            Vous n'avez pas encore de candidatures
+          </Text>
+        </View>
+      </ScreenWrapper>
     );
   }
 
   return (
-    <View className="flex-1 bg-gray-100">
-      <Text className="p-4 text-2xl font-bold">Mes candidatures</Text>
-      <View className="px-4 py-2">
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <FilterButton
-            status="all"
-            selectedStatus={selectedStatus}
-            onPress={() => setSelectedStatus("all")}
-          />
-          <FilterButton
-            status="pending"
-            selectedStatus={selectedStatus}
-            onPress={() => setSelectedStatus("pending")}
-          />
-          <FilterButton
-            status="matched"
-            selectedStatus={selectedStatus}
-            onPress={() => setSelectedStatus("matched")}
-          />
-          <FilterButton
-            status="rejected"
-            selectedStatus={selectedStatus}
-            onPress={() => setSelectedStatus("rejected")}
-          />
-          <FilterButton
-            status="accepted"
-            selectedStatus={selectedStatus}
-            onPress={() => setSelectedStatus("accepted")}
-          />
+    <ScreenWrapper>
+      <View className="flex-1 bg-gray-100">
+        <Text className="p-4 text-2xl font-bold">Mes candidatures</Text>
+        <View className="px-4 py-2">
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <FilterButton
+              status="all"
+              selectedStatus={selectedStatus}
+              onPress={() => setSelectedStatus("all")}
+            />
+            <FilterButton
+              status="pending"
+              selectedStatus={selectedStatus}
+              onPress={() => setSelectedStatus("pending")}
+            />
+            <FilterButton
+              status="matched"
+              selectedStatus={selectedStatus}
+              onPress={() => setSelectedStatus("matched")}
+            />
+            <FilterButton
+              status="rejected"
+              selectedStatus={selectedStatus}
+              onPress={() => setSelectedStatus("rejected")}
+            />
+            <FilterButton
+              status="accepted"
+              selectedStatus={selectedStatus}
+              onPress={() => setSelectedStatus("accepted")}
+            />
+          </ScrollView>
+        </View>
+        <ScrollView className="flex-1 px-4">
+          {filteredApplications.map((application) => (
+            <View
+              key={application.id}
+              className="p-4 mb-4 bg-white rounded-lg shadow-sm"
+            >
+              <View className="flex-row justify-between items-center mb-2">
+                <Text className="text-xl font-semibold">
+                  {application.job_post?.title || "Titre non spécifié"}
+                </Text>
+                <StatusBadge status={application.state} />
+              </View>
+              {application.job_post?.location && (
+                <Text className="mb-2 text-gray-600">
+                  {application.job_post.location}
+                </Text>
+              )}
+              {application.job_post?.contract_type && (
+                <Text className="mb-2 text-gray-600">
+                  {application.job_post.contract_type}
+                </Text>
+              )}
+              {application.job_post?.salary_range && (
+                <Text className="mb-2 text-gray-600">
+                  {application.job_post.salary_range}
+                </Text>
+              )}
+              <View className="flex-row gap-2 items-center mt-2">
+                <Clock size={16} color="#6B7280" />
+                <Text className="text-sm text-gray-500">
+                  Postulé le{" "}
+                  {new Date(application.created_at).toLocaleDateString()}
+                </Text>
+              </View>
+            </View>
+          ))}
         </ScrollView>
       </View>
-      <ScrollView className="flex-1 px-4">
-        {filteredApplications.map((application) => (
-          <View
-            key={application.id}
-            className="p-4 mb-4 bg-white rounded-lg shadow-sm"
-          >
-            <View className="flex-row items-center justify-between mb-2">
-              <Text className="text-xl font-semibold">
-                {application.job_post?.title || "Titre non spécifié"}
-              </Text>
-              <StatusBadge status={application.state} />
-            </View>
-            {application.job_post?.location && (
-              <Text className="mb-2 text-gray-600">
-                {application.job_post.location}
-              </Text>
-            )}
-            {application.job_post?.contract_type && (
-              <Text className="mb-2 text-gray-600">
-                {application.job_post.contract_type}
-              </Text>
-            )}
-            {application.job_post?.salary_range && (
-              <Text className="mb-2 text-gray-600">
-                {application.job_post.salary_range}
-              </Text>
-            )}
-            <View className="flex-row items-center gap-2 mt-2">
-              <Clock size={16} color="#6B7280" />
-              <Text className="text-sm text-gray-500">
-                Postulé le{" "}
-                {new Date(application.created_at).toLocaleDateString()}
-              </Text>
-            </View>
-          </View>
-        ))}
-      </ScrollView>
-    </View>
+    </ScreenWrapper>
   );
 };
 
