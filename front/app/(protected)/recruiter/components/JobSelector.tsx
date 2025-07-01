@@ -1,5 +1,5 @@
 import React from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { Briefcase } from "lucide-react-native";
 import { JobSelectorProps } from "@/types/interfaces";
 
@@ -10,9 +10,9 @@ export default function JobSelector({
   type,
 }: JobSelectorProps) {
   return (
-    <View className="p-4 mb-4">
-      <Text className="mb-2 text-lg font-semibold">Sélectionnez une offre</Text>
-      <View className="space-y-2">
+    <View className="flex-1 p-4">
+      <Text className="mb-4 text-lg font-semibold">Sélectionnez une offre</Text>
+      <ScrollView className="flex-1" contentContainerStyle={{ gap: 9 }}>
         {jobs.map((job) => (
           <TouchableOpacity
             key={job.id}
@@ -23,7 +23,7 @@ export default function JobSelector({
             }`}
             onPress={() => onSelectJob(job.id)}
           >
-            <View className="flex-row items-center gap-2">
+            <View className="flex-row gap-2 items-center">
               <Briefcase size={20} color="#6366f1" className="mr-2" />
               <View className="flex-1">
                 <Text className="font-medium">{job.title}</Text>
@@ -44,7 +44,7 @@ export default function JobSelector({
             </View>
           </TouchableOpacity>
         ))}
-      </View>
+      </ScrollView>
     </View>
   );
 }

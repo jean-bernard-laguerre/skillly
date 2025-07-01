@@ -1,0 +1,1119 @@
+basePath: /
+definitions:
+  applicationDto.CreateApplicationDTO:
+    properties:
+      candidate_id:
+        description: from the url params & the middleware
+        type: integer
+      cover_id:
+        type: integer
+      jobpost_id:
+        type: integer
+      score:
+        type: integer
+    type: object
+  applicationDto.UpdateApplicationStateDTO:
+    properties:
+      state:
+        description: Ensure state is one of the allowed values
+        enum:
+        - pending
+        - matched
+        - rejected
+        - accepted
+        type: string
+    required:
+    - state
+    type: object
+  authDto.CandidateRegisterDTO:
+    properties:
+      availability:
+        type: string
+      bio:
+        type: string
+      certifications:
+        items:
+          type: integer
+        type: array
+      email:
+        type: string
+      experienceYears:
+        type: integer
+      firstName:
+        type: string
+      lastName:
+        type: string
+      location:
+        type: string
+      password:
+        type: string
+      preferedContract:
+        type: string
+      preferedJob:
+        type: string
+      resumeID:
+        type: integer
+      skills:
+        items:
+          type: integer
+        type: array
+    required:
+    - email
+    - firstName
+    - lastName
+    - password
+    type: object
+  authDto.LoginDto:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  authDto.RecruterRegisterDTO:
+    properties:
+      company:
+        type: integer
+      email:
+        type: string
+      firstName:
+        type: string
+      lastName:
+        type: string
+      newCompany:
+        $ref: '#/definitions/companyDto.CreateCompanyDTO'
+      password:
+        type: string
+      title:
+        type: string
+    required:
+    - email
+    - firstName
+    - lastName
+    - password
+    type: object
+  certificationDto.CreateCertificationDTO:
+    properties:
+      category:
+        type: string
+      name:
+        type: string
+    required:
+    - category
+    - name
+    type: object
+  companyDto.CreateCompanyDTO:
+    properties:
+      companyName:
+        type: string
+      description:
+        type: string
+      industry:
+        type: string
+      location:
+        type: string
+      logo:
+        type: string
+      siret:
+        type: string
+      size:
+        type: string
+      website:
+        type: string
+    required:
+    - companyName
+    - siret
+    type: object
+  jobPostDto.CreateJobPostDTO:
+    properties:
+      certifications:
+        items:
+          type: integer
+        type: array
+      companyID:
+        type: integer
+      contract_type:
+        type: string
+      description:
+        type: string
+      expiration_date:
+        type: string
+      file_id:
+        type: integer
+      location:
+        type: string
+      salary_range:
+        type: string
+      skills:
+        items:
+          type: integer
+        type: array
+      title:
+        type: string
+    required:
+    - contract_type
+    - description
+    - expiration_date
+    - location
+    - salary_range
+    - title
+    type: object
+  matchDto.CreateMatchDTO:
+    properties:
+      application_id:
+        type: integer
+      candidate_id:
+        type: integer
+      job_post_id:
+        type: integer
+    required:
+    - application_id
+    - candidate_id
+    - job_post_id
+    type: object
+  skillDto.CreateSkillDTO:
+    properties:
+      category:
+        type: string
+      name:
+        type: string
+    required:
+    - category
+    - name
+    type: object
+  userDto.CreateUserDTO:
+    properties:
+      email:
+        type: string
+      firstName:
+        type: string
+      lastName:
+        type: string
+      password:
+        type: string
+      role:
+        type: string
+    required:
+    - email
+    - firstName
+    - lastName
+    - password
+    - role
+    type: object
+  userDto.DeleteUserSkillsDTO:
+    properties:
+      data:
+        $ref: '#/definitions/userDto.UpdateUserSkillsDTO'
+    type: object
+  userDto.UpdateUserDTO:
+    properties:
+      email:
+        type: string
+      firstName:
+        type: string
+      lastName:
+        type: string
+      password:
+        type: string
+    type: object
+  userDto.UpdateUserSkillsDTO:
+    properties:
+      certifications:
+        items:
+          type: integer
+        type: array
+      skills:
+        items:
+          type: integer
+        type: array
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: Support API
+    url: http://www.swagger.io/support
+  description: API pour l'application Skillly - plateforme de matching entre candidats
+    et recruteurs
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Skillly API
+  version: "1.0"
+paths:
+  /application/{id}:
+    post:
+      consumes:
+      - application/json
+      description: Permet à un candidat de postuler à une offre d'emploi
+      parameters:
+      - description: ID de l'offre d'emploi
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Données de la candidature
+        in: body
+        name: applicationData
+        required: true
+        schema:
+          $ref: '#/definitions/applicationDto.CreateApplicationDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Candidature créée avec succès
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Erreur de validation
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Non autorisé
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Accès refusé - candidats uniquement
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Créer une candidature
+      tags:
+      - applications
+  /application/{id}/state:
+    put:
+      consumes:
+      - application/json
+      description: Permet à un recruteur de changer le statut d'une candidature (pending,
+        matched, rejected, accepted)
+      parameters:
+      - description: ID de la candidature
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Nouveau statut
+        in: body
+        name: stateData
+        required: true
+        schema:
+          $ref: '#/definitions/applicationDto.UpdateApplicationStateDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Statut mis à jour avec succès
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Erreur de validation
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Non autorisé
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Accès refusé - recruteurs uniquement
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Candidature non trouvée
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Mettre à jour le statut d'une candidature
+      tags:
+      - applications
+  /application/jobpost/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Permet à un recruteur de voir toutes les candidatures pour une
+        offre d'emploi
+      parameters:
+      - description: ID de l'offre d'emploi
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Liste des candidatures
+          schema:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+        "401":
+          description: Non autorisé
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Accès refusé - recruteurs uniquement
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Offre d'emploi non trouvée
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Récupérer les candidatures d'une offre
+      tags:
+      - applications
+  /application/me:
+    get:
+      consumes:
+      - application/json
+      description: Permet à un candidat de voir toutes ses candidatures
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Liste de mes candidatures
+          schema:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+        "401":
+          description: Non autorisé
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Accès refusé - candidats uniquement
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Récupérer mes candidatures
+      tags:
+      - applications
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authentifie un utilisateur avec email et mot de passe
+      parameters:
+      - description: Données de connexion
+        in: body
+        name: loginData
+        required: true
+        schema:
+          $ref: '#/definitions/authDto.LoginDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Token JWT et informations utilisateur
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Erreur de validation
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Identifiants incorrects
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Connexion utilisateur
+      tags:
+      - auth
+  /auth/me:
+    get:
+      consumes:
+      - application/json
+      description: Récupère les informations de l'utilisateur connecté
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Informations utilisateur
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Token manquant ou invalide
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Profil utilisateur actuel
+      tags:
+      - auth
+  /auth/signup/candidate:
+    post:
+      consumes:
+      - application/json
+      description: Crée un nouveau compte candidat
+      parameters:
+      - description: Données d'inscription candidat
+        in: body
+        name: candidateData
+        required: true
+        schema:
+          $ref: '#/definitions/authDto.CandidateRegisterDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Compte créé avec succès
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Erreur de validation
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Email déjà utilisé
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Inscription candidat
+      tags:
+      - auth
+  /auth/signup/recruiter:
+    post:
+      consumes:
+      - application/json
+      description: Crée un nouveau compte recruteur
+      parameters:
+      - description: Données d'inscription recruteur
+        in: body
+        name: recruiterData
+        required: true
+        schema:
+          $ref: '#/definitions/authDto.RecruterRegisterDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Compte créé avec succès
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Erreur de validation
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Email déjà utilisé
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Inscription recruteur
+      tags:
+      - auth
+  /certification:
+    get:
+      consumes:
+      - application/json
+      description: Récupère la liste de toutes les certifications disponibles
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Liste des certifications
+          schema:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+      summary: Lister toutes les certifications
+      tags:
+      - certifications
+    post:
+      consumes:
+      - application/json
+      description: Crée une nouvelle certification
+      parameters:
+      - description: Données de la certification
+        in: body
+        name: certificationData
+        required: true
+        schema:
+          $ref: '#/definitions/certificationDto.CreateCertificationDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Certification créée avec succès
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Erreur de validation
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Créer une certification
+      tags:
+      - certifications
+  /company:
+    get:
+      consumes:
+      - application/json
+      description: Récupère la liste de toutes les entreprises
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Liste des entreprises
+          schema:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+      summary: Lister toutes les entreprises
+      tags:
+      - companies
+  /jobpost:
+    post:
+      consumes:
+      - application/json
+      description: Crée une nouvelle offre d'emploi (recruteurs uniquement)
+      parameters:
+      - description: Données de l'offre d'emploi
+        in: body
+        name: jobData
+        required: true
+        schema:
+          $ref: '#/definitions/jobPostDto.CreateJobPostDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Offre d'emploi créée avec succès
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Erreur de validation
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Non autorisé
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Accès refusé - recruteurs uniquement
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Créer une offre d'emploi
+      tags:
+      - jobs
+  /jobpost/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Récupère les détails d'une offre d'emploi spécifique
+      parameters:
+      - description: ID de l'offre d'emploi
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 'Relations à inclure (ex: skills,company)'
+        in: query
+        name: populate
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Détails de l'offre d'emploi
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Offre d'emploi non trouvée
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Récupérer une offre d'emploi par ID
+      tags:
+      - jobs
+  /jobpost/candidate:
+    get:
+      consumes:
+      - application/json
+      description: Récupère toutes les offres d'emploi disponibles (candidats uniquement)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Liste des offres d'emploi
+          schema:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+        "401":
+          description: Non autorisé
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Accès refusé - candidats uniquement
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Lister les offres d'emploi pour candidats
+      tags:
+      - jobs
+  /jobpost/company:
+    get:
+      consumes:
+      - application/json
+      description: Récupère les offres d'emploi de l'entreprise du recruteur connecté
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Liste des offres d'emploi de l'entreprise
+          schema:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+        "401":
+          description: Non autorisé
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Accès refusé - recruteurs uniquement
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Lister les offres d'emploi de l'entreprise
+      tags:
+      - jobs
+  /match:
+    post:
+      consumes:
+      - application/json
+      description: Permet à un recruteur de créer un match entre un candidat et une
+        offre d'emploi
+      parameters:
+      - description: Données du match
+        in: body
+        name: matchData
+        required: true
+        schema:
+          $ref: '#/definitions/matchDto.CreateMatchDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Match créé avec succès
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Erreur de validation
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Non autorisé
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Accès refusé - recruteurs uniquement
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Candidat, offre d'emploi ou candidature non trouvé(e)
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Créer un match
+      tags:
+      - matches
+  /skill:
+    get:
+      consumes:
+      - application/json
+      description: Récupère la liste de toutes les compétences disponibles
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Liste des compétences
+          schema:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+      summary: Lister toutes les compétences
+      tags:
+      - skills
+    post:
+      consumes:
+      - application/json
+      description: Crée une nouvelle compétence
+      parameters:
+      - description: Données de la compétence
+        in: body
+        name: skillData
+        required: true
+        schema:
+          $ref: '#/definitions/skillDto.CreateSkillDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Compétence créée avec succès
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Erreur de validation
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Créer une compétence
+      tags:
+      - skills
+  /user:
+    get:
+      consumes:
+      - application/json
+      description: Récupère la liste de tous les utilisateurs
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Liste des utilisateurs
+          schema:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+        "401":
+          description: Non autorisé
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Lister tous les utilisateurs
+      tags:
+      - users
+    post:
+      consumes:
+      - application/json
+      description: Crée un nouveau utilisateur (admin uniquement)
+      parameters:
+      - description: Données de l'utilisateur
+        in: body
+        name: userData
+        required: true
+        schema:
+          $ref: '#/definitions/userDto.CreateUserDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Utilisateur créé avec succès
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Erreur de validation
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Non autorisé
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Créer un utilisateur
+      tags:
+      - users
+  /user/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Supprime un utilisateur
+      parameters:
+      - description: ID de l'utilisateur
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Utilisateur supprimé
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Non autorisé
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Utilisateur non trouvé
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Supprimer un utilisateur
+      tags:
+      - users
+    get:
+      consumes:
+      - application/json
+      description: Récupère les détails d'un utilisateur spécifique
+      parameters:
+      - description: ID de l'utilisateur
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Détails de l'utilisateur
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Non autorisé
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Utilisateur non trouvé
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Récupérer un utilisateur par ID
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: Met à jour les informations d'un utilisateur
+      parameters:
+      - description: ID de l'utilisateur
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Nouvelles données de l'utilisateur
+        in: body
+        name: userData
+        required: true
+        schema:
+          $ref: '#/definitions/userDto.UpdateUserDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Utilisateur mis à jour
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Erreur de validation
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Non autorisé
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Utilisateur non trouvé
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Mettre à jour un utilisateur
+      tags:
+      - users
+  /user/me/skills:
+    delete:
+      consumes:
+      - application/json
+      description: Supprime des compétences du profil de l'utilisateur connecté
+      parameters:
+      - description: Compétences à supprimer
+        in: body
+        name: skillsData
+        required: true
+        schema:
+          $ref: '#/definitions/userDto.DeleteUserSkillsDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Compétences supprimées
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Erreur de validation
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Non autorisé
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Supprimer des compétences de l'utilisateur
+      tags:
+      - users
+    patch:
+      consumes:
+      - application/json
+      description: Ajoute des compétences au profil de l'utilisateur connecté
+      parameters:
+      - description: Compétences à ajouter
+        in: body
+        name: skillsData
+        required: true
+        schema:
+          $ref: '#/definitions/userDto.UpdateUserSkillsDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Compétences ajoutées
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Erreur de validation
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Non autorisé
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Ajouter des compétences à l'utilisateur
+      tags:
+      - users
+schemes:
+- http
+- https
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

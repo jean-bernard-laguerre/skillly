@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import ScreenWrapper from "@/navigation/ScreenWrapper";
 import { View, Text, Pressable } from "react-native";
 import { useJobPost } from "@/lib/hooks/useJobPost";
 import ApplicationsList from "./components/ApplicationsList";
@@ -54,39 +55,44 @@ export default function Applications() {
   };
 
   return (
-    <View className="flex-1 bg-gray-50">
-      <View className="flex-row border-b border-gray-200">
-        <Pressable
-          className={`flex-1 p-4 ${
-            selectedTab === "applications" ? "border-b-2 border-blue-500" : ""
-          }`}
-          onPress={() => setSelectedTab("applications")}
-        >
-          <Text
-            className={`text-center font-semibold ${
-              selectedTab === "applications" ? "text-blue-500" : "text-gray-500"
+    <ScreenWrapper>
+      <View className="flex flex-col h-full bg-gray-50">
+        {/* <View className="flex flex-col h-full bg-red-500"> */}
+        <View className="flex-row border-b border-gray-200">
+          <Pressable
+            className={`flex-1 p-4 ${
+              selectedTab === "applications" ? "border-b-2 border-blue-500" : ""
             }`}
+            onPress={() => setSelectedTab("applications")}
           >
-            Candidatures
-          </Text>
-        </Pressable>
-        <Pressable
-          className={`flex-1 p-4 ${
-            selectedTab === "matches" ? "border-b-2 border-blue-500" : ""
-          }`}
-          onPress={() => setSelectedTab("matches")}
-        >
-          <Text
-            className={`text-center font-semibold ${
-              selectedTab === "matches" ? "text-blue-500" : "text-gray-500"
+            <Text
+              className={`text-center font-semibold ${
+                selectedTab === "applications"
+                  ? "text-blue-500"
+                  : "text-gray-500"
+              }`}
+            >
+              Candidatures
+            </Text>
+          </Pressable>
+          <Pressable
+            className={`flex-1 p-4 ${
+              selectedTab === "matches" ? "border-b-2 border-blue-500" : ""
             }`}
+            onPress={() => setSelectedTab("matches")}
           >
-            Matches
-          </Text>
-        </Pressable>
-      </View>
+            <Text
+              className={`text-center font-semibold ${
+                selectedTab === "matches" ? "text-blue-500" : "text-gray-500"
+              }`}
+            >
+              Matches
+            </Text>
+          </Pressable>
+        </View>
 
-      {renderTabContent()}
-    </View>
+        <View className="flex-1">{renderTabContent()}</View>
+      </View>
+    </ScreenWrapper>
   );
 }
