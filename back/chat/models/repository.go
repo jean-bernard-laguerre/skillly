@@ -74,7 +74,11 @@ func (r *mongoRepository[T]) GetAll(params utils.QueryParams) ([]T, error) {
 
 	filter := map[string]interface{}{}
 	if params.Filters != nil {
-
+		for key, value := range params.Filters {
+			if value != "" {
+				filter[key] = value
+			}
+		}
 	}
 
 	options := options.Find()

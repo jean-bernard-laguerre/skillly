@@ -1,7 +1,6 @@
 package room
 
 import (
-	roomDto "skillly/chat/handlers/room/dto"
 	"skillly/chat/models"
 	"time"
 
@@ -11,7 +10,7 @@ import (
 // RoomRepository defines the interface for room data operations
 type RoomRepository interface {
 	models.Repository[models.Room]
-	CreateRoom(dto roomDto.CreateRoomDTO) (models.Room, error)
+	CreateRoom(name string) (models.Room, error)
 }
 
 type roomRepository struct {
@@ -28,9 +27,9 @@ func NewRoomRepository(db *mongo.Database) RoomRepository {
 }
 
 // CreateRoom inserts a new room record into the database
-func (r *roomRepository) CreateRoom(dto roomDto.CreateRoomDTO) (models.Room, error) {
+func (r *roomRepository) CreateRoom(name string) (models.Room, error) {
 	room := models.Room{
-		Name:      dto.Name,
+		Name:      name,
 		CreatedAt: time.Now(), // Set the created time to now
 	}
 

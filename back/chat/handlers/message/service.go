@@ -13,20 +13,20 @@ type MessageService interface {
 }
 
 type messageService struct {
-	repository MessageRepository
+	messageRepository MessageRepository
 }
 
 // NewMessageService creates a new instance of MessageService
 func NewMessageService() MessageService {
 	return &messageService{
-		repository: NewMessageRepository(config.DBMongo),
+		messageRepository: NewMessageRepository(config.DBMongo),
 	}
 }
 
 // CreateMessage creates a new message in the database
 func (s *messageService) CreateMessage(dto messageDto.CreateMessageDTO) (models.Message, error) {
 
-	createdMessage, err := s.repository.CreateMessage(dto)
+	createdMessage, err := s.messageRepository.CreateMessage(dto)
 	if err != nil {
 		return models.Message{}, err
 	}
@@ -44,7 +44,7 @@ func (s *messageService) GetMessagesByRoomID(roomID string) ([]models.Message, e
 		Order: "asc",
 	}
 
-	messages, err := s.repository.GetAll(params)
+	messages, err := s.messageRepository.GetAll(params)
 	if err != nil {
 		return nil, err
 	}

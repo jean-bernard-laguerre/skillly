@@ -9,6 +9,7 @@ import (
 
 	"skillly/chat"
 	chatDB "skillly/chat/db"
+	chatModels "skillly/chat/models"
 
 	"skillly/pkg/db"
 	"skillly/pkg/handlers"
@@ -51,7 +52,7 @@ func main() {
 	// Create a new gin router
 	r := gin.Default()
 	// Create a new chat hub
-	hub := chat.NewHub()
+	hub := chatModels.NewHub()
 	go hub.RunHub()
 
 	r.Use(cors.New(cors.Config{
