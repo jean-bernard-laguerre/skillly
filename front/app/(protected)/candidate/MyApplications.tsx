@@ -9,39 +9,61 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useApplication } from "@/lib/hooks/useApplication";
-import { Check, X, Clock, Star } from "lucide-react-native";
+import {
+  Check,
+  X,
+  Clock,
+  Star,
+  MapPin,
+  Briefcase,
+  DollarSign,
+} from "lucide-react-native";
 import ScreenWrapper from "@/navigation/ScreenWrapper";
 import Header from "@/components/Header";
 
 type Status = "all" | "pending" | "matched" | "rejected" | "accepted";
 
 const StatusBadge = ({ status }: { status: string }) => {
-  switch (status) {
-    case "accepted":
-      return (
-        <View className="px-2 py-1 bg-green-100 rounded">
-          <Text className="text-sm text-green-800">Acceptée</Text>
-        </View>
-      );
-    case "rejected":
-      return (
-        <View className="px-2 py-1 bg-red-100 rounded">
-          <Text className="text-sm text-red-800">Refusée</Text>
-        </View>
-      );
-    case "matched":
-      return (
-        <View className="px-2 py-1 bg-purple-100 rounded">
-          <Text className="text-sm text-purple-800">Match</Text>
-        </View>
-      );
-    default:
-      return (
-        <View className="px-2 py-1 bg-yellow-100 rounded">
-          <Text className="text-sm text-yellow-800">En attente</Text>
-        </View>
-      );
-  }
+  const getStatusConfig = () => {
+    switch (status) {
+      case "accepted":
+        return {
+          backgroundColor: "#36E9CD",
+          textColor: "#ffffff",
+          label: "Acceptée",
+        };
+      case "rejected":
+        return {
+          backgroundColor: "#FF2056",
+          textColor: "#ffffff",
+          label: "Refusée",
+        };
+      case "matched":
+        return {
+          backgroundColor: "#0C66E4",
+          textColor: "#ffffff",
+          label: "Match",
+        };
+      default:
+        return {
+          backgroundColor: "#FFB366",
+          textColor: "#ffffff",
+          label: "En attente",
+        };
+    }
+  };
+
+  const config = getStatusConfig();
+
+  return (
+    <View
+      style={[styles.statusBadge, { backgroundColor: config.backgroundColor }]}
+    >
+      <Text style={[styles.statusBadgeText, { color: config.textColor }]}>
+        {config.label}
+      </Text>
+    </View>
+  );
 };
 
 const FilterButton = ({
@@ -118,7 +140,7 @@ const MyApplications = () => {
   if (isLoadingApplications) {
     return (
       <View className="flex-1 justify-center items-center">
-        <ActivityIndicator size="large" color="#0000ff" />
+        <ActivityIndicator size="large" color="#4717F6" />
       </View>
     );
   }
@@ -141,7 +163,7 @@ const MyApplications = () => {
 
   return (
     <ScreenWrapper>
-      <View className="flex-1 bg-gray-100">
+      <View className="flex-1" style={{ backgroundColor: "#F7F7F7" }}>
         <Header
           title="Mes candidatures"
           subtitle="Suis l'avancée de tes candidatures en un coup d'œil  👀"
@@ -199,41 +221,80 @@ const MyApplications = () => {
           </LinearGradient>
         </View>
 
-        <ScrollView className="flex-1 px-4">
+        <ScrollView
+          className="flex-1 px-3"
+          contentContainerStyle={styles.scrollContainer}
+        >
           {filteredApplications.map((application) => (
-            <View
+            <Pressable
               key={application.id}
-              className="p-4 mb-4 bg-white rounded-lg shadow-sm"
+              style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
             >
-              <View className="flex-row justify-between items-center mb-2">
-                <Text className="text-xl font-semibold">
-                  {application.job_post?.title || "Titre non spécifié"}
-                </Text>
-                <StatusBadge status={application.state} />
+              <View style={styles.applicationCard}>
+                <LinearGradient
+                  colors={[
+                    "rgba(255, 255, 255, 0.95)",
+                    "rgba(255, 255, 255, 1)",
+                  ]}
+                  style={styles.cardGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  {/* Header de la card */}
+                  <View style={styles.cardHeader}>
+                    <View style={styles.cardTitleContainer}>
+                      <Text style={styles.cardTitle}>
+                        {application.job_post?.title || "Titre non spécifié"}
+                      </Text>
+                      <StatusBadge status={application.state} />
+                    </View>
+                  </View>
+
+                  {/* Informations du poste */}
+                  <View style={styles.cardInfo}>
+                    {application.job_post?.location && (
+                      <View style={styles.infoRow}>
+                        <MapPin size={16} color="#6B7280" />
+                        <Text style={styles.infoText}>
+                          {application.job_post.location}
+                        </Text>
+                      </View>
+                    )}
+
+                    {application.job_post?.contract_type && (
+                      <View style={styles.infoRow}>
+                        <Briefcase size={16} color="#6B7280" />
+                        <Text style={styles.infoText}>
+                          {application.job_post.contract_type}
+                        </Text>
+                      </View>
+                    )}
+
+                    {application.job_post?.salary_range && (
+                      <View style={styles.infoRow}>
+                        <DollarSign size={16} color="#6B7280" />
+                        <Text style={styles.infoText}>
+                          {application.job_post.salary_range}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+
+                  {/* Footer avec date */}
+                  <View style={styles.cardFooter}>
+                    <View style={styles.dateContainer}>
+                      <Clock size={14} color="#9CA3AF" />
+                      <Text style={styles.dateText}>
+                        Postulé le{" "}
+                        {new Date(application.created_at).toLocaleDateString(
+                          "fr-FR"
+                        )}
+                      </Text>
+                    </View>
+                  </View>
+                </LinearGradient>
               </View>
-              {application.job_post?.location && (
-                <Text className="mb-2 text-gray-600">
-                  {application.job_post.location}
-                </Text>
-              )}
-              {application.job_post?.contract_type && (
-                <Text className="mb-2 text-gray-600">
-                  {application.job_post.contract_type}
-                </Text>
-              )}
-              {application.job_post?.salary_range && (
-                <Text className="mb-2 text-gray-600">
-                  {application.job_post.salary_range}
-                </Text>
-              )}
-              <View className="flex-row gap-2 items-center mt-2">
-                <Clock size={16} color="#6B7280" />
-                <Text className="text-sm text-gray-500">
-                  Postulé le{" "}
-                  {new Date(application.created_at).toLocaleDateString()}
-                </Text>
-              </View>
-            </View>
+            </Pressable>
           ))}
         </ScrollView>
       </View>
@@ -301,6 +362,83 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "900",
     color: "#525252",
+  },
+  scrollContainer: {
+    paddingBottom: 20,
+    gap: 12,
+  },
+  applicationCard: {
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E5E5E5",
+    // Shadow for iOS
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    // Shadow for Android
+    elevation: 3,
+  },
+  cardGradient: {
+    borderRadius: 12,
+    padding: 16,
+  },
+  cardHeader: {
+    marginBottom: 12,
+  },
+  cardTitleContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: 12,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1F2937",
+    flex: 1,
+    lineHeight: 24,
+  },
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    minWidth: 70,
+    alignItems: "center",
+  },
+  statusBadgeText: {
+    fontSize: 12,
+    fontWeight: "600",
+    textAlign: "center",
+  },
+  cardInfo: {
+    gap: 8,
+    marginBottom: 12,
+  },
+  infoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  infoText: {
+    fontSize: 14,
+    color: "#6B7280",
+    fontWeight: "500",
+  },
+  cardFooter: {
+    borderTopWidth: 1,
+    borderTopColor: "#F3F4F6",
+    paddingTop: 12,
+  },
+  dateContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  dateText: {
+    fontSize: 12,
+    color: "#9CA3AF",
+    fontWeight: "500",
   },
 });
 
