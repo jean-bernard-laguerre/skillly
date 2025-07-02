@@ -93,7 +93,7 @@ export default function CandidateHome() {
             </View>
 
             {/* Barre de progression */}
-            <View className="mb-3">
+            <View className="rounded-full">
               <View className="mb-2 h-2 bg-gray-200 rounded-full">
                 <View
                   className="h-2 bg-indigo-500 rounded-full"
