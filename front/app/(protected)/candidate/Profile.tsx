@@ -14,14 +14,12 @@ import { useAuth } from "@/context/AuthContext";
 import { useAuthMutation } from "@/lib/hooks/useAuthMutation";
 import { useSkills } from "@/lib/hooks/useSkills";
 import { useCertifications } from "@/lib/hooks/useCertifications";
-import { Skill, Certification } from "@/types/interfaces";
 import ScreenWrapper from "@/navigation/ScreenWrapper";
 import Header from "@/components/Header";
 import { Plus, Trash2, LogOut } from "lucide-react-native";
 
 export default function Profile() {
   const { user, handleLogOut } = useAuth();
-  console.log(user);
   const { addUserSkillsMutation, deleteUserSkillMutation } = useAuthMutation();
 
   const { skills: allSkills, isLoadingSkills } = useSkills();
