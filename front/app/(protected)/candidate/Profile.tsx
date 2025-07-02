@@ -7,23 +7,22 @@ import {
   Modal,
   ScrollView,
   Alert,
+  StyleSheet,
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { useAuth } from "@/context/AuthContext";
 import { useAuthMutation } from "@/lib/hooks/useAuthMutation";
 import { useSkills } from "@/lib/hooks/useSkills";
 import { useCertifications } from "@/lib/hooks/useCertifications";
 import { Skill, Certification } from "@/types/interfaces";
+import ScreenWrapper from "@/navigation/ScreenWrapper";
+import Header from "@/components/Header";
+import { Plus, Trash2, LogOut } from "lucide-react-native";
 
 export default function Profile() {
-  // Utiliser le contexte pour les données en lecture seule
   const { user, handleLogOut } = useAuth();
-
-  // Utiliser useAuthMutation pour les actions
-  const {
-    addUserSkillsMutation,
-    deleteUserSkillMutation,
-    /* deleteUserCertificationMutation, */
-  } = useAuthMutation();
+  console.log(user);
+  const { addUserSkillsMutation, deleteUserSkillMutation } = useAuthMutation();
 
   const { skills: allSkills, isLoadingSkills } = useSkills();
   const { certifications: allCertifications, isLoadingCertifications } =
@@ -184,69 +183,124 @@ export default function Profile() {
   };
 
   return (
-    <ScrollView className="flex-1 p-5">
-      <View className="items-center justify-center">
-        <Image
-          className="w-[150px] h-[150px] rounded-full mb-5"
-          source={{ uri: "https://picsum.photos/seed/1745317097928/150/150" }}
-        />
-        <Text className="mb-2 text-2xl font-bold">
-          {user?.first_name} {user?.last_name}
-        </Text>
-        <Text className="mb-2 text-gray-600">{user?.email}</Text>
-        <Text className="mb-5 text-base text-center">
-          Je suis à la recherche d'opportunités professionnelles dans le
-          développement.
-        </Text>
-      </View>
+    <ScreenWrapper>
+      <Header
+        title="MON PROFIL"
+        subtitle="Gérez vos informations et compétences 🎯"
+      />
 
-      {/* Section Compétences */}
-      <View className="mb-5">
-        <View className="flex-row items-center justify-between mb-2">
-          <Text className="text-xl font-bold">Compétences</Text>
-          <Pressable
-            className="px-3 py-1 bg-blue-500 rounded"
-            onPress={handleAddSkills}
+      <ScrollView
+        className="flex-1 px-4"
+        style={{ backgroundColor: "#F7F7F7" }}
+      >
+        {/* Section Profil Principal */}
+        <View style={styles.profileSection}>
+          <LinearGradient
+            colors={["#4717F6", "#6366f1"]}
+            style={styles.profileGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
           >
-            <Text className="text-white">Ajouter</Text>
+            <View style={styles.profileContent}>
+              <View style={styles.avatarContainer}>
+                <Image
+                  style={styles.avatar}
+                  source={{
+                    uri: "https://picsum.photos/seed/1745317097928/120/120",
+                  }}
+                />
+              </View>
+              <Text style={styles.userName}>
+                {user?.first_name} {user?.last_name}
+              </Text>
+              <Text style={styles.userEmail}>{user?.email}</Text>
+              <Text style={styles.userBio}>{user?.profile_candidate?.bio}</Text>
+            </View>
+          </LinearGradient>
+        </View>
+
+        {/* Section Compétences */}
+        <View style={styles.sectionContainer}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Compétences</Text>
+            <Pressable style={styles.addButton} onPress={handleAddSkills}>
+              <LinearGradient
+                colors={["#4717F6", "#6366f1"]}
+                style={styles.addButtonGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <Plus size={16} color="white" />
+                <Text style={styles.addButtonText}>Ajouter</Text>
+              </LinearGradient>
+            </Pressable>
+          </View>
+
+          <View style={styles.tagsContainer}>
+            {user?.profile_candidate?.skills.map((skill) => (
+              <Pressable
+                key={skill.id}
+                onLongPress={() => handleDeleteSkill(skill.id)}
+                style={styles.skillTag}
+              >
+                <Text style={styles.skillTagText}>{skill?.name}</Text>
+                <Trash2 size={14} color="#4717F6" />
+              </Pressable>
+            ))}
+          </View>
+        </View>
+
+        {/* Section Certifications */}
+        <View style={styles.sectionContainer}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Certifications</Text>
+            <Pressable
+              style={styles.addButton}
+              onPress={handleAddCertifications}
+            >
+              <LinearGradient
+                colors={["#7C3AED", "#8B5CF6"]}
+                style={styles.addButtonGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <Plus size={16} color="white" />
+                <Text style={styles.addButtonText}>Ajouter</Text>
+              </LinearGradient>
+            </Pressable>
+          </View>
+
+          <View style={styles.tagsContainer}>
+            {user?.profile_candidate?.certifications.map((certification) => (
+              <Pressable
+                key={certification.id}
+                onLongPress={() => handleDeleteCertification(certification.id)}
+                style={styles.certificationTag}
+              >
+                <Text style={styles.certificationTagText}>
+                  {certification?.name}
+                </Text>
+                <Trash2 size={14} color="#7C3AED" />
+              </Pressable>
+            ))}
+          </View>
+        </View>
+
+        {/* Bouton Déconnexion */}
+        <View style={styles.logoutContainer}>
+          <Pressable style={styles.logoutButton} onPress={() => handleLogOut()}>
+            <LinearGradient
+              colors={["#FF2056", "#FF4081"]}
+              style={styles.logoutGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <LogOut size={18} color="white" />
+              <Text style={styles.logoutText}>Se déconnecter</Text>
+            </LinearGradient>
           </Pressable>
         </View>
-        <View className="flex-row flex-wrap">
-          {user?.profile_candidate?.skills.map((skill) => (
-            <Pressable
-              key={skill.id}
-              onLongPress={() => handleDeleteSkill(skill.id)}
-              className="px-3 py-1 mb-2 mr-2 bg-gray-200 rounded-full"
-            >
-              <Text>{skill?.name}</Text>
-            </Pressable>
-          ))}
-        </View>
-      </View>
-
-      {/* Section Certifications */}
-      <View className="mb-5">
-        <View className="flex-row items-center justify-between mb-2">
-          <Text className="text-xl font-bold">Certifications</Text>
-          <Pressable
-            className="px-3 py-1 bg-blue-500 rounded"
-            onPress={handleAddCertifications}
-          >
-            <Text className="text-white">Ajouter</Text>
-          </Pressable>
-        </View>
-        <View className="flex-row flex-wrap">
-          {user?.profile_candidate?.certifications.map((certification) => (
-            <Pressable
-              key={certification.id}
-              onLongPress={() => handleDeleteCertification(certification.id)}
-              className="px-3 py-1 mb-2 mr-2 bg-gray-200 rounded-full"
-            >
-              <Text>{certification?.name}</Text>
-            </Pressable>
-          ))}
-        </View>
-      </View>
+      </ScrollView>
 
       {/* Modal pour ajouter des compétences */}
       <Modal
@@ -254,51 +308,56 @@ export default function Profile() {
         animationType="slide"
         transparent={true}
       >
-        <View className="items-center justify-center flex-1 bg-black/50">
-          <View className="bg-white p-5 rounded-lg w-[90%] max-h-[80%]">
-            <Text className="mb-4 text-xl font-bold">
-              Ajouter des compétences
-            </Text>
-            <ScrollView>
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Ajouter des compétences</Text>
+            <ScrollView style={styles.modalScrollView}>
               {allSkills
                 ?.filter((skill) => !userSkillIds.includes(skill.id))
                 .map((skill) => (
                   <Pressable
                     key={skill.id}
-                    className={`p-3 mb-2 rounded ${
-                      selectedSkills.includes(skill.id)
-                        ? "bg-blue-500"
-                        : "bg-gray-200"
-                    }`}
+                    style={[
+                      styles.modalItem,
+                      selectedSkills.includes(skill.id) &&
+                        styles.modalItemSelected,
+                    ]}
                     onPress={() => handleSkillSelect(skill.id)}
                   >
                     <Text
-                      className={
-                        selectedSkills.includes(skill.id)
-                          ? "text-white"
-                          : "text-black"
-                      }
+                      style={[
+                        styles.modalItemText,
+                        selectedSkills.includes(skill.id) &&
+                          styles.modalItemTextSelected,
+                      ]}
                     >
                       {skill.name}
                     </Text>
                   </Pressable>
                 ))}
             </ScrollView>
-            <View className="flex-row justify-end mt-4">
+            <View style={styles.modalActions}>
               <Pressable
-                className="px-4 py-2 mr-2 bg-gray-500 rounded"
+                style={styles.modalCancelButton}
                 onPress={() => {
                   setIsSkillsModalVisible(false);
                   setSelectedSkills([]);
                 }}
               >
-                <Text className="text-white">Annuler</Text>
+                <Text style={styles.modalCancelText}>Annuler</Text>
               </Pressable>
               <Pressable
-                className="px-4 py-2 bg-blue-500 rounded"
+                style={styles.modalSaveButton}
                 onPress={handleSaveChanges}
               >
-                <Text className="text-white">Valider</Text>
+                <LinearGradient
+                  colors={["#4717F6", "#6366f1"]}
+                  style={styles.modalSaveGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  <Text style={styles.modalSaveText}>Valider</Text>
+                </LinearGradient>
               </Pressable>
             </View>
           </View>
@@ -311,65 +370,280 @@ export default function Profile() {
         animationType="slide"
         transparent={true}
       >
-        <View className="items-center justify-center flex-1 bg-black/50">
-          <View className="bg-white p-5 rounded-lg w-[90%] max-h-[80%]">
-            <Text className="mb-4 text-xl font-bold">
-              Ajouter des certifications
-            </Text>
-            <ScrollView>
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Ajouter des certifications</Text>
+            <ScrollView style={styles.modalScrollView}>
               {allCertifications
                 ?.filter((cert) => !userCertificationIds.includes(cert.id))
                 .map((certification) => (
                   <Pressable
                     key={certification.id}
-                    className={`p-3 mb-2 rounded ${
-                      selectedCertifications.includes(certification.id)
-                        ? "bg-blue-500"
-                        : "bg-gray-200"
-                    }`}
+                    style={[
+                      styles.modalItem,
+                      selectedCertifications.includes(certification.id) &&
+                        styles.modalItemSelected,
+                    ]}
                     onPress={() => handleCertificationSelect(certification.id)}
                   >
                     <Text
-                      className={
-                        selectedCertifications.includes(certification.id)
-                          ? "text-white"
-                          : "text-black"
-                      }
+                      style={[
+                        styles.modalItemText,
+                        selectedCertifications.includes(certification.id) &&
+                          styles.modalItemTextSelected,
+                      ]}
                     >
                       {certification.name}
                     </Text>
                   </Pressable>
                 ))}
             </ScrollView>
-            <View className="flex-row justify-end mt-4">
+            <View style={styles.modalActions}>
               <Pressable
-                className="px-4 py-2 mr-2 bg-gray-500 rounded"
+                style={styles.modalCancelButton}
                 onPress={() => {
                   setIsCertificationsModalVisible(false);
                   setSelectedCertifications([]);
                 }}
               >
-                <Text className="text-white">Annuler</Text>
+                <Text style={styles.modalCancelText}>Annuler</Text>
               </Pressable>
               <Pressable
-                className="px-4 py-2 bg-blue-500 rounded"
+                style={styles.modalSaveButton}
                 onPress={handleSaveChanges}
               >
-                <Text className="text-white">Valider</Text>
+                <LinearGradient
+                  colors={["#7C3AED", "#8B5CF6"]}
+                  style={styles.modalSaveGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  <Text style={styles.modalSaveText}>Valider</Text>
+                </LinearGradient>
               </Pressable>
             </View>
           </View>
         </View>
       </Modal>
-
-      <View className="flex-row items-center justify-center gap-4 pb-4">
-        <Pressable
-          className="p-2 mt-5 bg-red-500 rounded-md"
-          onPress={() => handleLogOut()}
-        >
-          <Text className="text-white">Se déconnecter</Text>
-        </Pressable>
-      </View>
-    </ScrollView>
+    </ScreenWrapper>
   );
 }
+
+const styles = StyleSheet.create({
+  profileSection: {
+    marginBottom: 24,
+  },
+  profileGradient: {
+    borderRadius: 16,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  profileContent: {
+    alignItems: "center",
+    padding: 24,
+    borderRadius: 16,
+  },
+  avatarContainer: {
+    marginBottom: 16,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  avatar: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 4,
+    borderColor: "rgba(255, 255, 255, 0.8)",
+  },
+  userName: {
+    fontSize: 28,
+    fontWeight: "800",
+    color: "white",
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  userEmail: {
+    fontSize: 16,
+    color: "rgba(255, 255, 255, 0.9)",
+    marginBottom: 12,
+  },
+  userBio: {
+    fontSize: 16,
+    color: "rgba(255, 255, 255, 0.8)",
+    textAlign: "center",
+    lineHeight: 22,
+  },
+  sectionContainer: {
+    marginBottom: 24,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 24,
+    fontWeight: "800",
+    color: "#374151",
+  },
+  addButton: {
+    borderRadius: 8,
+  },
+  addButtonGradient: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    gap: 6,
+  },
+  addButtonText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "white",
+  },
+  tagsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  skillTag: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(71, 23, 246, 0.1)",
+    borderWidth: 1,
+    borderColor: "#4717F6",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    gap: 6,
+  },
+  skillTagText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#4717F6",
+  },
+  certificationTag: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(124, 58, 237, 0.1)",
+    borderWidth: 1,
+    borderColor: "#7C3AED",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    gap: 6,
+  },
+  certificationTagText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#7C3AED",
+  },
+  logoutContainer: {
+    alignItems: "center",
+    marginTop: 32,
+    marginBottom: 24,
+  },
+  logoutButton: {
+    borderRadius: 12,
+  },
+  logoutGradient: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
+    gap: 8,
+  },
+  logoutText: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "white",
+  },
+  modalBackdrop: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContainer: {
+    backgroundColor: "white",
+    padding: 24,
+    borderRadius: 16,
+    width: "90%",
+    maxHeight: "80%",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 12,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#374151",
+    marginBottom: 16,
+    textAlign: "center",
+  },
+  modalScrollView: {
+    maxHeight: 400,
+    marginBottom: 16,
+  },
+  modalItem: {
+    padding: 16,
+    marginBottom: 8,
+    backgroundColor: "#F3F4F6",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "transparent",
+  },
+  modalItemSelected: {
+    backgroundColor: "#4717F6",
+    borderColor: "#4717F6",
+  },
+  modalItemText: {
+    fontSize: 16,
+    color: "#374151",
+    fontWeight: "500",
+  },
+  modalItemTextSelected: {
+    color: "white",
+    fontWeight: "600",
+  },
+  modalActions: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: 12,
+  },
+  modalCancelButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    backgroundColor: "#F3F4F6",
+    borderRadius: 8,
+  },
+  modalCancelText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#6B7280",
+  },
+  modalSaveButton: {
+    borderRadius: 8,
+  },
+  modalSaveGradient: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  modalSaveText: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "white",
+  },
+});
