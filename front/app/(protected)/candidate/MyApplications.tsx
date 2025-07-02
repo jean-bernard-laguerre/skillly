@@ -6,22 +6,38 @@ import {
   ActivityIndicator,
   Pressable,
   StyleSheet,
+  Image,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useApplication } from "@/lib/hooks/useApplication";
-import {
-  Check,
-  X,
-  Clock,
-  Star,
-  MapPin,
-  Briefcase,
-  DollarSign,
-} from "lucide-react-native";
+import { Clock, Briefcase, BadgeEuro } from "lucide-react-native";
 import ScreenWrapper from "@/navigation/ScreenWrapper";
 import Header from "@/components/Header";
 
 type Status = "all" | "pending" | "matched" | "rejected" | "accepted";
+
+const CompanyLogo = ({ company }: { company?: any }) => {
+  const [imageError, setImageError] = useState(false);
+
+  const companyImageUrl = company?.logo;
+
+  if (companyImageUrl && !imageError) {
+    return (
+      <Image
+        source={{ uri: companyImageUrl }}
+        style={styles.companyLogo}
+        onError={() => setImageError(true)}
+      />
+    );
+  }
+
+  return (
+    <Image
+      source={require("@/assets/images/noImg.png")}
+      style={styles.companyLogo}
+    />
+  );
+};
 
 const StatusBadge = ({ status }: { status: string }) => {
   const getStatusConfig = () => {
@@ -169,7 +185,6 @@ const MyApplications = () => {
           subtitle="Suis l'avancée de tes candidatures en un coup d'œil  👀"
         />
 
-        {/* Container avec gradient pour les filtres */}
         <View style={styles.filtersContainer}>
           <LinearGradient
             colors={["#C6B7FC", "#C6B7FC"]}
@@ -232,64 +247,59 @@ const MyApplications = () => {
             >
               <View style={styles.applicationCard}>
                 <LinearGradient
-                  colors={[
-                    "rgba(255, 255, 255, 0.95)",
-                    "rgba(255, 255, 255, 1)",
-                  ]}
+                  colors={["#8464F9", "#F2F2F2"]}
                   style={styles.cardGradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
+                  start={{ x: 0, y: -3 }}
+                  end={{ x: 0, y: 0.9 }}
                 >
-                  {/* Header de la card */}
                   <View style={styles.cardHeader}>
-                    <View style={styles.cardTitleContainer}>
-                      <Text style={styles.cardTitle}>
-                        {application.job_post?.title || "Titre non spécifié"}
-                      </Text>
+                    <View style={styles.cardTopRow}>
+                      <View style={styles.logoContainer}>
+                        <CompanyLogo company={application.job_post?.company} />
+                      </View>
+                      <View style={styles.companyInfoContainer}>
+                        <Text style={styles.companyName}>
+                          {application.job_post?.company?.company_name ||
+                            "Entreprise"}
+                        </Text>
+                        <Text style={styles.jobTitle}>
+                          {application.job_post?.title || "Titre non spécifié"}
+                        </Text>
+                        {application.job_post?.contract_type && (
+                          <View style={styles.contractRow}>
+                            <Briefcase size={16} color="black" />
+                            <Text style={styles.contractText}>
+                              {application.job_post.contract_type}
+                            </Text>
+                          </View>
+                        )}
+                      </View>
                       <StatusBadge status={application.state} />
                     </View>
                   </View>
 
-                  {/* Informations du poste */}
-                  <View style={styles.cardInfo}>
-                    {application.job_post?.location && (
-                      <View style={styles.infoRow}>
-                        <MapPin size={16} color="#6B7280" />
-                        <Text style={styles.infoText}>
-                          {application.job_post.location}
-                        </Text>
-                      </View>
-                    )}
-
-                    {application.job_post?.contract_type && (
-                      <View style={styles.infoRow}>
-                        <Briefcase size={16} color="#6B7280" />
-                        <Text style={styles.infoText}>
-                          {application.job_post.contract_type}
-                        </Text>
-                      </View>
-                    )}
-
-                    {application.job_post?.salary_range && (
-                      <View style={styles.infoRow}>
-                        <DollarSign size={16} color="#6B7280" />
-                        <Text style={styles.infoText}>
-                          {application.job_post.salary_range}
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-
-                  {/* Footer avec date */}
                   <View style={styles.cardFooter}>
-                    <View style={styles.dateContainer}>
-                      <Clock size={14} color="#9CA3AF" />
-                      <Text style={styles.dateText}>
-                        Postulé le{" "}
-                        {new Date(application.created_at).toLocaleDateString(
-                          "fr-FR"
-                        )}
-                      </Text>
+                    <View style={styles.footerLeft}>
+                      {application.job_post?.salary_range && (
+                        <View style={styles.infoRowNew}>
+                          <BadgeEuro size={18} color="black" />
+                          <Text style={styles.infoTextNew}>
+                            {application.job_post.salary_range}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+
+                    <View style={styles.footerRight}>
+                      <View style={styles.infoRowNew}>
+                        <Clock size={18} color="black" />
+                        <Text style={styles.infoTextNew}>
+                          Postulé le{" "}
+                          {new Date(application.created_at).toLocaleDateString(
+                            "fr-FR"
+                          )}
+                        </Text>
+                      </View>
                     </View>
                   </View>
                 </LinearGradient>
@@ -305,7 +315,7 @@ const MyApplications = () => {
 const styles = StyleSheet.create({
   filtersContainer: {
     paddingLeft: 12,
-    marginBottom: 4,
+    marginBottom: 28,
   },
   filtersGradient: {
     borderTopLeftRadius: 20,
@@ -327,19 +337,16 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     borderColor: "#E5E5E5",
-    // Shadow for iOS
     shadowColor: "#000000",
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.02,
     shadowRadius: 2,
-    // Shadow for Android
     elevation: 1,
   },
   selectedButtonOverlay: {
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
-    // Additional shadow
     shadowColor: "#000000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.03,
@@ -354,9 +361,16 @@ const styles = StyleSheet.create({
   filterButtonUnselected: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: "#E5E5E5",
     borderRadius: 20,
     marginRight: 8,
+    borderWidth: 1,
+    borderColor: "#E5E5E5",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.02,
+    shadowRadius: 2,
+    elevation: 1,
   },
   unselectedButtonText: {
     fontSize: 14,
@@ -371,33 +385,86 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: "#E5E5E5",
-    // Shadow for iOS
     shadowColor: "#000000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.04,
     shadowRadius: 8,
-    // Shadow for Android
-    elevation: 3,
+    // shadow for android
+    elevation: 1.8,
   },
   cardGradient: {
     borderRadius: 12,
     padding: 16,
   },
   cardHeader: {
-    marginBottom: 12,
+    marginBottom: 0,
   },
-  cardTitleContainer: {
+  cardTopRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "flex-start",
     gap: 12,
   },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#1F2937",
+  logoContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 8,
+    overflow: "hidden",
+  },
+  companyLogo: {
+    width: 56,
+    height: 56,
+    resizeMode: "contain",
+  },
+  companyInfoContainer: {
     flex: 1,
+  },
+  companyName: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "black",
+    marginBottom: 2,
+  },
+  jobTitle: {
+    fontSize: 18,
+    fontWeight: "900",
+    color: "black",
     lineHeight: 24,
+    textTransform: "uppercase",
+  },
+
+  infoRowNew: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  infoTextNew: {
+    fontSize: 14,
+    color: "black",
+    fontWeight: "500",
+  },
+  contractRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginTop: 4,
+  },
+  contractText: {
+    fontSize: 12,
+    color: "black",
+    fontWeight: "500",
+  },
+  cardFooter: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 16,
+  },
+  footerLeft: {
+    flex: 1,
+  },
+  footerRight: {
+    flex: 1,
+    alignItems: "flex-end",
   },
   statusBadge: {
     paddingHorizontal: 8,
@@ -405,40 +472,12 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     minWidth: 70,
     alignItems: "center",
+    alignSelf: "flex-start",
   },
   statusBadgeText: {
     fontSize: 12,
     fontWeight: "600",
     textAlign: "center",
-  },
-  cardInfo: {
-    gap: 8,
-    marginBottom: 12,
-  },
-  infoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  infoText: {
-    fontSize: 14,
-    color: "#6B7280",
-    fontWeight: "500",
-  },
-  cardFooter: {
-    borderTopWidth: 1,
-    borderTopColor: "#F3F4F6",
-    paddingTop: 12,
-  },
-  dateContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  dateText: {
-    fontSize: 12,
-    color: "#9CA3AF",
-    fontWeight: "500",
   },
 });
 
