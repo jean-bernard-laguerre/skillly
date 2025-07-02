@@ -1,5 +1,6 @@
 import React, { useState, useRef } from "react";
 import ScreenWrapper from "@/navigation/ScreenWrapper";
+import Header from "@/components/Header";
 import {
   View,
   Text,
@@ -8,6 +9,7 @@ import {
   Dimensions,
   PanResponder,
   ScrollView,
+  StyleSheet,
 } from "react-native";
 import {
   GestureHandlerRootView,
@@ -22,6 +24,7 @@ import ReanimatedAnimated, {
   interpolate,
   Extrapolation,
 } from "react-native-reanimated";
+import { LinearGradient } from "expo-linear-gradient";
 import {
   Heart,
   X,
@@ -266,7 +269,8 @@ export default function JobOffers() {
   const tapGesture = Gesture.Tap().onStart(() => {
     // Ne pas ouvrir la modal si un swipe est en cours
     if (Math.abs(translateX.value) < 10) {
-      runOnJS(handleOpenModal)(currentJob);
+      const jobToOpen = availableJobs[currentIndex];
+      runOnJS(handleOpenModal)(jobToOpen);
     }
   });
 
@@ -314,23 +318,31 @@ export default function JobOffers() {
 
   if (isLoadingCandidateJobPosts || isLoadingApplications) {
     return (
-      <View className="flex-1 justify-center items-center">
-        <Text className="text-xl font-bold">Chargement des offres...</Text>
-      </View>
+      <ScreenWrapper>
+        <View style={{ backgroundColor: "#F7F7F7", flex: 1 }}>
+          <Header title="LES OFFRES" />
+          <View className="flex-1 justify-center items-center">
+            <Text className="text-xl font-bold">Chargement des offres...</Text>
+          </View>
+        </View>
+      </ScreenWrapper>
     );
   }
 
   if (availableJobs.length === 0) {
     return (
       <ScreenWrapper>
-        <View className="flex-1 justify-center items-center px-5">
-          <Text className="mb-5 text-2xl font-bold text-center">
-            Aucune nouvelle offre disponible
-          </Text>
-          <Text className="text-base text-center text-gray-500">
-            Vous avez déjà postulé à toutes les offres disponibles. Revenez plus
-            tard pour de nouvelles opportunités !
-          </Text>
+        <View style={{ backgroundColor: "#F7F7F7", flex: 1 }}>
+          <Header title="LES OFFRES" />
+          <View className="flex-1 justify-center items-center px-5">
+            <Text className="mb-5 text-2xl font-bold text-center">
+              Aucune nouvelle offre disponible
+            </Text>
+            <Text className="text-base text-center text-gray-500">
+              Vous avez déjà postulé à toutes les offres disponibles. Revenez
+              plus tard pour de nouvelles opportunités !
+            </Text>
+          </View>
         </View>
       </ScreenWrapper>
     );
@@ -339,16 +351,28 @@ export default function JobOffers() {
   if (currentIndex >= availableJobs.length) {
     return (
       <ScreenWrapper>
-        <View className="flex-1 justify-center items-center px-5">
-          <Text className="mb-5 text-2xl font-bold text-center">
-            Toutes les offres parcourues ! 🎉
-          </Text>
-          <TouchableOpacity
-            className="px-4 py-2 mt-5 bg-blue-500 rounded-lg"
-            onPress={() => setCurrentIndex(0)}
-          >
-            <Text className="text-base font-bold text-white">Recommencer</Text>
-          </TouchableOpacity>
+        <View style={{ backgroundColor: "#F7F7F7", flex: 1 }}>
+          <Header title="LES OFFRES" />
+          <View className="flex-1 justify-center items-center px-5">
+            <Text className="mb-5 text-2xl font-bold text-center">
+              Toutes les offres parcourues ! 🎉
+            </Text>
+            <TouchableOpacity
+              style={styles.restartButton}
+              onPress={() => setCurrentIndex(0)}
+            >
+              <LinearGradient
+                colors={["#4717F6", "#4717F6"]}
+                style={styles.restartButtonGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <Text className="text-base font-bold text-white">
+                  Recommencer
+                </Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
         </View>
       </ScreenWrapper>
     );
@@ -358,318 +382,334 @@ export default function JobOffers() {
 
   return (
     <ScreenWrapper>
-      <GestureHandlerRootView className="flex-1 bg-gray-100">
-        <View className="items-center pt-4 pb-2">
-          <Text className="text-base font-semibold text-center">
-            {currentIndex + 1} / {availableJobs.length}
-          </Text>
-        </View>
+      <View style={{ backgroundColor: "#F7F7F7", flex: 1 }}>
+        <Header title="LES OFFRES" />
 
-        <GestureDetector gesture={composedGestures}>
-          <ReanimatedAnimated.View
-            className="flex-1 mx-5 my-5 bg-white rounded-xl border border-gray-100 shadow-2xl"
-            style={[
-              animatedCardStyle,
-              {
-                shadowColor: "#000",
-                shadowOffset: {
-                  width: 0,
-                  height: 8,
-                },
-                shadowOpacity: 0.15,
-                shadowRadius: 12,
-                elevation: 8,
-              },
-            ]}
-          >
-            <View className="flex-1 justify-between p-6">
-              <View className="flex-1 justify-center items-center">
-                <View className="items-center mb-5 w-full">
-                  <Text className="mb-2 text-2xl font-bold text-center text-black">
-                    {currentJob.title}
-                  </Text>
-                  <View className="flex-row items-center">
-                    <Building2 size={16} color="#374151" />
-                    <Text className="ml-1 text-lg font-semibold text-center text-gray-700">
-                      {currentJob.company?.company_name ||
-                        "Entreprise inconnue"}
-                    </Text>
-                  </View>
-                </View>
+        <GestureHandlerRootView className="flex-1">
+          <View style={styles.progressContainer}>
+            <Text style={styles.progressText}>
+              {currentIndex + 1} / {availableJobs.length}
+            </Text>
+          </View>
 
-                <View className="mt-2 w-full">
-                  <View className="flex-row items-center mb-1">
-                    <MapPin size={18} color="#374151" />
-                    <Text className="ml-1 text-base text-gray-500">
-                      {currentJob.location}
-                    </Text>
-                  </View>
-                  <View className="flex-row items-center mb-1">
-                    <Briefcase size={18} color="#374151" />
-                    <Text className="ml-1 text-base text-gray-500">
-                      {currentJob.contract_type}
-                    </Text>
-                  </View>
-                  <View className="flex-row items-center mb-1">
-                    <DollarSign size={18} color="#22c55e" />
-                    <Text className="ml-1 text-lg font-bold text-green-500">
-                      {currentJob.salary_range}
-                    </Text>
-                  </View>
-                </View>
-
-                {currentJob.skills && currentJob.skills.length > 0 && (
-                  <View className="mt-5 w-full">
-                    <Text className="mb-2 text-sm text-left text-gray-500">
-                      Compétences requises :
-                    </Text>
-                    <View className="flex-row flex-wrap gap-1 justify-start">
-                      {currentJob.skills.slice(0, 3).map((skill) => (
-                        <View
-                          key={skill.id}
-                          className="bg-blue-100 px-2 py-1 rounded-xl mx-0.5"
-                        >
-                          <Text className="text-xs font-medium text-blue-800">
-                            {skill.name}
+          <GestureDetector gesture={composedGestures}>
+            <ReanimatedAnimated.View
+              style={[styles.cardContainer, animatedCardStyle]}
+            >
+              <View style={styles.card}>
+                <LinearGradient
+                  colors={[
+                    "rgba(255, 255, 255, 0.98)",
+                    "rgba(250, 250, 255, 1)",
+                  ]}
+                  style={styles.cardGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  {/* Header avec dégradé */}
+                  <View style={styles.cardHeaderSection}>
+                    <LinearGradient
+                      colors={["#4717F6", "#6366f1"]}
+                      style={styles.cardHeaderGradient}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                    >
+                      <View style={styles.cardHeaderContent}>
+                        <Text style={styles.jobTitleCard}>
+                          {currentJob.title}
+                        </Text>
+                        <View style={styles.companyRowCard}>
+                          <Building2
+                            size={16}
+                            color="rgba(255, 255, 255, 0.9)"
+                          />
+                          <Text style={styles.companyNameCard}>
+                            {currentJob.company?.company_name ||
+                              "Entreprise inconnue"}
                           </Text>
                         </View>
-                      ))}
-                      {currentJob.skills.length > 3 && (
-                        <View className="bg-blue-100 px-2 py-1 rounded-xl mx-0.5">
-                          <Text className="text-xs font-medium text-blue-800">
-                            +{currentJob.skills.length - 3}
-                          </Text>
-                        </View>
-                      )}
-                    </View>
-                  </View>
-                )}
-
-                {currentJob.description && (
-                  <Text
-                    className="mt-5 w-full text-sm italic text-left text-gray-500"
-                    numberOfLines={3}
-                    ellipsizeMode="tail"
-                  >
-                    {currentJob.description}
-                  </Text>
-                )}
-              </View>
-
-              <View className="relative z-10 items-center">
-                <TouchableOpacity
-                  className="justify-center items-center self-center px-4 py-2 bg-blue-500 rounded-lg"
-                  onPressIn={() => {
-                    isSwipeDisabled.value = true;
-                  }}
-                  onPressOut={() => {
-                    setTimeout(() => {
-                      isSwipeDisabled.value = false;
-                    }, 100);
-                  }}
-                  onPress={() => handleOpenModal(currentJob)}
-                >
-                  <Text className="text-base font-bold text-white">
-                    Voir plus
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Overlays animés */}
-            <ReanimatedAnimated.View
-              className="absolute inset-0 justify-center items-center rounded-xl bg-red-500/10"
-              style={[leftOverlayStyle]}
-            >
-              <View className="justify-center items-center px-5 py-4 rounded-2xl shadow-lg bg-white/90">
-                <X size={50} color="#ef4444" />
-                <Text className="mt-1 text-lg font-bold text-red-500">
-                  PASSER
-                </Text>
-              </View>
-            </ReanimatedAnimated.View>
-
-            <ReanimatedAnimated.View
-              className="absolute inset-0 justify-center items-center rounded-xl bg-green-500/10"
-              style={[rightOverlayStyle]}
-            >
-              <View className="justify-center items-center px-5 py-4 rounded-2xl shadow-lg bg-white/90">
-                <Heart size={50} color="#22c55e" />
-                <Text className="mt-1 text-lg font-bold text-green-500">
-                  POSTULER
-                </Text>
-              </View>
-            </ReanimatedAnimated.View>
-          </ReanimatedAnimated.View>
-        </GestureDetector>
-
-        <View className="flex-row gap-10 justify-center pb-4">
-          <TouchableOpacity
-            onPress={handlePass}
-            className="justify-center items-center p-4 bg-red-500 rounded-full w-15 h-15"
-          >
-            <X size={30} color="white" />
-          </TouchableOpacity>
-
-          {currentIndex > 0 && (
-            <TouchableOpacity
-              onPress={goToPrevious}
-              className="justify-center items-center p-4 bg-gray-500 rounded-full w-15 h-15"
-            >
-              <RotateCcw size={24} color="white" />
-            </TouchableOpacity>
-          )}
-
-          <TouchableOpacity
-            onPress={handleApply}
-            className="justify-center items-center p-4 bg-green-500 rounded-full w-15 h-15"
-          >
-            <Heart size={30} color="white" />
-          </TouchableOpacity>
-        </View>
-
-        {/* Légende explicative */}
-        <View className="px-6 pb-8">
-          <Text className="text-sm italic text-center text-gray-500">
-            Swipez ou utilisez les boutons pour trier les offres
-          </Text>
-        </View>
-
-        <Portal>
-          {isSheetVisible && (
-            <Animated.View
-              style={{
-                position: "absolute",
-                left: 0,
-                right: 0,
-                bottom: 0,
-                top: 0,
-                backgroundColor: "rgba(0,0,0,0.5)",
-                opacity: backdropAnim,
-                justifyContent: "flex-end",
-                zIndex: 100,
-              }}
-            >
-              <Animated.View
-                className="flex-1 w-full bg-white rounded-t-3xl"
-                style={{
-                  transform: [{ translateY: slideAnim }],
-                  maxHeight: screenHeight * 0.5,
-                  alignSelf: "flex-end",
-                }}
-              >
-                <View
-                  className="items-center py-4 bg-white rounded-t-3xl"
-                  {...panResponder.panHandlers}
-                >
-                  <View className="self-center w-12 h-1 bg-gray-300 rounded-full" />
-                </View>
-                <ScrollView
-                  className="flex-1 px-6 pb-1"
-                  showsVerticalScrollIndicator={true}
-                  bounces={true}
-                  contentContainerStyle={{ paddingBottom: 20 }}
-                >
-                  {/* En-tête */}
-                  <View className="items-center mb-6">
-                    <View className="flex-row gap-2 items-center mb-2">
-                      <Building2 size={24} color="#374151" />
-                      <Text className="text-2xl font-bold text-black">
-                        {selectedJob?.title}
-                      </Text>
-                    </View>
-                    <Text className="text-base text-center text-gray-500">
-                      {selectedJob?.company?.company_name ||
-                        "Entreprise inconnue"}
-                    </Text>
-                  </View>
-
-                  {/* Informations principales */}
-                  <View className="mb-6">
-                    <View className="flex-row items-center mb-4">
-                      <View className="items-center w-24">
-                        <MapPin size={20} color="#374151" />
-                        <Text className="mt-1 text-sm font-medium text-gray-500">
-                          Localisation
-                        </Text>
                       </View>
-                      <Text className="flex-1 text-base text-gray-700">
-                        {selectedJob?.location || "Non renseigné"}
-                      </Text>
-                    </View>
-
-                    <View className="flex-row items-center mb-4">
-                      <View className="items-center w-24">
-                        <Briefcase size={20} color="#374151" />
-                        <Text className="mt-1 text-sm font-medium text-gray-500">
-                          Contrat
-                        </Text>
-                      </View>
-                      <Text className="flex-1 text-base text-gray-700">
-                        {selectedJob?.contract_type || "Non renseigné"}
-                      </Text>
-                    </View>
-
-                    <View className="flex-row items-center mb-4">
-                      <View className="items-center w-24">
-                        <DollarSign size={20} color="#22c55e" />
-                        <Text className="mt-1 text-sm font-medium text-gray-500">
-                          Salaire
-                        </Text>
-                      </View>
-                      <Text className="flex-1 text-base font-bold text-green-500">
-                        {selectedJob?.salary_range || "Non renseigné"}
-                      </Text>
-                    </View>
+                    </LinearGradient>
                   </View>
 
-                  {/* Description complète */}
-                  <View className="mb-6">
-                    <Text className="mb-3 text-lg font-semibold text-gray-700">
-                      Description du poste
-                    </Text>
-                    <Text className="text-base leading-6 text-gray-500">
-                      {selectedJob?.description ||
-                        "Aucune description fournie."}
-                    </Text>
-                  </View>
-
-                  {/* Compétences */}
-                  {selectedJob?.skills && selectedJob.skills.length > 0 && (
-                    <View className="mb-6">
-                      <Text className="mb-3 text-lg font-semibold text-gray-700">
-                        Compétences requises
-                      </Text>
-                      <View className="flex-row flex-wrap gap-2">
-                        {selectedJob.skills.map((skill) => (
-                          <View
-                            key={skill.id}
-                            className="bg-blue-100 px-3 py-1.5 rounded-2xl"
-                          >
-                            <Text className="text-sm font-medium text-blue-800">
-                              {skill.name}
+                  <View style={{ flex: 1, padding: 16 }}>
+                    {/* Informations principales */}
+                    <View style={styles.infoSectionCard}>
+                      <View style={styles.infoCardContainer}>
+                        <View style={styles.infoCard}>
+                          <MapPin size={18} color="#4717F6" />
+                          <View style={styles.infoCardContent}>
+                            <Text style={styles.infoCardLabel}>
+                              Localisation
+                            </Text>
+                            <Text style={styles.infoCardValue}>
+                              {currentJob.location}
                             </Text>
                           </View>
-                        ))}
+                        </View>
+
+                        <View style={styles.infoCard}>
+                          <Briefcase size={18} color="#4717F6" />
+                          <View style={styles.infoCardContent}>
+                            <Text style={styles.infoCardLabel}>Contrat</Text>
+                            <Text style={styles.infoCardValue}>
+                              {currentJob.contract_type}
+                            </Text>
+                          </View>
+                        </View>
+
+                        <View style={styles.infoCard}>
+                          <DollarSign size={18} color="#22c55e" />
+                          <View style={styles.infoCardContent}>
+                            <Text style={styles.infoCardLabel}>Salaire</Text>
+                            <Text style={styles.salaryCardValue}>
+                              {currentJob.salary_range}
+                            </Text>
+                          </View>
+                        </View>
                       </View>
                     </View>
-                  )}
 
-                  {/* Certifications */}
-                  {selectedJob?.certifications &&
-                    selectedJob.certifications.length > 0 && (
-                      <View className="mb-6">
-                        <Text className="mb-3 text-lg font-semibold text-gray-700">
-                          Certifications
+                    {/* Compétences */}
+                    {currentJob.skills && currentJob.skills.length > 0 && (
+                      <View style={styles.skillsSectionCard}>
+                        <Text style={styles.sectionTitleCard}>
+                          Compétences requises
                         </Text>
-                        <View className="flex-row flex-wrap gap-2">
-                          {selectedJob.certifications.map((cert) => (
-                            <View
-                              key={cert.id}
-                              className="bg-purple-100 px-3 py-1.5 rounded-2xl"
-                            >
-                              <Text className="text-sm font-medium text-purple-700">
-                                {cert.name}
+                        <View style={styles.skillsContainerCard}>
+                          {currentJob.skills.slice(0, 4).map((skill) => (
+                            <View key={skill.id} style={styles.skillBadgeCard}>
+                              <Text style={styles.skillTextCard}>
+                                {skill.name}
+                              </Text>
+                            </View>
+                          ))}
+                          {currentJob.skills.length > 4 && (
+                            <View style={styles.skillBadgeExtra}>
+                              <Text style={styles.skillTextExtra}>
+                                +{currentJob.skills.length - 4}
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+                      </View>
+                    )}
+
+                    {/* Description */}
+                    {currentJob.description && (
+                      <View style={styles.descriptionSectionCard}>
+                        <Text style={styles.sectionTitleCard}>Description</Text>
+                        <View style={styles.descriptionContainer}>
+                          <Text
+                            style={styles.descriptionTextCard}
+                            numberOfLines={3}
+                          >
+                            {currentJob.description}
+                          </Text>
+                        </View>
+                      </View>
+                    )}
+                  </View>
+
+                  {/* Bouton "Voir plus" */}
+                  <View style={styles.cardFooter}>
+                    <TouchableOpacity
+                      style={styles.seeMoreButton}
+                      onPressIn={() => {
+                        isSwipeDisabled.value = true;
+                      }}
+                      onPressOut={() => {
+                        setTimeout(() => {
+                          isSwipeDisabled.value = false;
+                        }, 100);
+                      }}
+                      onPress={() => {
+                        const jobAtPress = availableJobs[currentIndex];
+                        handleOpenModal(jobAtPress);
+                      }}
+                    >
+                      <LinearGradient
+                        colors={["#01E6C3", "#00D4AA"]}
+                        style={styles.seeMoreGradient}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                      >
+                        <Text style={styles.seeMoreText}>
+                          Voir plus de détails
+                        </Text>
+                      </LinearGradient>
+                    </TouchableOpacity>
+                  </View>
+                </LinearGradient>
+              </View>
+
+              {/* Overlays animés */}
+              <ReanimatedAnimated.View
+                style={[styles.leftOverlay, leftOverlayStyle]}
+              >
+                <View style={styles.overlayContent}>
+                  <X size={50} color="#ffffff" />
+                  <Text style={styles.overlayTextRed}>PASSER</Text>
+                </View>
+              </ReanimatedAnimated.View>
+
+              <ReanimatedAnimated.View
+                style={[styles.rightOverlay, rightOverlayStyle]}
+              >
+                <View style={styles.overlayContent}>
+                  <Heart size={50} color="#ffffff" />
+                  <Text style={styles.overlayTextGreen}>POSTULER</Text>
+                </View>
+              </ReanimatedAnimated.View>
+            </ReanimatedAnimated.View>
+          </GestureDetector>
+
+          {/* Boutons d'action */}
+          <View style={styles.actionButtons}>
+            <TouchableOpacity
+              onPress={handlePass}
+              style={styles.actionButtonRed}
+            >
+              <X size={30} color="white" />
+            </TouchableOpacity>
+
+            {currentIndex > 0 && (
+              <TouchableOpacity
+                onPress={goToPrevious}
+                style={styles.actionButtonGray}
+              >
+                <RotateCcw size={24} color="white" />
+              </TouchableOpacity>
+            )}
+
+            <TouchableOpacity
+              onPress={handleApply}
+              style={styles.actionButtonGreen}
+            >
+              <Heart size={30} color="white" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Légende explicative */}
+          <View style={styles.legendContainer}>
+            <Text style={styles.legendText}>
+              Swipez ou utilisez les boutons pour trier les offres
+            </Text>
+          </View>
+
+          <Portal>
+            {isSheetVisible && (
+              <Animated.View
+                style={[styles.modalBackdrop, { opacity: backdropAnim }]}
+              >
+                <Animated.View
+                  style={[
+                    styles.modalSheet,
+                    { transform: [{ translateY: slideAnim }] },
+                  ]}
+                >
+                  <View
+                    style={styles.modalHandle}
+                    {...panResponder.panHandlers}
+                  >
+                    <View style={styles.handleBar} />
+                  </View>
+
+                  <ScrollView
+                    style={styles.modalContent}
+                    showsVerticalScrollIndicator={true}
+                    bounces={true}
+                    contentContainerStyle={{ paddingBottom: 32 }}
+                  >
+                    {/* En-tête modal */}
+                    <View style={styles.modalHeaderContainer}>
+                      <LinearGradient
+                        colors={["#4717F6", "#6366f1"]}
+                        style={styles.modalHeaderGradient}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                      >
+                        <View style={styles.modalHeaderContent}>
+                          <Text style={styles.modalTitle}>
+                            {selectedJob?.title}
+                          </Text>
+                          <View style={styles.modalCompanyRow}>
+                            <Building2
+                              size={20}
+                              color="rgba(255, 255, 255, 0.9)"
+                            />
+                            <Text style={styles.modalCompany}>
+                              {selectedJob?.company?.company_name ||
+                                "Entreprise inconnue"}
+                            </Text>
+                          </View>
+                        </View>
+                      </LinearGradient>
+                    </View>
+
+                    {/* Informations principales modal */}
+                    <View style={styles.modalInfoSection}>
+                      <View style={styles.modalInfoCard}>
+                        <MapPin size={20} color="#4717F6" />
+                        <View style={styles.modalInfoContent}>
+                          <Text style={styles.modalInfoLabel}>
+                            Localisation
+                          </Text>
+                          <Text style={styles.modalInfoValue}>
+                            {selectedJob?.location || "Non renseigné"}
+                          </Text>
+                        </View>
+                      </View>
+
+                      <View style={styles.modalInfoCard}>
+                        <Briefcase size={20} color="#4717F6" />
+                        <View style={styles.modalInfoContent}>
+                          <Text style={styles.modalInfoLabel}>
+                            Type de contrat
+                          </Text>
+                          <Text style={styles.modalInfoValue}>
+                            {selectedJob?.contract_type || "Non renseigné"}
+                          </Text>
+                        </View>
+                      </View>
+
+                      <View style={styles.modalInfoCard}>
+                        <DollarSign size={20} color="#22c55e" />
+                        <View style={styles.modalInfoContent}>
+                          <Text style={styles.modalInfoLabel}>
+                            Rémunération
+                          </Text>
+                          <Text style={styles.modalSalaryValue}>
+                            {selectedJob?.salary_range || "Non renseigné"}
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+
+                    {/* Description complète */}
+                    <View style={styles.modalSection}>
+                      <Text style={styles.modalSectionTitle}>
+                        Description du poste
+                      </Text>
+                      <View style={styles.modalDescriptionContainer}>
+                        <Text style={styles.modalDescription}>
+                          {selectedJob?.description ||
+                            "Aucune description fournie."}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* Compétences modal */}
+                    {selectedJob?.skills && selectedJob.skills.length > 0 && (
+                      <View style={styles.modalSection}>
+                        <Text style={styles.modalSectionTitle}>
+                          Compétences requises
+                        </Text>
+                        <View style={styles.modalSkillsContainer}>
+                          {selectedJob.skills.map((skill) => (
+                            <View key={skill.id} style={styles.modalSkillBadge}>
+                              <Text style={styles.modalSkillText}>
+                                {skill.name}
                               </Text>
                             </View>
                           ))}
@@ -677,39 +717,586 @@ export default function JobOffers() {
                       </View>
                     )}
 
-                  {/* Boutons d'action */}
-                  <View className="flex-row gap-4 justify-center mt-6 mb-4">
+                    {/* Certifications */}
+                    {selectedJob?.certifications &&
+                      selectedJob.certifications.length > 0 && (
+                        <View style={styles.modalSection}>
+                          <Text style={styles.modalSectionTitle}>
+                            Certifications
+                          </Text>
+                          <View style={styles.modalSkillsContainer}>
+                            {selectedJob.certifications.map((cert) => (
+                              <View key={cert.id} style={styles.modalCertBadge}>
+                                <Text style={styles.modalCertText}>
+                                  {cert.name}
+                                </Text>
+                              </View>
+                            ))}
+                          </View>
+                        </View>
+                      )}
+
+                    {/* Boutons d'action modal */}
+                    <View style={styles.modalActions}>
+                      <TouchableOpacity
+                        style={styles.modalActionGreen}
+                        onPress={() => handleModalAction("right")}
+                      >
+                        <LinearGradient
+                          colors={["#36E9CD", "#36E9CD"]}
+                          style={styles.modalActionGradient}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 1 }}
+                        >
+                          <Heart size={18} color="white" />
+                          <Text style={styles.modalActionText}>Postuler</Text>
+                        </LinearGradient>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={styles.modalActionRed}
+                        onPress={() => handleModalAction("left")}
+                      >
+                        <LinearGradient
+                          colors={["#FF2056", "#FF2056"]}
+                          style={styles.modalActionGradient}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 1 }}
+                        >
+                          <X size={18} color="white" />
+                          <Text style={styles.modalActionText}>Passer</Text>
+                        </LinearGradient>
+                      </TouchableOpacity>
+                    </View>
+
                     <TouchableOpacity
-                      className="flex-1 items-center px-6 py-3 bg-green-500 rounded-lg"
-                      onPress={() => handleModalAction("right")}
+                      style={styles.modalClose}
+                      onPress={handleCloseModal}
                     >
-                      <Text className="text-base font-semibold text-white">
-                        Postuler
-                      </Text>
+                      <Text style={styles.modalCloseText}>Fermer</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity
-                      className="flex-1 items-center px-6 py-3 bg-red-500 rounded-lg"
-                      onPress={() => handleModalAction("left")}
-                    >
-                      <Text className="text-base font-semibold text-white">
-                        Passer
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                  <TouchableOpacity
-                    className="items-center self-center px-6 py-3 mt-2 mb-4 bg-gray-200 rounded-lg"
-                    onPress={handleCloseModal}
-                  >
-                    <Text className="text-base font-semibold text-gray-700">
-                      Fermer
-                    </Text>
-                  </TouchableOpacity>
-                </ScrollView>
+                  </ScrollView>
+                </Animated.View>
               </Animated.View>
-            </Animated.View>
-          )}
-        </Portal>
-      </GestureHandlerRootView>
+            )}
+          </Portal>
+        </GestureHandlerRootView>
+      </View>
     </ScreenWrapper>
   );
 }
+
+const styles = StyleSheet.create({
+  progressContainer: {
+    alignItems: "center",
+    paddingTop: 4,
+    paddingBottom: 2,
+  },
+  progressText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#374151",
+  },
+  cardContainer: {
+    flex: 1,
+    marginHorizontal: 16,
+    marginVertical: 8,
+  },
+  card: {
+    flex: 1,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E5E5E5",
+    // Shadow for iOS
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    // Shadow for Android
+    elevation: 8,
+  },
+  cardGradient: {
+    flex: 1,
+    borderRadius: 12,
+  },
+
+  cardHeaderSection: {
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    overflow: "hidden",
+  },
+  cardHeaderGradient: {
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+  },
+  cardHeaderContent: {
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 16,
+  },
+  jobTitleCard: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "white",
+    textAlign: "center",
+    marginBottom: 6,
+  },
+  companyRowCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  companyNameCard: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "rgba(255, 255, 255, 0.9)",
+  },
+  infoSectionCard: {
+    marginBottom: 14,
+  },
+  infoCardContainer: {
+    gap: 8,
+  },
+  infoCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    backgroundColor: "rgba(71, 23, 246, 0.05)",
+    padding: 10,
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: "#4717F6",
+  },
+  infoCardContent: {
+    flex: 1,
+  },
+  infoCardLabel: {
+    fontSize: 12,
+    color: "#6B7280",
+    fontWeight: "600",
+    marginBottom: 2,
+  },
+  infoCardValue: {
+    fontSize: 14,
+    color: "#374151",
+    fontWeight: "700",
+  },
+  salaryCardValue: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#22c55e",
+  },
+  skillsSectionCard: {
+    marginBottom: 14,
+  },
+  sectionTitleCard: {
+    fontSize: 15,
+    color: "#374151",
+    fontWeight: "700",
+    marginBottom: 8,
+  },
+  skillsContainerCard: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  skillBadgeCard: {
+    backgroundColor: "#4717F6",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    // Shadow for iOS
+    shadowColor: "#4717F6",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    // Shadow for Android
+    elevation: 3,
+  },
+  skillTextCard: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "white",
+  },
+  skillBadgeExtra: {
+    backgroundColor: "#6B7280",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    // Shadow for iOS
+    shadowColor: "#6B7280",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    // Shadow for Android
+    elevation: 3,
+  },
+  skillTextExtra: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "white",
+  },
+  descriptionSectionCard: {
+    marginBottom: 12,
+  },
+  descriptionContainer: {
+    padding: 12,
+    backgroundColor: "rgba(243, 244, 246, 0.8)",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+  },
+  descriptionTextCard: {
+    fontSize: 14,
+    color: "#374151",
+    lineHeight: 20,
+    textAlign: "justify",
+  },
+  cardFooter: {
+    padding: 14,
+    alignItems: "center",
+  },
+  seeMoreButton: {
+    alignSelf: "center",
+  },
+  seeMoreGradient: {
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  seeMoreText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "white",
+  },
+  leftOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 32, 86, 0.85)",
+    borderRadius: 12,
+  },
+  rightOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(54, 233, 205, 0.85)",
+    borderRadius: 12,
+  },
+  overlayContent: {
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    paddingHorizontal: 24,
+    paddingVertical: 20,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: "rgba(255, 255, 255, 0.3)",
+    // Shadow for iOS
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    // Shadow for Android
+    elevation: 6,
+  },
+  overlayTextRed: {
+    marginTop: 8,
+    fontSize: 20,
+    fontWeight: "900",
+    color: "#ffffff",
+    letterSpacing: 1,
+  },
+  overlayTextGreen: {
+    marginTop: 8,
+    fontSize: 20,
+    fontWeight: "900",
+    color: "#ffffff",
+    letterSpacing: 1,
+  },
+  actionButtons: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 40,
+    paddingBottom: 12,
+  },
+  actionButtonRed: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "#FF2056",
+    justifyContent: "center",
+    alignItems: "center",
+    // Shadow for iOS
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    // Shadow for Android
+    elevation: 6,
+  },
+  actionButtonGray: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "#6B7280",
+    justifyContent: "center",
+    alignItems: "center",
+    // Shadow for iOS
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    // Shadow for Android
+    elevation: 6,
+  },
+  actionButtonGreen: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "#36E9CD",
+    justifyContent: "center",
+    alignItems: "center",
+    // Shadow for iOS
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    // Shadow for Android
+    elevation: 6,
+  },
+  legendContainer: {
+    paddingHorizontal: 24,
+    paddingBottom: 20,
+  },
+  legendText: {
+    fontSize: 14,
+    fontStyle: "italic",
+    textAlign: "center",
+    color: "#6B7280",
+  },
+  restartButton: {
+    marginTop: 20,
+  },
+  restartButtonGradient: {
+    paddingHorizontal: 32,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  // Modal styles
+  modalBackdrop: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    top: 0,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+    zIndex: 100,
+  },
+  modalSheet: {
+    backgroundColor: "white",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    height: "70%",
+    alignSelf: "flex-end",
+    width: "100%",
+    // Shadow for iOS
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    // Shadow for Android
+    elevation: 10,
+  },
+  modalHandle: {
+    alignItems: "center",
+    paddingVertical: 16,
+    backgroundColor: "white",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+  },
+  handleBar: {
+    width: 48,
+    height: 4,
+    backgroundColor: "#D1D5DB",
+    borderRadius: 2,
+  },
+  modalContent: {
+    flex: 1,
+    paddingHorizontal: 24,
+  },
+
+  modalHeaderContainer: {
+    marginBottom: 24,
+    borderRadius: 12,
+    overflow: "hidden",
+  },
+  modalHeaderGradient: {
+    borderRadius: 12,
+  },
+  modalHeaderContent: {
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 20,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "white",
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  modalCompanyRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  modalCompany: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "rgba(255, 255, 255, 0.9)",
+    textAlign: "center",
+  },
+  modalInfoSection: {
+    marginBottom: 24,
+  },
+  modalInfoCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+    backgroundColor: "rgba(71, 23, 246, 0.05)",
+    padding: 16,
+    borderRadius: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: "#4717F6",
+  },
+  modalInfoContent: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  modalInfoLabel: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#6B7280",
+    marginBottom: 4,
+  },
+  modalInfoValue: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#374151",
+  },
+  modalSalaryValue: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#22c55e",
+  },
+  modalSection: {
+    marginBottom: 24,
+  },
+  modalSectionTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#374151",
+    marginBottom: 12,
+  },
+  modalDescriptionContainer: {
+    padding: 12,
+    backgroundColor: "rgba(243, 244, 246, 0.8)",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+  },
+  modalDescription: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: "#6B7280",
+  },
+  modalSkillsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  modalSkillBadge: {
+    backgroundColor: "#4717F6",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 16,
+    // Shadow for iOS
+    shadowColor: "#4717F6",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    // Shadow for Android
+    elevation: 3,
+  },
+  modalSkillText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "white",
+  },
+  modalCertBadge: {
+    backgroundColor: "#7C3AED",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 16,
+    // Shadow for iOS
+    shadowColor: "#7C3AED",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    // Shadow for Android
+    elevation: 3,
+  },
+  modalCertText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "white",
+  },
+  modalActions: {
+    flexDirection: "row",
+    gap: 16,
+    marginBottom: 16,
+  },
+  modalActionGreen: {
+    flex: 1,
+  },
+  modalActionRed: {
+    flex: 1,
+  },
+  modalActionGradient: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 16,
+    borderRadius: 8,
+    gap: 8,
+  },
+  modalActionText: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "white",
+  },
+  modalClose: {
+    alignItems: "center",
+    alignSelf: "center",
+    paddingHorizontal: 32,
+    paddingVertical: 12,
+    backgroundColor: "#F3F4F6",
+    borderRadius: 8,
+  },
+  modalCloseText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#374151",
+  },
+});

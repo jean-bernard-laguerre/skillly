@@ -29,7 +29,7 @@ const StatusBadge = ({ status }: { status: string }) => {
       case "accepted":
         return {
           backgroundColor: "#36E9CD",
-          textColor: "#ffffff",
+          textColor: "#292929",
           label: "Acceptée",
         };
       case "rejected":
@@ -47,7 +47,7 @@ const StatusBadge = ({ status }: { status: string }) => {
       default:
         return {
           backgroundColor: "#FFB366",
-          textColor: "#ffffff",
+          textColor: "#292929",
           label: "En attente",
         };
     }
