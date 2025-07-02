@@ -93,14 +93,17 @@ export default function CandidateHome() {
                 <Text style={styles.matchesEmoji}>🤝</Text>
                 <Text style={styles.matchesMainText}>
                   {newMatches ? `${newMatches} nouveaux` : "Pas de nouveaux"}{" "}
-                  matchs
+                  match(s)
                 </Text>
               </View>
 
               {/* Quick Stats */}
               <View style={styles.quickStats}>
                 <Text style={styles.statsEmoji}>🧭</Text>
-                <Text style={styles.statsText}>1313 offres ouvertes</Text>
+                <View style={styles.statsNumberContainer}>
+                  <Text style={styles.statsNumber}>1313</Text>
+                  <Text style={styles.statsText}>offres ouvertes</Text>
+                </View>
               </View>
             </View>
 
@@ -108,15 +111,15 @@ export default function CandidateHome() {
             <View style={styles.rightColumn}>
               {/* New Opportunities (prend toute la hauteur) */}
               <View style={styles.newOpportunities}>
-                <View style={styles.opportunitiesHeader}>
+                <Text style={styles.opportunitiesEmoji}>🌟</Text>
+                <View style={styles.opportunitiesTextContainer}>
                   <Text style={styles.opportunitiesNumber}>
                     {newOpportunities}
                   </Text>
-                  <Text style={styles.opportunitiesEmoji}>✨</Text>
+                  <Text style={styles.opportunitiesText}>
+                    nouvelles opportunités aujourd'hui
+                  </Text>
                 </View>
-                <Text style={styles.opportunitiesText}>nouvelles</Text>
-                <Text style={styles.opportunitiesText}>opportunités</Text>
-                <Text style={styles.opportunitiesText}>aujourd'hui</Text>
               </View>
             </View>
           </View>
@@ -162,27 +165,24 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 12,
     marginBottom: 12,
-    backgroundColor: "green",
   },
   leftColumn: {
-    flex: 1,
+    flexBasis: "50%",
     gap: 12,
-    backgroundColor: "blue",
   },
   rightColumn: {
-    flex: 1,
+    flexBasis: "50%",
   },
   newMatches: {
     height: 89,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "space-around",
     padding: 8,
     gap: 8,
     borderWidth: 1,
     borderColor: "#4717F6",
     borderRadius: 8,
-    backgroundColor: "red",
   },
   matchesEmoji: {
     fontSize: 22,
@@ -194,6 +194,9 @@ const styles = StyleSheet.create({
   },
   newOpportunities: {
     height: 190,
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
     paddingHorizontal: 16,
     paddingVertical: 12,
     backgroundColor: "white",
@@ -201,10 +204,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#e5e7eb",
   },
-  opportunitiesHeader: {
-    flexDirection: "row",
+  opportunitiesTextContainer: {
+    flexDirection: "column",
     justifyContent: "space-between",
-    alignItems: "flex-start",
+    alignItems: "center",
+    gap: 8,
     marginBottom: 12,
   },
   opportunitiesNumber: {
@@ -218,6 +222,7 @@ const styles = StyleSheet.create({
   opportunitiesText: {
     fontSize: 14,
     color: "#6b7280",
+    textAlign: "center",
   },
   quickStats: {
     height: 89,
@@ -234,9 +239,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginRight: 8,
   },
+  statsNumberContainer: {
+    flexDirection: "column",
+    alignItems: "flex-start",
+    justifyContent: "center",
+  },
   statsText: {
     fontSize: 14,
     fontWeight: "500",
-    color: "#374151",
+    color: "#270D87",
+  },
+  statsNumber: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#270D87",
   },
 });
