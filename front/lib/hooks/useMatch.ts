@@ -1,8 +1,22 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as MatchService from "@/services/match.service";
+import { useAuth } from "@/context/AuthContext";
 
 export const useMatch = () => {
   const queryClient = useQueryClient();
+  const { role } = useAuth();
+
+  // Query pour récupérer les matchs du candidat
+  const {
+    data: candidateMatches,
+    isLoading: isLoadingCandidateMatches,
+    error: candidateMatchesError,
+    refetch: refetchCandidateMatches,
+  } = useQuery({
+    queryKey: ["candidateMatches"],
+    queryFn: MatchService.getCandidateMatches,
+    enabled: role === "candidate",
+  });
 
   const {
     mutate: createMatch,
@@ -12,15 +26,18 @@ export const useMatch = () => {
     mutationFn: MatchService.createMatch,
     onSuccess: () => {
       // Invalidate queries that should be refreshed after a match is created
-      // For example, invalidate applications and matches for the recruiter view
       queryClient.invalidateQueries({ queryKey: ["applications"] });
       queryClient.invalidateQueries({ queryKey: ["matches"] });
-      // Potentially invalidate candidate's applications/matches view too if applicable
-      // queryClient.invalidateQueries({ queryKey: ["myApplications"] });
+      queryClient.invalidateQueries({ queryKey: ["candidateMatches"] });
+      queryClient.invalidateQueries({ queryKey: ["myApplications"] });
     },
   });
 
   return {
+    candidateMatches,
+    isLoadingCandidateMatches,
+    candidateMatchesError,
+    refetchCandidateMatches,
     createMatch,
     isCreatingMatch,
     createMatchError,

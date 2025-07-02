@@ -31,4 +31,14 @@ export const createMatch = async (
   }
 };
 
-// Add other match service functions here if needed (e.g., getMatches, deleteMatch)
+export const getCandidateMatches = async (): Promise<Match[]> => {
+  try {
+    const response = await instance.get<Match[]>("/match/me");
+    return response.data;
+  } catch (error) {
+    console.error("Erreur lors de la récupération des matchs:", error);
+    throw error;
+  }
+};
+
+// Add other match service functions here if needed (e.g., deleteMatch)
