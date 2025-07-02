@@ -5,10 +5,13 @@ import {
   ScrollView,
   ActivityIndicator,
   Pressable,
+  StyleSheet,
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { useApplication } from "@/lib/hooks/useApplication";
 import { Check, X, Clock, Star } from "lucide-react-native";
 import ScreenWrapper from "@/navigation/ScreenWrapper";
+import Header from "@/components/Header";
 
 type Status = "all" | "pending" | "matched" | "rejected" | "accepted";
 
@@ -49,30 +52,57 @@ const FilterButton = ({
   status: Status;
   selectedStatus: Status;
   onPress: () => void;
-}) => (
-  <Pressable
-    onPress={onPress}
-    className={`px-3 py-1.5 rounded-full mr-2 ${
-      selectedStatus === status ? "bg-blue-500" : "bg-gray-200"
-    }`}
-  >
-    <Text
-      className={`text-sm ${
-        selectedStatus === status ? "text-white" : "text-gray-600"
-      }`}
-    >
-      {status === "all"
-        ? "Toutes"
-        : status === "pending"
-        ? "En attente"
-        : status === "matched"
-        ? "Matches"
-        : status === "rejected"
-        ? "Refusées"
-        : "Acceptées"}
-    </Text>
-  </Pressable>
-);
+}) => {
+  const isSelected = selectedStatus === status;
+
+  const getButtonText = () => {
+    switch (status) {
+      case "all":
+        return "Toutes";
+      case "pending":
+        return "En attente";
+      case "matched":
+        return "Matches";
+      case "rejected":
+        return "Refusées";
+      case "accepted":
+        return "Acceptées";
+      default:
+        return "Toutes";
+    }
+  };
+
+  if (isSelected) {
+    return (
+      <Pressable onPress={onPress} style={styles.filterButtonSelected}>
+        <LinearGradient
+          colors={["#4717F6", "#4717F6"]}
+          style={styles.selectedButtonGradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        >
+          <LinearGradient
+            colors={[
+              "rgba(242, 242, 242, 0.0875)",
+              "rgba(242, 242, 242, 0.35)",
+            ]}
+            style={styles.selectedButtonOverlay}
+            start={{ x: 0.2, y: 1 }}
+            end={{ x: 0.8, y: 0 }}
+          >
+            <Text style={styles.selectedButtonText}>{getButtonText()}</Text>
+          </LinearGradient>
+        </LinearGradient>
+      </Pressable>
+    );
+  }
+
+  return (
+    <Pressable onPress={onPress} style={styles.filterButtonUnselected}>
+      <Text style={styles.unselectedButtonText}>{getButtonText()}</Text>
+    </Pressable>
+  );
+};
 
 const MyApplications = () => {
   const { applications, isLoadingApplications } = useApplication();
@@ -97,7 +127,10 @@ const MyApplications = () => {
     return (
       <ScreenWrapper>
         <View className="flex-1 justify-center items-center bg-gray-100">
-          <Text className="mb-5 text-2xl font-bold">Mes candidatures</Text>
+          <Header
+            title="Mes candidatures"
+            subtitle="Suis l'avancée de tes candidatures en un coup d'œil  👀"
+          />
           <Text className="text-gray-600">
             Vous n'avez pas encore de candidatures
           </Text>
@@ -109,36 +142,63 @@ const MyApplications = () => {
   return (
     <ScreenWrapper>
       <View className="flex-1 bg-gray-100">
-        <Text className="p-4 text-2xl font-bold">Mes candidatures</Text>
-        <View className="px-4 py-2">
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <FilterButton
-              status="all"
-              selectedStatus={selectedStatus}
-              onPress={() => setSelectedStatus("all")}
-            />
-            <FilterButton
-              status="pending"
-              selectedStatus={selectedStatus}
-              onPress={() => setSelectedStatus("pending")}
-            />
-            <FilterButton
-              status="matched"
-              selectedStatus={selectedStatus}
-              onPress={() => setSelectedStatus("matched")}
-            />
-            <FilterButton
-              status="rejected"
-              selectedStatus={selectedStatus}
-              onPress={() => setSelectedStatus("rejected")}
-            />
-            <FilterButton
-              status="accepted"
-              selectedStatus={selectedStatus}
-              onPress={() => setSelectedStatus("accepted")}
-            />
-          </ScrollView>
+        <Header
+          title="Mes candidatures"
+          subtitle="Suis l'avancée de tes candidatures en un coup d'œil  👀"
+        />
+
+        {/* Container avec gradient pour les filtres */}
+        <View style={styles.filtersContainer}>
+          <LinearGradient
+            colors={["#C6B7FC", "#C6B7FC"]}
+            style={styles.filtersGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            <LinearGradient
+              colors={[
+                "rgba(242, 242, 242, 0.1625)",
+                "rgba(242, 242, 242, 0.65)",
+              ]}
+              style={styles.filtersOverlay}
+              start={{ x: 0.2, y: 1 }}
+              end={{ x: 0.8, y: 0 }}
+            >
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.filtersScrollContainer}
+              >
+                <FilterButton
+                  status="all"
+                  selectedStatus={selectedStatus}
+                  onPress={() => setSelectedStatus("all")}
+                />
+                <FilterButton
+                  status="pending"
+                  selectedStatus={selectedStatus}
+                  onPress={() => setSelectedStatus("pending")}
+                />
+                <FilterButton
+                  status="matched"
+                  selectedStatus={selectedStatus}
+                  onPress={() => setSelectedStatus("matched")}
+                />
+                <FilterButton
+                  status="rejected"
+                  selectedStatus={selectedStatus}
+                  onPress={() => setSelectedStatus("rejected")}
+                />
+                <FilterButton
+                  status="accepted"
+                  selectedStatus={selectedStatus}
+                  onPress={() => setSelectedStatus("accepted")}
+                />
+              </ScrollView>
+            </LinearGradient>
+          </LinearGradient>
         </View>
+
         <ScrollView className="flex-1 px-4">
           {filteredApplications.map((application) => (
             <View
@@ -180,5 +240,68 @@ const MyApplications = () => {
     </ScreenWrapper>
   );
 };
+
+const styles = StyleSheet.create({
+  filtersContainer: {
+    paddingLeft: 12,
+    marginBottom: 4,
+  },
+  filtersGradient: {
+    borderTopLeftRadius: 20,
+    borderBottomLeftRadius: 20,
+  },
+  filtersOverlay: {
+    borderTopLeftRadius: 20,
+    borderBottomLeftRadius: 20,
+    padding: 4,
+  },
+  filtersScrollContainer: {
+    paddingHorizontal: 4,
+    gap: 8,
+  },
+  filterButtonSelected: {
+    marginRight: 8,
+  },
+  selectedButtonGradient: {
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#E5E5E5",
+    // Shadow for iOS
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.02,
+    shadowRadius: 2,
+    // Shadow for Android
+    elevation: 1,
+  },
+  selectedButtonOverlay: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    // Additional shadow
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  selectedButtonText: {
+    fontSize: 14,
+    fontWeight: "900",
+    color: "white",
+  },
+  filterButtonUnselected: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: "#F3F4F6",
+    borderRadius: 20,
+    marginRight: 8,
+  },
+  unselectedButtonText: {
+    fontSize: 14,
+    fontWeight: "900",
+    color: "#525252",
+  },
+});
 
 export default MyApplications;
