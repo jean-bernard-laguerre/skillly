@@ -5,7 +5,7 @@ import { Application } from "@/types/interfaces";
 export const getMyApplications = async (): Promise<Application[]> => {
   try {
     const response = await instance.get<Application[]>(
-      "/application/me?populate=JobPost"
+      "/application/me?populate=JobPost&populate=JobPost.Company"
     );
     return response.data;
   } catch (error) {
