@@ -9,18 +9,54 @@ import {
   Image,
   StyleSheet,
 } from "react-native";
-import { AlarmClock, Star, Briefcase, Users } from "lucide-react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { AlarmClock } from "lucide-react-native";
+import { useApplication } from "@/lib/hooks/useApplication";
+import { useJobPost } from "@/lib/hooks/useJobPost";
+import { useMemo } from "react";
+import { useNavigation } from "@react-navigation/native";
 
 export default function CandidateHome() {
   const { handleLogOut, user } = useAuth();
+  const { applications, isLoadingApplications } = useApplication();
+  const { candidateJobPosts, isLoadingCandidateJobPosts } = useJobPost();
+  const navigation = useNavigation();
 
-  // Données mock - à remplacer par des données réelles plus tard
-  const userName = user?.first_name || "Utilisateur";
-  const profileCompletion = 65;
-  const applicationsInProgress = 5;
-  const newOpportunities = 172;
-  // const newMatches = 10;
-  const newMatches = 0;
+  // Calcul des statistiques réelles
+  const stats = useMemo(() => {
+    const userName = user?.first_name || "Utilisateur";
+    const profileCompletion = 65; // À calculer plus tard selon les champs remplis
+
+    // Date d'aujourd'hui pour les calculs
+    const today = new Date().toDateString();
+
+    // Candidatures en cours (status pending)
+    const applicationsInProgress =
+      applications?.filter((app) => app.state === "pending").length || 0;
+
+    // Nombre total d'offres disponibles
+    const totalOpportunities = candidateJobPosts?.length || 0;
+
+    // Offres publiées aujourd'hui
+    const newOpportunities =
+      candidateJobPosts?.filter((job) => {
+        const jobDate = new Date(job.created_at).toDateString();
+        return jobDate === today;
+      }).length || 0;
+
+    // Matchs actuels (applications avec state "matched")
+    const currentMatches =
+      applications?.filter((app) => app.state === "matched").length || 0;
+
+    return {
+      userName,
+      profileCompletion,
+      applicationsInProgress,
+      newOpportunities,
+      totalOpportunities,
+      currentMatches,
+    };
+  }, [user, applications, candidateJobPosts]);
 
   return (
     <ScreenWrapper>
@@ -39,10 +75,10 @@ export default function CandidateHome() {
               <Text className="text-2xl">👤</Text>
             </View>
             <View className="flex-1">
-              <Text className="mb-1 text-xl font-bold text-gray-900">
-                Hello {userName}, 👋
+              <Text className="mb-1 text-[24px] font-bold text-black">
+                Hello {stats.userName}, 👋
               </Text>
-              <Text className="text-sm text-gray-600">
+              <Text className="text-[14px] font-[400] text-[#6A6A6A]">
                 Prêt(e) à découvrir de nouvelles opportunités ?
               </Text>
             </View>
@@ -52,7 +88,7 @@ export default function CandidateHome() {
           <View className="p-4 mx-3 rounded-lg border border-gray-200">
             <View className="flex-row items-center mb-2">
               <Text className="flex-1 text-base font-semibold text-gray-900">
-                Ton profil est à {profileCompletion}% 🚀
+                Ton profil est à {stats.profileCompletion}% 🚀
               </Text>
             </View>
 
@@ -61,13 +97,13 @@ export default function CandidateHome() {
               <View className="mb-2 h-2 bg-gray-200 rounded-full">
                 <View
                   className="h-2 bg-indigo-500 rounded-full"
-                  style={{ width: `${profileCompletion}%` }}
+                  style={{ width: `${stats.profileCompletion}%` }}
                 />
               </View>
             </View>
 
             <Pressable>
-              <Text className="text-sm font-medium text-indigo-600">
+              <Text className="text-[12px] font-medium text-[#3210AF]">
                 Ajoute des compétences et booste tes chances de matcher ⚡
               </Text>
             </Pressable>
@@ -77,11 +113,31 @@ export default function CandidateHome() {
         {/* Grid Layout avec StyleSheet Flexbox - 2 colonnes / 3 lignes */}
         <View style={styles.gridContainer}>
           {/* Ligne 1: Applications in Progress (pleine largeur) */}
-          <Pressable style={styles.candidaturesEnCours}>
-            <AlarmClock size={24} color="white" />
-            <Text style={styles.candidaturesEnCoursText}>
-              {applicationsInProgress} Candidatures en cours
-            </Text>
+          <Pressable
+            onPress={() => navigation.navigate("MyApplications" as never)}
+            style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}
+          >
+            <LinearGradient
+              colors={["#4717F6", "#4717F6"]}
+              style={styles.candidaturesEnCours}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <LinearGradient
+                colors={[
+                  "rgba(242, 242, 242, 0.075)",
+                  "rgba(242, 242, 242, 0.3)",
+                ]}
+                style={styles.candidaturesEnCoursOverlay}
+                start={{ x: 0.2, y: 1 }}
+                end={{ x: 0.8, y: 0 }}
+              >
+                <AlarmClock size={24} color="white" />
+                <Text style={styles.candidaturesEnCoursText}>
+                  {stats.applicationsInProgress} Candidatures en cours
+                </Text>
+              </LinearGradient>
+            </LinearGradient>
           </Pressable>
 
           {/* Ligne 2-3: Structure en colonnes */}
@@ -92,19 +148,37 @@ export default function CandidateHome() {
               <View style={styles.newMatches}>
                 <Text style={styles.matchesEmoji}>🤝</Text>
                 <Text style={styles.matchesMainText}>
-                  {newMatches ? `${newMatches} nouveaux` : "Pas de nouveaux"}{" "}
-                  match(s)
+                  {stats.currentMatches
+                    ? `${stats.currentMatches} match(s) actuellement`
+                    : "Pas de match actuellement"}
                 </Text>
               </View>
 
               {/* Quick Stats */}
-              <View style={styles.quickStats}>
-                <Text style={styles.statsEmoji}>🧭</Text>
-                <View style={styles.statsNumberContainer}>
-                  <Text style={styles.statsNumber}>1313</Text>
-                  <Text style={styles.statsText}>offres ouvertes</Text>
-                </View>
-              </View>
+              <LinearGradient
+                colors={["#C6B7FC", "#C6B7FC"]}
+                style={styles.quickStats}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <LinearGradient
+                  colors={[
+                    "rgba(242, 242, 242, 0.1625)",
+                    "rgba(242, 242, 242, 0.65)",
+                  ]}
+                  style={styles.quickStatsOverlay}
+                  start={{ x: 0.2, y: 1 }}
+                  end={{ x: 0.8, y: 0 }}
+                >
+                  <Text style={styles.statsEmoji}>🧭</Text>
+                  <View style={styles.statsNumberContainer}>
+                    <Text style={styles.statsNumber}>
+                      {stats.totalOpportunities}
+                    </Text>
+                    <Text style={styles.statsText}>offres ouvertes</Text>
+                  </View>
+                </LinearGradient>
+              </LinearGradient>
             </View>
 
             {/* Colonne droite */}
@@ -114,7 +188,7 @@ export default function CandidateHome() {
                 <Text style={styles.opportunitiesEmoji}>🌟</Text>
                 <View style={styles.opportunitiesTextContainer}>
                   <Text style={styles.opportunitiesNumber}>
-                    {newOpportunities}
+                    {stats.newOpportunities}
                   </Text>
                   <Text style={styles.opportunitiesText}>
                     nouvelles opportunités aujourd'hui
@@ -126,10 +200,30 @@ export default function CandidateHome() {
         </View>
 
         {/* Call to Action */}
-        <Pressable className="p-4 mb-6 bg-teal-400 rounded-xl shadow-sm">
-          <Text className="text-lg font-semibold text-center text-white">
-            Prêt à matcher avec ton futur job ? 🎯
-          </Text>
+        <Pressable
+          onPress={() => navigation.navigate("JobOffers" as never)}
+          style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}
+        >
+          <LinearGradient
+            colors={["#01E6C3", "#01E6C3"]}
+            style={styles.callToAction}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            <LinearGradient
+              colors={[
+                "rgba(242, 242, 242, 0.1625)",
+                "rgba(242, 242, 242, 0.65)",
+              ]}
+              style={styles.callToActionOverlay}
+              start={{ x: 0.2, y: 1 }}
+              end={{ x: 0.8, y: 0 }}
+            >
+              <Text style={styles.callToActionText}>
+                Prêt à matcher avec ton futur job ? 🚀
+              </Text>
+            </LinearGradient>
+          </LinearGradient>
         </Pressable>
       </ScrollView>
     </ScreenWrapper>
@@ -147,12 +241,15 @@ const styles = StyleSheet.create({
   },
   candidaturesEnCours: {
     height: 89,
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  candidaturesEnCoursOverlay: {
+    height: 89,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 16,
-    marginBottom: 12,
-    backgroundColor: "#6366f1",
     borderRadius: 12,
     gap: 24,
   },
@@ -177,20 +274,24 @@ const styles = StyleSheet.create({
     height: 89,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-around",
+    justifyContent: "center",
     padding: 8,
-    gap: 8,
     borderWidth: 1,
     borderColor: "#4717F6",
     borderRadius: 8,
+    gap: 8,
   },
   matchesEmoji: {
-    fontSize: 22,
+    fontSize: 20,
   },
   matchesMainText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "600",
     color: "#4A4A4A",
+    textAlign: "left",
+    lineHeight: 16,
+    flex: 1,
+    flexWrap: "wrap",
   },
   newOpportunities: {
     height: 190,
@@ -226,14 +327,15 @@ const styles = StyleSheet.create({
   },
   quickStats: {
     height: 89,
+    borderRadius: 12,
+  },
+  quickStatsOverlay: {
+    height: 89,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 12,
-    backgroundColor: "#e9d5ff",
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
   },
   statsEmoji: {
     fontSize: 16,
@@ -253,5 +355,29 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "700",
     color: "#270D87",
+  },
+  callToAction: {
+    borderRadius: 12,
+    marginBottom: 24,
+    // Shadow for iOS
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 9,
+    // Shadow for Android
+    elevation: 4,
+  },
+  callToActionOverlay: {
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  callToActionText: {
+    fontSize: 18,
+    fontWeight: "800",
+    textAlign: "center",
+    color: "#000000",
   },
 });

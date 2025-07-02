@@ -12,6 +12,7 @@ import (
 type MatchRepository interface {
 	models.Repository[models.Match]
 	CreateMatch(dto matchDto.CreateMatchDTO, tx *gorm.DB) (models.Match, error)
+	GetCandidateMatches(candidateID uint) ([]models.Match, error)
 }
 
 type matchRepository struct {
@@ -50,4 +51,25 @@ func (r *matchRepository) CreateMatch(dto matchDto.CreateMatchDTO, tx *gorm.DB) 
 		First(&match, match.ID)
 
 	return match, nil
+}
+
+// GetCandidateMatches retrieves all matches for a specific candidate
+func (r *matchRepository) GetCandidateMatches(candidateID uint) ([]models.Match, error) {
+	var matches []models.Match
+
+	result := r.db.Where("candidate_id = ?", candidateID).
+		Preload("Candidate.User").
+		Preload("Candidate.Skills").
+		Preload("Candidate.Certifications").
+		Preload("JobPost.Company").
+		Preload("JobPost.Skills").
+		Preload("JobPost.Certifications").
+		Preload("Application").
+		Find(&matches)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return matches, nil
 }

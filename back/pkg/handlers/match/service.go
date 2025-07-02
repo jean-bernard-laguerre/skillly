@@ -11,6 +11,7 @@ import (
 // MatchService defines the interface for match business logic
 type MatchService interface {
 	CreateMatch(c *gin.Context)
+	GetCandidateMatches(c *gin.Context)
 }
 
 type matchService struct {
@@ -70,4 +71,29 @@ func (s *matchService) CreateMatch(c *gin.Context) {
 	}
 
 	c.JSON(201, match) // Return 201 Created status with the created match
+}
+
+// GetCandidateMatches handles retrieving matches for the authenticated candidate
+func (s *matchService) GetCandidateMatches(c *gin.Context) {
+	// Get candidate ID from context (set by auth middleware)
+	candidateID, exists := c.Get("candidate_id")
+	if !exists {
+		c.JSON(403, gin.H{"error": "Candidate ID not found in context"})
+		return
+	}
+
+	candidateIDUint, ok := candidateID.(uint)
+	if !ok {
+		c.JSON(500, gin.H{"error": "Invalid candidate ID type"})
+		return
+	}
+
+	// Retrieve matches from repository
+	matches, err := s.matchRepository.GetCandidateMatches(candidateIDUint)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "Failed to retrieve matches: " + err.Error()})
+		return
+	}
+
+	c.JSON(200, matches)
 }

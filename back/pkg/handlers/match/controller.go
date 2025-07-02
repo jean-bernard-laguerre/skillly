@@ -25,11 +25,29 @@ func CreateMatchHandler(c *gin.Context) {
 	matchService.CreateMatch(c)
 }
 
+// @Summary Récupérer mes matchs
+// @Description Permet à un candidat de voir tous ses matchs
+// @Tags matches
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {array} map[string]interface{} "Liste de mes matchs"
+// @Failure 401 {object} map[string]string "Non autorisé"
+// @Failure 403 {object} map[string]string "Accès refusé - candidats uniquement"
+// @Router /match/me [get]
+func GetCandidateMatchesHandler(c *gin.Context) {
+	matchService := NewMatchService()
+	matchService.GetCandidateMatches(c)
+}
+
 func AddRoutes(r *gin.Engine) {
 	matchGroup := r.Group("/match")
 
 	// Protect the route: only authenticated recruiters can create matches
 	matchGroup.POST("", middleware.AuthMiddleware(), middleware.RoleMiddleware(models.RoleRecruiter), CreateMatchHandler)
+
+	// Protect the route: only authenticated candidates can view their matches
+	matchGroup.GET("/me", middleware.AuthMiddleware(), middleware.RoleMiddleware(models.RoleCandidate), GetCandidateMatchesHandler)
 
 	// Add other match-related routes here if needed (GET, DELETE, etc.)
 }
