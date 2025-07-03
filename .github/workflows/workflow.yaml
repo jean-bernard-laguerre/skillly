@@ -68,7 +68,7 @@ jobs:
           TEST_DB_USER: root
           TEST_DB_PASSWORD: root
           TEST_DB_NAME: skilly_test
-          MONGO_URI: mongodb://localhost:27017/
+          MONGO_URI: mongodb://localhost:27018/
         run: go test -v ./test
         working-directory: ./back
 
