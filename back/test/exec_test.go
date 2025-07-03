@@ -8,8 +8,11 @@ import (
 )
 
 func TestDB(t *testing.T) {
-	t.Run("DatabaseConnection", db_test.DatabaseConnection)
-	t.Run("TableCheck", db_test.TableCheck)
+	t.Run("PostgresDatabaseConnection", db_test.PostgresDatabaseConnection)
+	t.Run("MongoDatabaseConnection", db_test.MongoDatabaseConnection)
+	t.Run("PostgresTableCheck", db_test.PostgresTableCheck)
+	/* t.Run("MongoCollectionCheck", db_test.MongoCollectionCheck) */
+
 }
 
 func TestUser(t *testing.T) {

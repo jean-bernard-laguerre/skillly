@@ -2,6 +2,7 @@ package models
 
 import (
 	"bytes"
+	"encoding/json"
 	"log"
 
 	/* "skillly/chat/handlers/message" */
@@ -64,12 +65,9 @@ func (c *Client) ReadPump(room string) {
 		content = bytes.TrimSpace(bytes.Replace(content, newline, space, -1))
 		if room, ok := c.Rooms[room]; ok {
 
-			// Create a message DTO
-			messageDto := messageDto.CreateMessageDTO{
-				Room:     room.Name, // Assuming room has a name field
-				SenderID: c.Id,
-				Content:  string(content),
-			}
+			// Create a message DTO & unmarshal the content into it
+			messageDto := messageDto.CreateMessageDTO{}
+			json.Unmarshal(content, &messageDto)
 
 			_, err := c.MessageService.CreateMessage(messageDto)
 
