@@ -43,6 +43,8 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=3
+        volumes:
+          - ./docker-entrypoint-initdb.d/:/docker-entrypoint-initdb.d/:ro
 
     steps:
       - name: Checkout code
