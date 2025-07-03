@@ -18,7 +18,7 @@ export default function Header({
   return (
     <View
       className="px-6 pt-4 pb-2 bg-[#F7F7F7]"
-      style={{ minHeight: subtitle ? 100 : 80 }}
+      style={{ minHeight: subtitle ? 80 : 60 }}
     >
       <View className="flex-row justify-between items-start">
         <View className="flex-1">
