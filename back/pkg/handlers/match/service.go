@@ -1,8 +1,12 @@
 package match
 
 import (
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 
+	chatConfig "skillly/chat/config"
+	"skillly/chat/handlers/room"
 	"skillly/pkg/config"
 	applicationHandler "skillly/pkg/handlers/application"
 	matchDto "skillly/pkg/handlers/match/dto"
@@ -17,6 +21,7 @@ type MatchService interface {
 type matchService struct {
 	matchRepository       MatchRepository
 	applicationRepository applicationHandler.ApplicationRepository // To update application state
+	roomRepository        room.RoomRepository                      // To create a room for the match
 }
 
 // NewMatchService creates a new instance of MatchService
@@ -24,6 +29,7 @@ func NewMatchService() MatchService {
 	return &matchService{
 		matchRepository:       NewMatchRepository(config.DB),
 		applicationRepository: applicationHandler.NewApplicationRepository(config.DB),
+		roomRepository:        room.NewRoomRepository(chatConfig.DBMongo), // Initialize the room repository
 	}
 }
 
@@ -69,6 +75,8 @@ func (s *matchService) CreateMatch(c *gin.Context) {
 		c.JSON(500, gin.H{"error": "Failed to commit transaction: " + err.Error()})
 		return
 	}
+
+	s.roomRepository.CreateRoom(match.JobPost.Title + "-" + strconv.FormatUint(uint64(match.ID), 10)) // Create a room for the match
 
 	c.JSON(201, match) // Return 201 Created status with the created match
 }

@@ -1,26 +1,60 @@
+import { useState } from "react";
 import ChatroomItem from "@/components/messages/ChatroomItem";
-import { useNavigation } from "@react-navigation/native";
 import { View, Text } from "react-native";
-import { StackNavigationProp } from "@react-navigation/stack";
+import { Chatroom } from "@/types/interfaces";
+import ChatroomView from "./components/Chatroom";
+
+const chatrooms : Chatroom[] = [
+  {
+    id: '1',
+    name: "Recruteur 1",
+    created_at: new Date().toDateString(),
+  },
+  {
+    id: '2',
+    name: "Recruteur 2",
+    created_at: new Date().toDateString(),
+
+  },
+  {
+    id: '3',
+    name: "Recruteur 3",
+    created_at: new Date().toDateString(),
+  }
+]
 
 export default function CandidateMessages() {
 
-  const navigation = useNavigation<StackNavigationProp<any>>();
-  const handlePress = () => {
-    navigation.navigate("chatroom", {
-      offerId: "1",
-      chatId: "1",
-    });
+  const [selectedChatroom, setSelectedChatroom] = useState('')
+
+  const handlePress = (room: Chatroom) => {
+    setSelectedChatroom(room.id)
+  }
+
+  const onBack = () => {
+    setSelectedChatroom('')
+  }
+
+  if (selectedChatroom) {
+    return (
+      <ChatroomView
+        onBack={onBack}
+        chatroomId={selectedChatroom}
+      />
+    )
   }
 
   return (
-    <View className="flex-1 p-4">
+    <View className="flex-1 flex-col p-4">
       <Text className="mb-4 text-xl font-bold">Mes conversations</Text>
       <Text className="text-gray-600">
         Vous pourrez ici voir vos conversations avec les recruteurs
-        <ChatroomItem 
-          handlePress={handlePress} 
-        />
+        {chatrooms.map(room => (
+          <ChatroomItem
+            handlePress={() => {handlePress(room)}}
+            key={room.id}
+          />
+        ))}
       </Text>
     </View>
   );

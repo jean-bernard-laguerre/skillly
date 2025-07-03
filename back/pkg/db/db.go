@@ -10,7 +10,6 @@ import (
 
 	"os"
 	"skillly/pkg/config"
-	"skillly/pkg/handlers"
 	"skillly/pkg/models"
 )
 
@@ -65,7 +64,4 @@ func SetupDB() {
 	Init(
 		dbUser, dbPassword, dbName, host, port,
 	)
-
-	h := handlers.New(config.DB)
-	fmt.Println(h)
 }

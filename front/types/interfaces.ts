@@ -222,3 +222,17 @@ export interface CreateJobPostDTO {
   skills: number[];
   certifications: number[];
 }
+
+
+export interface Chatroom {
+  id: string,
+  name: string,
+  created_at: string,
+}
+
+export interface Message {
+  sender: string,
+  content: string,
+  sent_at: string,
+  room: string,
+}
