@@ -43,8 +43,6 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=3
-        volumes:
-          - ./docker-entrypoint-initdb.d/:/docker-entrypoint-initdb.d/:ro
 
     steps:
       - name: Checkout code
@@ -62,6 +60,25 @@ jobs:
       - name: Create empty .env file
         run: touch .env
         working-directory: ./back
+
+      - name: Install mongosh
+        run: |
+          sudo apt-get install gnupg
+          wget -qO- https://www.mongodb.org/static/pgp/server-7.0.asc | sudo tee /etc/apt/trusted.gpg.d/server-7.0.asc
+          echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+          sudo apt-get update
+          sudo apt-get install -y mongodb-mongosh
+          mongosh --version
+
+      - name: Initalize MongoDB
+        run: |
+          mongosh --host localhost:27018 -u root -p root --authenticationDatabase admin <<EOF
+            db = db.getSiblingDB('skilly_test');
+            db.createUser({ user: 'test', pwd: 'test', roles: [{ role: 'readWrite', db: 'skilly_test' }] })
+            db.createCollection('room');
+            db.createCollection('message');
+            db.room.InsertOne({name: 'test_room'});
+          EOF
 
       - name: Run tests
         env:
