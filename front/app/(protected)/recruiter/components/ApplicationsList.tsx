@@ -1,14 +1,16 @@
-import React, { useState, useRef, useMemo } from "react";
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
+  ScrollView,
+  ActivityIndicator,
+  StyleSheet,
   Animated,
   Dimensions,
   PanResponder,
-  ScrollView,
-  ActivityIndicator,
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import {
   GestureHandlerRootView,
   GestureDetector,
@@ -23,15 +25,15 @@ import ReanimatedAnimated, {
   Extrapolation,
 } from "react-native-reanimated";
 import {
-  Check,
-  X,
-  User,
   ArrowLeft,
+  User,
   MapPin,
   Briefcase,
   Mail,
-  RefreshCw,
-  RotateCcw,
+  Calendar,
+  Award,
+  Check,
+  X,
 } from "lucide-react-native";
 import { useJobPost } from "@/lib/hooks/useJobPost";
 import { Application } from "@/types/interfaces";
@@ -39,7 +41,6 @@ import { useMatch } from "@/lib/hooks/useMatch";
 import Toast from "react-native-toast-message";
 import { Portal } from "react-native-portalize";
 
-const SWIPE_THRESHOLD = 100;
 const { height: screenHeight } = Dimensions.get("window");
 
 interface ApplicationsListProps {
@@ -51,26 +52,24 @@ export default function ApplicationsList({
   jobId,
   onBack,
 }: ApplicationsListProps) {
-  const {
-    applications: companyJobPosts,
-    isLoadingApplications: isLoadingJobPosts,
-  } = useJobPost();
+  const { applications: companyJobPosts, isLoadingApplications } = useJobPost();
   const { createMatch } = useMatch();
-
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedApplication, setSelectedApplication] =
     useState<Application | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isSheetVisible, setIsSheetVisible] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const slideAnim = useRef(new Animated.Value(screenHeight)).current;
   const backdropAnim = useRef(new Animated.Value(0)).current;
-  const [isSheetVisible, setIsSheetVisible] = useState(false);
 
-  // Valeurs animées pour les gestes
+  // Valeurs pour le swipe
   const translateX = useSharedValue(0);
-  const translateY = useSharedValue(0);
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
-  const isSwipeDisabled = useSharedValue(false);
+
+  const job = companyJobPosts?.find((job) => job.id === jobId);
+  const pendingApplications =
+    job?.applications?.filter((app) => app.state === "pending") || [];
 
   const panResponder = useRef(
     PanResponder.create({
@@ -104,15 +103,6 @@ export default function ApplicationsList({
       },
     })
   ).current;
-
-  const job = useMemo(
-    () => companyJobPosts?.find((job) => job.id === jobId),
-    [companyJobPosts, jobId]
-  );
-
-  const pendingApplications = useMemo(() => {
-    return job?.applications?.filter((app) => app.state === "pending") || [];
-  }, [job]);
 
   React.useEffect(() => {
     if (isModalVisible) {
@@ -159,663 +149,528 @@ export default function ApplicationsList({
     setIsModalVisible(false);
   };
 
-  const handleModalAction = (direction: "left" | "right") => {
-    if (!selectedApplication) return;
-    if (direction === "right") {
-      handleMatch();
-    } else {
-      handlePass();
-    }
-    setIsModalVisible(false);
-  };
-
-  // Fonction pour créer un match
-  const handleMatch = () => {
-    const application = pendingApplications[currentIndex];
-    if (!application) return;
-
-    animateCardExit("right", () => {
-      createMatch(
-        {
-          application_id: parseInt(application.id, 10),
-          candidate_id: parseInt(application.candidate.id, 10),
-          job_post_id: parseInt(jobId, 10),
+  const handleMatch = (application: Application) => {
+    createMatch(
+      {
+        application_id: parseInt(application.id, 10),
+        candidate_id: parseInt(application.candidate.id, 10),
+        job_post_id: parseInt(jobId, 10),
+      },
+      {
+        onSuccess: () => {
+          Toast.show({
+            type: "success",
+            text1: "Match créé ! 🎉",
+            text2: `Match avec ${application.candidate.user.first_name}.`,
+          });
         },
-        {
-          onSuccess: () => {
-            Toast.show({
-              type: "success",
-              text1: "Match ! 🎉",
-              text2: `Match créé avec ${application.candidate.user.first_name}.`,
-            });
-            goToNext();
-          },
-          onError: () => {
-            Toast.show({
-              type: "error",
-              text1: "Erreur",
-              text2: "Impossible de créer le match.",
-            });
-          },
-        }
-      );
-    });
-  };
-
-  // Fonction pour passer
-  const handlePass = () => {
-    animateCardExit("left", () => {
-      goToNext();
-    });
-  };
-
-  // Fonction pour aller à la suivante
-  const goToNext = () => {
-    setCurrentIndex(currentIndex + 1);
-  };
-
-  // Fonction pour revenir en arrière
-  const goToPrevious = () => {
-    if (currentIndex > 0) {
-      resetAnimations();
-      setCurrentIndex(currentIndex - 1);
-    }
-  };
-
-  // Réinitialiser les animations
-  const resetAnimations = () => {
-    translateX.value = withSpring(0);
-    translateY.value = withSpring(0);
-    scale.value = withSpring(1);
-    opacity.value = withSpring(1);
-  };
-
-  // Fonction pour animer la sortie de la card
-  const animateCardExit = (
-    direction: "left" | "right",
-    callback: () => void
-  ) => {
-    const exitX = direction === "left" ? -400 : 400;
-
-    translateX.value = withSpring(exitX, { damping: 15 });
-    opacity.value = withSpring(0, { damping: 15 });
-
-    setTimeout(() => {
-      callback();
-      // Réinitialiser pour la prochaine card
-      translateX.value = 0;
-      translateY.value = 0;
-      scale.value = 1;
-      opacity.value = 1;
-    }, 300);
-  };
-
-  // Gestionnaire de gestes avec la nouvelle API
-  const panGesture = Gesture.Pan()
-    .onStart(() => {
-      if (isSwipeDisabled.value) return;
-      scale.value = withSpring(0.95);
-    })
-    .onUpdate((event) => {
-      if (isSwipeDisabled.value) return;
-      translateX.value = event.translationX;
-      translateY.value = event.translationY * 0.5;
-    })
-    .onEnd((event) => {
-      if (isSwipeDisabled.value) return;
-      scale.value = withSpring(1);
-
-      if (Math.abs(event.translationX) > SWIPE_THRESHOLD) {
-        const direction = event.translationX > 0 ? "right" : "left";
-
-        if (direction === "right") {
-          runOnJS(handleMatch)();
-        } else {
-          runOnJS(handlePass)();
-        }
-      } else {
-        translateX.value = withSpring(0);
-        translateY.value = withSpring(0);
+        onError: () => {
+          Toast.show({
+            type: "error",
+            text1: "Erreur",
+            text2: "Impossible de créer le match.",
+          });
+        },
       }
+    );
+  };
+
+  const handlePass = (application: Application) => {
+    // Logique pour passer/rejeter une candidature
+    console.log("Candidature passée:", application.id);
+  };
+
+  // Créer les gestes pour le swipe
+  const createSwipeGesture = (application: Application) => {
+    return Gesture.Pan()
+      .onStart(() => {
+        scale.value = withSpring(0.95);
+      })
+      .onUpdate((event) => {
+        translateX.value = event.translationX;
+      })
+      .onEnd((event) => {
+        scale.value = withSpring(1);
+
+        if (Math.abs(event.translationX) > 100) {
+          // Swipe détecté
+          const direction = event.translationX > 0 ? "right" : "left";
+
+          if (direction === "right") {
+            runOnJS(handleMatch)(application);
+          } else {
+            runOnJS(handlePass)(application);
+          }
+
+          // Animation de sortie
+          translateX.value = withSpring(event.translationX > 0 ? 400 : -400);
+          opacity.value = withSpring(0);
+
+          setTimeout(() => {
+            translateX.value = 0;
+            opacity.value = 1;
+          }, 300);
+        } else {
+          // Retour à la position initiale
+          translateX.value = withSpring(0);
+        }
+      });
+  };
+
+  // Styles animés pour le swipe
+  const createAnimatedStyle = () => {
+    return useAnimatedStyle(() => {
+      const rotation = interpolate(
+        translateX.value,
+        [-200, 0, 200],
+        [-5, 0, 5],
+        Extrapolation.CLAMP
+      );
+
+      return {
+        transform: [
+          { translateX: translateX.value },
+          { scale: scale.value },
+          { rotate: `${rotation}deg` },
+        ],
+        opacity: opacity.value,
+      };
     });
+  };
 
-  const tapGesture = Gesture.Tap().onStart(() => {
-    if (Math.abs(translateX.value) < 10) {
-      runOnJS(handleOpenModal)(currentApplication);
-    }
-  });
-
-  // Composition des gestes
-  const composedGestures = Gesture.Simultaneous(panGesture, tapGesture);
-
-  // Styles animés
-  const animatedCardStyle = useAnimatedStyle(() => {
-    const rotation = interpolate(
-      translateX.value,
-      [-200, 0, 200],
-      [-10, 0, 10],
-      Extrapolation.CLAMP
-    );
-
-    return {
-      transform: [
-        { translateX: translateX.value },
-        { translateY: translateY.value },
-        { scale: scale.value },
-        { rotate: `${rotation}deg` },
-      ],
-      opacity: opacity.value,
-    };
-  });
-
-  // Styles des overlays
-  const leftOverlayStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(
-      translateX.value,
-      [-150, -50, 0],
-      [1, 0.5, 0],
-      Extrapolation.CLAMP
-    ),
-  }));
-
-  const rightOverlayStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(
-      translateX.value,
-      [0, 50, 150],
-      [0, 0.5, 1],
-      Extrapolation.CLAMP
-    ),
-  }));
-
-  if (isLoadingJobPosts) {
+  if (isLoadingApplications) {
     return (
-      <View className="items-center justify-center flex-1">
-        <ActivityIndicator size="large" color="#6366f1" />
-        <Text className="text-lg font-semibold">
-          Chargement des candidatures...
-        </Text>
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#4717F6" />
+        <Text style={styles.loadingText}>Chargement...</Text>
       </View>
     );
   }
-
-  if (pendingApplications.length === 0) {
-    return (
-      <View className="flex-1 bg-gray-50">
-        <View className="flex-row items-center p-4 border-b border-gray-200">
-          <TouchableOpacity onPress={onBack} className="mr-4">
-            <ArrowLeft size={24} color="#6366f1" />
-          </TouchableOpacity>
-          <Text className="text-xl font-semibold">
-            {job?.title} (En attente: 0)
-          </Text>
-        </View>
-        <View className="items-center justify-center flex-1 px-5">
-          <Text className="mb-5 text-2xl font-bold text-center">
-            Aucune candidature en attente
-          </Text>
-          <Text className="text-base text-center text-gray-500">
-            Il n'y a pas encore de candidature pour ce poste. Revenez plus tard
-            !
-          </Text>
-        </View>
-      </View>
-    );
-  }
-
-  if (currentIndex >= pendingApplications.length) {
-    return (
-      <View className="flex-1 bg-gray-50">
-        <View className="flex-row items-center p-4 border-b border-gray-200">
-          <TouchableOpacity onPress={onBack} className="mr-4">
-            <ArrowLeft size={24} color="#6366f1" />
-          </TouchableOpacity>
-          <Text className="text-xl font-semibold">
-            {job?.title} (En attente: {pendingApplications.length})
-          </Text>
-        </View>
-        <View className="items-center justify-center flex-1 px-5">
-          <Text className="mb-5 text-2xl font-bold text-center">
-            Terminé ! 🎉
-          </Text>
-          <Text className="mb-6 text-lg text-center text-gray-600">
-            Vous avez parcouru toutes les candidatures disponibles
-          </Text>
-          <TouchableOpacity
-            className="flex-row items-center px-6 py-3 bg-blue-500 rounded-lg"
-            onPress={() => setCurrentIndex(0)}
-          >
-            <RefreshCw size={20} color="white" />
-            <Text className="ml-2 font-semibold text-white">Recommencer</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  }
-
-  const currentApplication = pendingApplications[currentIndex];
 
   return (
-    <GestureHandlerRootView className="flex-1 bg-gray-50">
-      <View className="flex-row items-center p-4 border-b border-gray-200">
-        <TouchableOpacity onPress={onBack} className="mr-4">
-          <ArrowLeft size={24} color="#6366f1" />
-        </TouchableOpacity>
-        <Text className="text-xl font-semibold">
-          {job?.title} (En attente: {pendingApplications.length})
-        </Text>
-      </View>
-
-      <GestureDetector gesture={composedGestures}>
-        <ReanimatedAnimated.View
-          className="flex-1 mx-5 mt-5 mb-3 bg-white border border-gray-100 shadow-2xl rounded-xl"
-          style={[
-            animatedCardStyle,
-            {
-              shadowColor: "#000",
-              shadowOffset: {
-                width: 0,
-                height: 8,
-              },
-              shadowOpacity: 0.15,
-              shadowRadius: 12,
-              elevation: 8,
-            },
-          ]}
+    <View style={styles.container}>
+      {/* Header moderne */}
+      <View style={styles.headerContainer}>
+        <LinearGradient
+          colors={["#4717F6", "#6366f1"]}
+          style={styles.headerGradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
         >
-          <View className="justify-between flex-1 p-6">
-            <View className="items-center justify-center flex-1">
-              <View className="items-center w-full mb-5">
-                <View className="flex-row items-center gap-2 mb-2">
-                  <User size={20} color="#374151" />
-                  <Text className="text-xl font-bold text-center text-black">
-                    {currentApplication.candidate.user.first_name}{" "}
-                    {currentApplication.candidate.user.last_name}
-                  </Text>
-                </View>
-                <Text className="mb-4 text-sm text-center text-gray-500">
-                  Candidat depuis le{" "}
-                  {new Date(currentApplication.created_at).toLocaleDateString()}
-                </Text>
-              </View>
-
-              <View className="w-full mb-4 space-y-2">
-                <View className="flex-row items-center gap-2">
-                  <MapPin size={18} color="#374151" />
-                  <Text className="text-lg text-gray-700">
-                    {currentApplication.candidate.location || "Non renseigné"}
-                  </Text>
-                </View>
-                <View className="flex-row items-center gap-2">
-                  <Briefcase size={18} color="#374151" />
-                  <Text className="text-lg text-gray-700">
-                    Années d'expérience :{" "}
-                    {currentApplication.candidate.experience_year
-                      ? `${currentApplication.candidate.experience_year} ans`
-                      : "Non renseigné"}
-                  </Text>
-                </View>
-              </View>
-
-              {currentApplication.candidate.skills &&
-                currentApplication.candidate.skills.length > 0 && (
-                  <View className="w-full">
-                    <Text className="mb-2 text-sm text-gray-500">
-                      Compétences
-                    </Text>
-                    <View className="flex-row flex-wrap gap-2">
-                      {currentApplication.candidate.skills
-                        .filter((skill) =>
-                          (currentApplication.job_post?.skills ?? []).some(
-                            (jobSkill) => jobSkill.id === skill.id
-                          )
-                        )
-                        .slice(0, 4)
-                        .map((skill) => (
-                          <View
-                            key={skill.id}
-                            className="px-3 py-1.5 bg-blue-100 rounded-full"
-                          >
-                            <Text className="text-sm font-medium text-blue-800">
-                              {skill.name}
-                            </Text>
-                          </View>
-                        ))}
-                      {currentApplication.candidate.skills
-                        .filter(
-                          (skill) =>
-                            !(currentApplication.job_post?.skills ?? []).some(
-                              (jobSkill) => jobSkill.id === skill.id
-                            )
-                        )
-                        .slice(
-                          0,
-                          Math.max(
-                            0,
-                            4 -
-                              (currentApplication.candidate.skills?.filter(
-                                (skill) =>
-                                  (
-                                    currentApplication.job_post?.skills ?? []
-                                  ).some((jobSkill) => jobSkill.id === skill.id)
-                              ).length ?? 0)
-                          )
-                        )
-                        .map((skill) => (
-                          <View
-                            key={skill.id}
-                            className="px-3 py-1.5 bg-gray-100 rounded-full"
-                          >
-                            <Text className="text-sm font-medium text-gray-700">
-                              {skill.name}
-                            </Text>
-                          </View>
-                        ))}
-                      {(currentApplication.candidate.skills?.length ?? 0) >
-                        4 && (
-                        <View className="px-3 py-1.5 bg-gray-100 rounded-full">
-                          <Text className="text-sm font-medium text-gray-700">
-                            ...
-                          </Text>
-                        </View>
-                      )}
-                    </View>
-                  </View>
-                )}
-
-              <View className="flex-row items-center justify-center w-full gap-4 mt-4">
-                <View className="flex-row items-center gap-1">
-                  <View className="w-3 h-3 bg-blue-100 rounded-full" />
-                  <Text className="text-xs text-gray-500">
-                    Correspond à l'offre
-                  </Text>
-                </View>
-                <View className="flex-row items-center gap-1">
-                  <View className="w-3 h-3 bg-gray-100 rounded-full" />
-                  <Text className="text-xs text-gray-500">
-                    Autre(s) compétence(s)
-                  </Text>
-                </View>
-              </View>
-            </View>
-
-            <View className="relative z-10 items-center">
-              <TouchableOpacity
-                className="items-center self-center justify-center px-4 py-2 bg-blue-500 rounded-lg"
-                onPressIn={() => {
-                  isSwipeDisabled.value = true;
-                }}
-                onPressOut={() => {
-                  setTimeout(() => {
-                    isSwipeDisabled.value = false;
-                  }, 100);
-                }}
-                onPress={() => handleOpenModal(currentApplication)}
-              >
-                <Text className="text-base font-bold text-white">
-                  Voir plus
-                </Text>
-              </TouchableOpacity>
+          <View style={styles.headerContent}>
+            <TouchableOpacity onPress={onBack} style={styles.backButton}>
+              <ArrowLeft size={20} color="white" />
+              <Text style={styles.backText}>Retour</Text>
+            </TouchableOpacity>
+            <View style={styles.titleSection}>
+              <Text style={styles.jobTitle}>{job?.title}</Text>
+              <Text style={styles.candidateCount}>
+                {currentIndex + 1} candidature(s) / {pendingApplications.length}
+              </Text>
             </View>
           </View>
-
-          {/* Overlays animés */}
-          <ReanimatedAnimated.View
-            className="absolute inset-0 items-center justify-center bg-red-500/10 rounded-xl"
-            style={[leftOverlayStyle]}
-          >
-            <View className="items-center justify-center px-5 py-4 shadow-lg bg-white/90 rounded-2xl">
-              <X size={50} color="#ef4444" />
-              <Text className="mt-1 text-lg font-bold text-red-500">
-                PASSER
-              </Text>
-            </View>
-          </ReanimatedAnimated.View>
-
-          <ReanimatedAnimated.View
-            className="absolute inset-0 items-center justify-center bg-green-500/10 rounded-xl"
-            style={[rightOverlayStyle]}
-          >
-            <View className="items-center justify-center px-5 py-4 shadow-lg bg-white/90 rounded-2xl">
-              <Check size={50} color="#22c55e" />
-              <Text className="mt-1 text-lg font-bold text-green-500">
-                MATCH
-              </Text>
-            </View>
-          </ReanimatedAnimated.View>
-        </ReanimatedAnimated.View>
-      </GestureDetector>
-
-      <View className="flex-row justify-center gap-10 pb-4">
-        <TouchableOpacity
-          onPress={handlePass}
-          className="items-center justify-center p-4 bg-red-500 rounded-full w-15 h-15"
-        >
-          <X size={30} color="white" />
-        </TouchableOpacity>
-
-        {currentIndex > 0 && (
-          <TouchableOpacity
-            onPress={goToPrevious}
-            className="items-center justify-center p-4 bg-gray-500 rounded-full w-15 h-15"
-          >
-            <RotateCcw size={24} color="white" />
-          </TouchableOpacity>
-        )}
-
-        <TouchableOpacity
-          onPress={handleMatch}
-          className="items-center justify-center p-4 bg-green-500 rounded-full w-15 h-15"
-        >
-          <Check size={30} color="white" />
-        </TouchableOpacity>
+        </LinearGradient>
       </View>
 
-      {/* Légende explicative */}
-      <View className="px-6 pb-8">
-        <Text className="text-sm italic text-center text-gray-500">
-          Swipez ou utilisez les boutons pour naviguer
-        </Text>
-      </View>
+      {pendingApplications.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <User size={40} color="#6B7280" />
+          <Text style={styles.emptyTitle}>Aucune candidature</Text>
+          <Text style={styles.emptySubtitle}>
+            Aucune candidature en attente pour ce poste.
+          </Text>
+        </View>
+      ) : (
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollContent}
+          >
+            {pendingApplications.map((application, index) => (
+              <GestureDetector
+                key={application.id}
+                gesture={createSwipeGesture(application)}
+              >
+                <ReanimatedAnimated.View
+                  style={[
+                    styles.candidateCard,
+                    createAnimatedStyle(),
+                    index === currentIndex && styles.activeCard,
+                  ]}
+                >
+                  <LinearGradient
+                    colors={["#8464F9", "#F2F2F2"]}
+                    style={styles.cardGradient}
+                    start={{ x: 0, y: -3 }}
+                    end={{ x: 0, y: 0.9 }}
+                  >
+                    {/* Header candidat compact */}
+                    <View style={styles.candidateHeader}>
+                      <LinearGradient
+                        colors={["#4717F6", "#6366f1"]}
+                        style={styles.candidateHeaderGradient}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                      >
+                        <Text style={styles.candidateName}>
+                          {application.candidate.user.first_name}{" "}
+                          {application.candidate.user.last_name}
+                        </Text>
+                        <View style={styles.candidateInfo}>
+                          <User size={14} color="rgba(255, 255, 255, 0.9)" />
+                          <Text style={styles.candidateRole}>Candidat</Text>
+                        </View>
+                      </LinearGradient>
+                    </View>
 
+                    {/* Informations en scroll horizontal */}
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      style={styles.infoScrollView}
+                      contentContainerStyle={styles.infoScrollContent}
+                    >
+                      <View style={styles.infoCard}>
+                        <Mail size={16} color="#4717F6" />
+                        <View style={styles.infoCardContent}>
+                          <Text style={styles.infoCardLabel}>Email</Text>
+                          <Text style={styles.infoCardValue} numberOfLines={1}>
+                            {application.candidate.user.email}
+                          </Text>
+                        </View>
+                      </View>
+
+                      <View style={styles.infoCard}>
+                        <Calendar size={16} color="#4717F6" />
+                        <View style={styles.infoCardContent}>
+                          <Text style={styles.infoCardLabel}>Postulé le</Text>
+                          <Text style={styles.infoCardValue}>
+                            {new Date(
+                              application.created_at
+                            ).toLocaleDateString("fr-FR")}
+                          </Text>
+                        </View>
+                      </View>
+
+                      <View style={styles.infoCard}>
+                        <MapPin size={16} color="#4717F6" />
+                        <View style={styles.infoCardContent}>
+                          <Text style={styles.infoCardLabel}>Localisation</Text>
+                          <Text style={styles.infoCardValue}>
+                            {application.candidate.location || "Non renseigné"}
+                          </Text>
+                        </View>
+                      </View>
+
+                      {application.candidate.experience_year && (
+                        <View style={styles.infoCard}>
+                          <Briefcase size={16} color="#4717F6" />
+                          <View style={styles.infoCardContent}>
+                            <Text style={styles.infoCardLabel}>Expérience</Text>
+                            <Text style={styles.infoCardValue}>
+                              {application.candidate.experience_year} ans
+                            </Text>
+                          </View>
+                        </View>
+                      )}
+                    </ScrollView>
+
+                    {/* Compétences compactes */}
+                    {application.candidate.skills &&
+                      application.candidate.skills.length > 0 && (
+                        <View style={styles.skillsSection}>
+                          <Text style={styles.sectionTitle}>Compétences</Text>
+                          <View style={styles.skillsContainer}>
+                            {application.candidate.skills
+                              .filter((skill) =>
+                                (application.job_post?.skills ?? []).some(
+                                  (jobSkill) => jobSkill.id === skill.id
+                                )
+                              )
+                              .slice(0, 2)
+                              .map((skill) => (
+                                <View
+                                  key={skill.id}
+                                  style={styles.skillBadgeMatched}
+                                >
+                                  <Text style={styles.skillTextMatched}>
+                                    {skill.name}
+                                  </Text>
+                                </View>
+                              ))}
+                            {application.candidate.skills
+                              .filter(
+                                (skill) =>
+                                  !(application.job_post?.skills ?? []).some(
+                                    (jobSkill) => jobSkill.id === skill.id
+                                  )
+                              )
+                              .slice(0, 1)
+                              .map((skill) => (
+                                <View key={skill.id} style={styles.skillBadge}>
+                                  <Text style={styles.skillText}>
+                                    {skill.name}
+                                  </Text>
+                                </View>
+                              ))}
+                            {application.candidate.skills.length > 3 && (
+                              <View style={styles.skillBadgeExtra}>
+                                <Text style={styles.skillTextExtra}>
+                                  +{application.candidate.skills.length - 3}
+                                </Text>
+                              </View>
+                            )}
+                          </View>
+                          <View style={styles.legend}>
+                            <View style={styles.legendRow}>
+                              <View style={styles.legendItem}>
+                                <View style={styles.legendPillGreen} />
+                                <Text style={styles.legendText}>
+                                  correspond à l'offre
+                                </Text>
+                              </View>
+                              <View style={styles.legendItem}>
+                                <View style={styles.legendPillGray} />
+                                <Text style={styles.legendText}>autres</Text>
+                              </View>
+                            </View>
+                          </View>
+                        </View>
+                      )}
+
+                    {/* Bio courte */}
+                    {application.candidate.bio && (
+                      <View style={styles.bioSection}>
+                        <Text style={styles.sectionTitle}>À propos</Text>
+                        <Text style={styles.bioText} numberOfLines={2}>
+                          {application.candidate.bio}
+                        </Text>
+                      </View>
+                    )}
+
+                    {/* Action voir plus uniquement */}
+                    <View style={styles.actionsSection}>
+                      <TouchableOpacity
+                        style={styles.seeProfileButton}
+                        onPress={() => handleOpenModal(application)}
+                      >
+                        <LinearGradient
+                          colors={["#36E9CD", "#36E9CD"]}
+                          style={styles.seeProfileGradient}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 1 }}
+                        >
+                          <Text style={styles.seeProfileText}>Voir plus</Text>
+                        </LinearGradient>
+                      </TouchableOpacity>
+                    </View>
+                  </LinearGradient>
+
+                  {/* Overlays pour le swipe */}
+                  <ReanimatedAnimated.View
+                    style={[
+                      styles.leftOverlay,
+                      useAnimatedStyle(() => ({
+                        opacity: interpolate(
+                          translateX.value,
+                          [-150, -50, 0],
+                          [1, 0.5, 0],
+                          Extrapolation.CLAMP
+                        ),
+                      })),
+                    ]}
+                  >
+                    <View style={styles.overlayContent}>
+                      <X size={40} color="#ffffff" />
+                      <Text style={styles.overlayTextRed}>PASSER</Text>
+                    </View>
+                  </ReanimatedAnimated.View>
+
+                  <ReanimatedAnimated.View
+                    style={[
+                      styles.rightOverlay,
+                      useAnimatedStyle(() => ({
+                        opacity: interpolate(
+                          translateX.value,
+                          [0, 50, 150],
+                          [0, 0.5, 1],
+                          Extrapolation.CLAMP
+                        ),
+                      })),
+                    ]}
+                  >
+                    <View style={styles.overlayContent}>
+                      <Check size={40} color="#ffffff" />
+                      <Text style={styles.overlayTextGreen}>MATCH</Text>
+                    </View>
+                  </ReanimatedAnimated.View>
+                </ReanimatedAnimated.View>
+              </GestureDetector>
+            ))}
+          </ScrollView>
+
+          {/* Boutons d'action externes */}
+          <View style={styles.actionButtons}>
+            <TouchableOpacity
+              onPress={() => {
+                const currentApp = pendingApplications[currentIndex];
+                if (currentApp) {
+                  handlePass(currentApp);
+                  if (currentIndex < pendingApplications.length - 1) {
+                    setCurrentIndex(currentIndex + 1);
+                  }
+                }
+              }}
+              style={styles.actionButtonRed}
+            >
+              <X size={30} color="white" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => {
+                const currentApp = pendingApplications[currentIndex];
+                if (currentApp) {
+                  handleMatch(currentApp);
+                  if (currentIndex < pendingApplications.length - 1) {
+                    setCurrentIndex(currentIndex + 1);
+                  }
+                }
+              }}
+              style={styles.actionButtonGreen}
+            >
+              <Check size={30} color="white" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Légende explicative */}
+          <View style={styles.legendContainer}>
+            <Text style={styles.legendButtonText}>
+              Swipez ou utilisez les boutons pour évaluer les candidatures
+            </Text>
+          </View>
+        </GestureHandlerRootView>
+      )}
+
+      {/* Bottom Sheet */}
       <Portal>
         {isSheetVisible && (
           <Animated.View
-            style={{
-              position: "absolute",
-              left: 0,
-              right: 0,
-              bottom: 0,
-              top: 0,
-              backgroundColor: "rgba(0,0,0,0.5)",
-              opacity: backdropAnim,
-              justifyContent: "flex-end",
-              zIndex: 100,
-            }}
+            style={[styles.modalBackdrop, { opacity: backdropAnim }]}
           >
             <Animated.View
-              className="flex-1 w-full bg-white rounded-t-3xl"
-              style={{
-                transform: [{ translateY: slideAnim }],
-                maxHeight: screenHeight * 0.5,
-                alignSelf: "flex-end",
-              }}
+              style={[
+                styles.modalSheet,
+                { transform: [{ translateY: slideAnim }] },
+              ]}
             >
-              <View
-                className="items-center py-4 bg-white rounded-t-3xl"
-                {...panResponder.panHandlers}
-              >
-                <View className="self-center w-12 h-1 bg-gray-300 rounded-full" />
+              <View style={styles.modalHandle} {...panResponder.panHandlers}>
+                <View style={styles.handleBar} />
               </View>
+
               <ScrollView
-                className="flex-1 px-6 pb-1"
+                style={styles.modalContent}
                 showsVerticalScrollIndicator={true}
                 bounces={true}
-                contentContainerStyle={{ paddingBottom: 20 }}
+                contentContainerStyle={{ paddingBottom: 32 }}
               >
-                {/* En-tête */}
-                <View className="items-center mb-6">
-                  <View className="flex-row items-center gap-2 mb-2">
-                    <User size={24} color="#374151" />
-                    <Text className="text-2xl font-bold text-black">
-                      {selectedApplication?.candidate.user.first_name}{" "}
-                      {selectedApplication?.candidate.user.last_name}
-                    </Text>
-                  </View>
-                  <Text className="text-base text-center text-gray-500">
-                    Candidat depuis le{" "}
-                    {selectedApplication &&
-                      new Date(
-                        selectedApplication.created_at
-                      ).toLocaleDateString()}
-                  </Text>
+                {/* En-tête modal */}
+                <View style={styles.modalHeaderContainer}>
+                  <LinearGradient
+                    colors={["#4717F6", "#6366f1"]}
+                    style={styles.modalHeaderGradient}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                  >
+                    <View style={styles.modalHeaderContent}>
+                      <Text style={styles.modalTitle}>
+                        {selectedApplication?.candidate.user.first_name}{" "}
+                        {selectedApplication?.candidate.user.last_name}
+                      </Text>
+                      <View style={styles.modalCompanyRow}>
+                        <User size={20} color="rgba(255, 255, 255, 0.9)" />
+                        <Text style={styles.modalCompany}>Profil candidat</Text>
+                      </View>
+                    </View>
+                  </LinearGradient>
                 </View>
 
-                {/* Informations principales */}
-                <View className="mb-6">
-                  <View className="flex-row items-center mb-4">
-                    <View className="items-center w-24">
-                      <MapPin size={20} color="#374151" />
-                      <Text className="mt-1 text-sm font-medium text-gray-500">
-                        Localisation
+                {/* Informations détaillées */}
+                <View style={styles.modalInfoSection}>
+                  <View style={styles.modalInfoCard}>
+                    <MapPin size={20} color="#4717F6" />
+                    <View style={styles.modalInfoContent}>
+                      <Text style={styles.modalInfoLabel}>Localisation</Text>
+                      <Text style={styles.modalInfoValue}>
+                        {selectedApplication?.candidate.location ||
+                          "Non renseigné"}
                       </Text>
                     </View>
-                    <Text className="flex-1 text-base text-gray-700">
-                      {selectedApplication?.candidate.location ||
-                        "Non renseigné"}
-                    </Text>
                   </View>
 
-                  <View className="flex-row items-center mb-4">
-                    <View className="items-center w-24">
-                      <Briefcase size={20} color="#374151" />
-                      <Text className="mt-1 text-sm font-medium text-gray-500">
-                        Expérience
+                  <View style={styles.modalInfoCard}>
+                    <Briefcase size={20} color="#4717F6" />
+                    <View style={styles.modalInfoContent}>
+                      <Text style={styles.modalInfoLabel}>Expérience</Text>
+                      <Text style={styles.modalInfoValue}>
+                        {selectedApplication?.candidate.experience_year
+                          ? `${selectedApplication.candidate.experience_year} ans`
+                          : "Non renseigné"}
                       </Text>
                     </View>
-                    <Text className="flex-1 text-base text-gray-700">
-                      {selectedApplication?.candidate.experience_year
-                        ? `${selectedApplication.candidate.experience_year} ans`
-                        : "Non renseigné"}
-                    </Text>
                   </View>
 
-                  <View className="flex-row items-center mb-4">
-                    <View className="items-center w-24">
-                      <Mail size={20} color="#374151" />
-                      <Text className="mt-1 text-sm font-medium text-gray-500">
-                        Email
+                  <View style={styles.modalInfoCard}>
+                    <Mail size={20} color="#4717F6" />
+                    <View style={styles.modalInfoContent}>
+                      <Text style={styles.modalInfoLabel}>Email</Text>
+                      <Text style={styles.modalInfoValue}>
+                        {selectedApplication?.candidate.user.email}
                       </Text>
                     </View>
-                    <Text className="flex-1 text-base text-gray-700">
-                      {selectedApplication?.candidate.user.email}
-                    </Text>
                   </View>
                 </View>
 
-                {/* Bio et métier souhaité */}
-                <View className="mb-6">
-                  <View className="mb-4">
-                    <Text className="mb-3 text-lg font-semibold text-gray-700">
-                      Métier souhaité
-                    </Text>
-                    <Text className="text-base leading-6 text-gray-500">
-                      {selectedApplication?.candidate.prefered_job ||
-                        "Non renseigné"}
-                    </Text>
-                  </View>
-
-                  <View>
-                    <Text className="mb-3 text-lg font-semibold text-gray-700">
-                      À propos
-                    </Text>
-                    <Text className="text-base leading-6 text-gray-500">
+                {/* Bio complète */}
+                <View style={styles.modalSection}>
+                  <Text style={styles.modalSectionTitle}>À propos</Text>
+                  <View style={styles.modalDescriptionContainer}>
+                    <Text style={styles.modalDescription}>
                       {selectedApplication?.candidate.bio ||
                         "Aucune biographie fournie."}
                     </Text>
                   </View>
                 </View>
 
-                {/* Compétences */}
-                <View className="mb-6">
-                  <Text className="mb-3 text-lg font-semibold text-gray-700">
-                    Compétences
-                  </Text>
-                  <View className="flex-row flex-wrap gap-2">
-                    {selectedApplication?.candidate.skills
-                      ?.filter((skill) =>
-                        (selectedApplication.job_post?.skills ?? []).some(
-                          (jobSkill) => jobSkill.id === skill.id
-                        )
-                      )
-                      .map((skill) => (
-                        <View
-                          key={skill.id}
-                          className="px-3 py-1.5 bg-blue-100 rounded-full"
-                        >
-                          <Text className="text-sm font-medium text-blue-800">
-                            {skill.name}
-                          </Text>
-                        </View>
-                      ))}
-                    {selectedApplication?.candidate.skills
-                      ?.filter(
-                        (skill) =>
-                          !(selectedApplication.job_post?.skills ?? []).some(
-                            (jobSkill) => jobSkill.id === skill.id
+                {/* Compétences complètes */}
+                {selectedApplication?.candidate.skills &&
+                  selectedApplication.candidate.skills.length > 0 && (
+                    <View style={styles.modalSection}>
+                      <Text style={styles.modalSectionTitle}>Compétences</Text>
+                      <View style={styles.modalSkillsContainer}>
+                        {selectedApplication.candidate.skills
+                          .filter((skill) =>
+                            (selectedApplication.job_post?.skills ?? []).some(
+                              (jobSkill) => jobSkill.id === skill.id
+                            )
                           )
-                      )
-                      .map((skill) => (
-                        <View
-                          key={skill.id}
-                          className="px-3 py-1.5 bg-gray-100 rounded-full"
-                        >
-                          <Text className="text-sm font-medium text-gray-700">
-                            {skill.name}
-                          </Text>
-                        </View>
-                      ))}
-                  </View>
-                </View>
-
-                {/* Certifications */}
-                {selectedApplication?.candidate.certifications &&
-                  selectedApplication?.candidate.certifications.length > 0 && (
-                    <View className="mb-6">
-                      <Text className="mb-3 text-lg font-semibold text-gray-700">
-                        Certifications
-                      </Text>
-                      <View className="flex-row flex-wrap gap-2">
-                        {selectedApplication.candidate.certifications
-                          .filter((cert) =>
-                            (
-                              selectedApplication.job_post?.certifications ?? []
-                            ).some((jobCert) => jobCert.id === cert.id)
-                          )
-                          .map((cert) => (
-                            <View
-                              key={cert.id}
-                              className="px-3 py-1.5 bg-blue-100 rounded-full"
-                            >
-                              <Text className="text-sm font-medium text-blue-800">
-                                {cert.name}
+                          .map((skill) => (
+                            <View key={skill.id} style={styles.modalSkillBadge}>
+                              <Text style={styles.modalSkillText}>
+                                {skill.name}
                               </Text>
                             </View>
                           ))}
-                        {selectedApplication.candidate.certifications
+                        {selectedApplication.candidate.skills
                           .filter(
-                            (cert) =>
+                            (skill) =>
                               !(
-                                selectedApplication.job_post?.certifications ??
-                                []
-                              ).some((jobCert) => jobCert.id === cert.id)
+                                selectedApplication.job_post?.skills ?? []
+                              ).some((jobSkill) => jobSkill.id === skill.id)
                           )
-                          .map((cert) => (
-                            <View
-                              key={cert.id}
-                              className="px-3 py-1.5 bg-gray-100 rounded-full"
-                            >
-                              <Text className="text-sm font-medium text-gray-700">
-                                {cert.name}
+                          .map((skill) => (
+                            <View key={skill.id} style={styles.modalCertBadge}>
+                              <Text style={styles.modalCertText}>
+                                {skill.name}
                               </Text>
                             </View>
                           ))}
@@ -823,54 +678,633 @@ export default function ApplicationsList({
                     </View>
                   )}
 
-                {/* Légende */}
-                <View className="flex-row items-center justify-center gap-4 mt-2 mb-4">
-                  <View className="flex-row items-center gap-1">
-                    <View className="w-3 h-3 bg-blue-100 rounded-full" />
-                    <Text className="text-xs text-gray-500">
-                      Correspond à l'offre
-                    </Text>
-                  </View>
-                  <View className="flex-row items-center gap-1">
-                    <View className="w-3 h-3 bg-gray-100 rounded-full" />
-                    <Text className="text-xs text-gray-500">
-                      Autre(s) compétence(s)
-                    </Text>
-                  </View>
-                </View>
+                {/* Certifications */}
+                {selectedApplication?.candidate.certifications &&
+                  selectedApplication?.candidate.certifications.length > 0 && (
+                    <View style={styles.modalSection}>
+                      <Text style={styles.modalSectionTitle}>
+                        Certifications
+                      </Text>
+                      <View style={styles.modalSkillsContainer}>
+                        {selectedApplication.candidate.certifications.map(
+                          (cert) => (
+                            <View key={cert.id} style={styles.modalCertBadge}>
+                              <Text style={styles.modalCertText}>
+                                {cert.name}
+                              </Text>
+                            </View>
+                          )
+                        )}
+                      </View>
+                    </View>
+                  )}
 
                 {/* Boutons d'action */}
-                <View className="flex-row justify-center gap-4 mt-6 mb-4">
+                <View style={styles.modalActions}>
                   <TouchableOpacity
-                    className="items-center flex-1 px-6 py-3 bg-green-500 rounded-lg"
-                    onPress={() => handleModalAction("right")}
+                    style={styles.modalActionGreen}
+                    onPress={() => {
+                      if (selectedApplication) {
+                        handleMatch(selectedApplication);
+                        handleCloseModal();
+                      }
+                    }}
                   >
-                    <Text className="text-base font-semibold text-white">
-                      Match
-                    </Text>
+                    <LinearGradient
+                      colors={["#36E9CD", "#36E9CD"]}
+                      style={styles.modalActionGradient}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                    >
+                      <Check size={18} color="white" />
+                      <Text style={styles.modalActionText}>Match</Text>
+                    </LinearGradient>
                   </TouchableOpacity>
+
                   <TouchableOpacity
-                    className="items-center flex-1 px-6 py-3 bg-red-500 rounded-lg"
-                    onPress={() => handleModalAction("left")}
+                    style={styles.modalActionRed}
+                    onPress={handleCloseModal}
                   >
-                    <Text className="text-base font-semibold text-white">
-                      Passer
-                    </Text>
+                    <LinearGradient
+                      colors={["#FF2056", "#FF2056"]}
+                      style={styles.modalActionGradient}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                    >
+                      <X size={18} color="white" />
+                      <Text style={styles.modalActionText}>Passer</Text>
+                    </LinearGradient>
                   </TouchableOpacity>
                 </View>
+
                 <TouchableOpacity
-                  className="items-center self-center px-6 py-3 mt-2 mb-4 bg-gray-200 rounded-lg"
+                  style={styles.modalClose}
                   onPress={handleCloseModal}
                 >
-                  <Text className="text-base font-semibold text-gray-700">
-                    Fermer
-                  </Text>
+                  <Text style={styles.modalCloseText}>Fermer</Text>
                 </TouchableOpacity>
               </ScrollView>
             </Animated.View>
           </Animated.View>
         )}
       </Portal>
-    </GestureHandlerRootView>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#F7F7F7",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    marginTop: 8,
+    fontSize: 16,
+    color: "#6B7280",
+  },
+  headerContainer: {
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 16,
+    borderRadius: 12,
+    overflow: "hidden",
+  },
+  headerGradient: {
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  headerContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 16,
+  },
+  backButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginRight: 16,
+  },
+  backText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "white",
+  },
+  titleSection: {
+    flex: 1,
+    alignItems: "center",
+  },
+  jobTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "white",
+    marginBottom: 4,
+  },
+  candidateCount: {
+    fontSize: 14,
+    color: "rgba(255, 255, 255, 0.9)",
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 24,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#374151",
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  emptySubtitle: {
+    fontSize: 16,
+    color: "#6B7280",
+    textAlign: "center",
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 20,
+    gap: 12,
+  },
+  candidateCard: {
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E5E5E5",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  activeCard: {
+    borderWidth: 1,
+    borderColor: "#4717F6",
+    shadowColor: "#4717F6",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  cardGradient: {
+    borderRadius: 12,
+    padding: 20,
+  },
+  candidateHeader: {
+    marginBottom: 18,
+    borderRadius: 8,
+    overflow: "hidden",
+  },
+  candidateHeaderGradient: {
+    alignItems: "center",
+    padding: 10,
+  },
+  candidateName: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "white",
+    marginBottom: 3,
+  },
+  candidateInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  candidateRole: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "rgba(255, 255, 255, 0.9)",
+  },
+  infoScrollView: {
+    marginBottom: 18,
+  },
+  infoScrollContent: {
+    paddingHorizontal: 4,
+    gap: 10,
+  },
+  infoCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: "rgba(71, 23, 246, 0.05)",
+    padding: 8,
+    borderRadius: 6,
+    borderLeftWidth: 2,
+    borderLeftColor: "#4717F6",
+    minWidth: 120,
+  },
+  infoCardContent: {
+    flex: 1,
+  },
+  infoCardLabel: {
+    fontSize: 10,
+    color: "#6B7280",
+    fontWeight: "600",
+  },
+  infoCardValue: {
+    fontSize: 12,
+    color: "#374151",
+    fontWeight: "700",
+  },
+  skillsSection: {
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#374151",
+    marginBottom: 6,
+  },
+  skillsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 4,
+  },
+  skillBadgeMatched: {
+    backgroundColor: "#36E9CD",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+  },
+  skillTextMatched: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "white",
+  },
+  skillBadge: {
+    backgroundColor: "#6B7280",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+  },
+  skillText: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "white",
+  },
+  skillBadgeExtra: {
+    backgroundColor: "#9CA3AF",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+  },
+  skillTextExtra: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "white",
+  },
+  legend: {
+    marginTop: 6,
+  },
+  legendRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  legendItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  legendPillGreen: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: "#36E9CD",
+  },
+  legendPillGray: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: "#6B7280",
+  },
+  legendText: {
+    fontSize: 10,
+    color: "#6B7280",
+    fontStyle: "italic",
+  },
+  bioSection: {
+    marginBottom: 16,
+  },
+  bioText: {
+    fontSize: 12,
+    color: "#6B7280",
+    lineHeight: 16,
+  },
+  actionsSection: {
+    gap: 12,
+  },
+  seeProfileButton: {
+    alignSelf: "center",
+  },
+  seeProfileGradient: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  seeProfileText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "white",
+  },
+  actionButtons: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 40,
+    paddingBottom: 16,
+  },
+  actionButtonRed: {
+    width: 50,
+    height: 50,
+    borderRadius: 30,
+    backgroundColor: "#FF2056",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  actionButtonGreen: {
+    width: 50,
+    height: 50,
+    borderRadius: 30,
+    backgroundColor: "#36E9CD",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  legendContainer: {
+    paddingHorizontal: 24,
+    paddingBottom: 20,
+  },
+  legendButtonText: {
+    fontSize: 14,
+    fontStyle: "italic",
+    textAlign: "center",
+    color: "#6B7280",
+  },
+  // Modal styles
+  modalBackdrop: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    top: 0,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+    zIndex: 100,
+  },
+  modalSheet: {
+    backgroundColor: "white",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    height: "70%",
+    alignSelf: "flex-end",
+    width: "100%",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 10,
+  },
+  modalHandle: {
+    alignItems: "center",
+    paddingVertical: 16,
+    backgroundColor: "white",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+  },
+  handleBar: {
+    width: 48,
+    height: 4,
+    backgroundColor: "#D1D5DB",
+    borderRadius: 2,
+  },
+  modalContent: {
+    flex: 1,
+    paddingHorizontal: 24,
+  },
+  modalHeaderContainer: {
+    marginBottom: 24,
+    borderRadius: 12,
+    overflow: "hidden",
+  },
+  modalHeaderGradient: {
+    borderRadius: 12,
+  },
+  modalHeaderContent: {
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 20,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "white",
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  modalCompanyRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  modalCompany: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "rgba(255, 255, 255, 0.9)",
+    textAlign: "center",
+  },
+  modalInfoSection: {
+    marginBottom: 24,
+  },
+  modalInfoCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+    backgroundColor: "rgba(71, 23, 246, 0.05)",
+    padding: 16,
+    borderRadius: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: "#4717F6",
+  },
+  modalInfoContent: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  modalInfoLabel: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#6B7280",
+    marginBottom: 4,
+  },
+  modalInfoValue: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#374151",
+  },
+  modalSection: {
+    marginBottom: 24,
+  },
+  modalSectionTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#374151",
+    marginBottom: 12,
+  },
+  modalDescriptionContainer: {
+    padding: 12,
+    backgroundColor: "rgba(243, 244, 246, 0.8)",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+  },
+  modalDescription: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: "#6B7280",
+  },
+  modalSkillsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  modalSkillBadge: {
+    backgroundColor: "#36E9CD",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 16,
+    shadowColor: "#36E9CD",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  modalSkillText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "white",
+  },
+  modalCertBadge: {
+    backgroundColor: "#7C3AED",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 16,
+    shadowColor: "#7C3AED",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  modalCertText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "white",
+  },
+  modalActions: {
+    flexDirection: "row",
+    gap: 16,
+    marginBottom: 16,
+  },
+  modalActionGreen: {
+    flex: 1,
+  },
+  modalActionRed: {
+    flex: 1,
+  },
+  modalActionGradient: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 16,
+    borderRadius: 8,
+    gap: 8,
+  },
+  modalActionText: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "white",
+  },
+  modalClose: {
+    alignItems: "center",
+    alignSelf: "center",
+    paddingHorizontal: 32,
+    paddingVertical: 12,
+    backgroundColor: "#F3F4F6",
+    borderRadius: 8,
+  },
+  modalCloseText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#374151",
+  },
+  // Styles pour les overlays de swipe
+  leftOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 32, 86, 0.85)",
+    borderRadius: 12,
+  },
+  rightOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(54, 233, 205, 0.85)",
+    borderRadius: 12,
+  },
+  overlayContent: {
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: "rgba(255, 255, 255, 0.3)",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  overlayTextRed: {
+    marginTop: 6,
+    fontSize: 16,
+    fontWeight: "900",
+    color: "#ffffff",
+    letterSpacing: 1,
+  },
+  overlayTextGreen: {
+    marginTop: 6,
+    fontSize: 16,
+    fontWeight: "900",
+    color: "#ffffff",
+    letterSpacing: 1,
+  },
+});
