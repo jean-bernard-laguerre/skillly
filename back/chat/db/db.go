@@ -36,6 +36,10 @@ func InitMongoDB(
 	}
 
 	config.DBMongo = client.Database(dbName)
+
+	config.DBMongo.Collection("room")
+	config.DBMongo.Collection("message")
+
 	log.Printf("Connected to MongoDB database: %s", dbName)
 }
 
