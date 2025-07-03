@@ -30,6 +30,20 @@ jobs:
           --health-timeout=5s
           --health-retries=3
 
+      mongodb:
+        image: mongo:latest
+        ports:
+          - "27018:27017"
+        env:
+          MONGO_INITDB_ROOT_USERNAME: root
+          MONGO_INITDB_ROOT_PASSWORD: root
+          MONGO_INITDB_DATABASE: skilly_test
+        options: >-
+          --health-cmd="mongosh --eval 'db.adminCommand(\"ping\")'"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
