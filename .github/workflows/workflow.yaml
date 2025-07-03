@@ -77,7 +77,6 @@ jobs:
             db.createUser({ user: 'test', pwd: 'test', roles: [{ role: 'readWrite', db: 'skilly_test' }] })
             db.createCollection('room');
             db.createCollection('message');
-            db.room.InsertOne({name: 'test_room'});
           EOF
 
       - name: Run tests
