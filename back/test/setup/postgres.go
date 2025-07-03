@@ -15,8 +15,8 @@ func SetupTestPostgres() {
 	dbUser := os.Getenv("TEST_DB_USER")
 	dbPassword := os.Getenv("TEST_DB_PASSWORD")
 	dbName := os.Getenv("TEST_DB_NAME")
-	host := "postgres"
-	port := "5432"
+	host := os.Getenv("TEST_DB_HOST")
+	port := os.Getenv("TEST_DB_PORT")
 
 	db.Init(
 		dbUser, dbPassword, dbName, host, port,
