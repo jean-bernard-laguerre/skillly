@@ -807,6 +807,38 @@ paths:
       summary: Créer un match
       tags:
       - matches
+  /match/me:
+    get:
+      consumes:
+      - application/json
+      description: Permet à un candidat de voir tous ses matchs
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Liste de mes matchs
+          schema:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+        "401":
+          description: Non autorisé
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Accès refusé - candidats uniquement
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Récupérer mes matchs
+      tags:
+      - matches
   /skill:
     get:
       consumes:

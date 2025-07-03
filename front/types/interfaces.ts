@@ -203,6 +203,7 @@ export interface JobPost {
   contract_type: string;
   salary_range: string;
   expiration_date: string;
+  created_at: string;
   skills?: Skill[];
   certifications?: Certification[];
   applications?: Application[];
