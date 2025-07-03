@@ -104,7 +104,7 @@ export default function RecruiterHome() {
   return (
     <ScreenWrapper>
       <Header
-        title="TABLEAU DE BORD"
+        title="ACCUEIL"
         showNotification={true}
         onNotificationPress={() => console.log("Notification pressed")}
       />
