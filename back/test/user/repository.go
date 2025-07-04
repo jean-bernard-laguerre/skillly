@@ -16,7 +16,6 @@ var userRepo = user.NewUserRepository(config.DB)
 var testUser = models.User{}
 
 func CreateUser(t *testing.T) {
-	userRepo := user.NewUserRepository(config.DB)
 
 	// Create a new user
 	newUser := userDto.CreateUserDTO{
