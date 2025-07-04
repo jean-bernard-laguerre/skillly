@@ -19,5 +19,10 @@ func TestUser(t *testing.T) {
 	t.Run("CreateUser", user_test.CreateUser)
 	t.Run("GetUserById", user_test.GetUserById)
 	t.Run("GetUserByEmail", user_test.GetUserByEmail)
+	t.Run("UpdateUser", user_test.UpdateUser)
 	t.Run("GetAllUsers", user_test.GetAllUsers)
+}
+
+func DeleteEverything(t *testing.T) {
+	t.Run("DeleteUser", user_test.DeleteUser)
 }

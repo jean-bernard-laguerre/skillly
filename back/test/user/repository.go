@@ -8,12 +8,15 @@ import (
 	userDto "skillly/pkg/handlers/user/dto"
 	"skillly/pkg/models"
 	"skillly/pkg/utils"
+
+	"github.com/gin-gonic/gin"
 )
 
 var userRepo user.UserRepository
+var testUser models.User
 
 func CreateUser(t *testing.T) {
-	userRepo = user.NewUserRepository(config.DB)
+	userRepo := user.NewUserRepository(config.DB)
 
 	// Create a new user
 	newUser := userDto.CreateUserDTO{
@@ -50,15 +53,15 @@ func CreateUser(t *testing.T) {
 }
 
 func GetUserById(t *testing.T) {
-	user, err := userRepo.GetByID(1, nil)
+	testUser, err := userRepo.GetByID(1, nil)
 
 	if err != nil {
 		t.Fatalf("Failed to get user by ID: %v", err)
 	}
 
 	// Check if the user ID is correct
-	if user.ID != 1 {
-		t.Fatalf("Expected user ID 1, got %d", user.ID)
+	if testUser.ID != 1 {
+		t.Fatalf("Expected user ID 1, got %d", testUser.ID)
 	}
 }
 
@@ -74,8 +77,33 @@ func GetUserByEmail(t *testing.T) {
 	}
 }
 
+func UpdateUser(t *testing.T) {
+	// Create a new user to update
+	testUser.FirstName = "Updated"
+	err := userRepo.Update(&testUser)
+
+	if err != nil {
+		t.Fatalf("Failed to update user: %v", err)
+	}
+
+	// Fetch the updated user
+	updatedUser, err := userRepo.GetByID(testUser.ID, nil)
+	if err != nil {
+		t.Fatalf("Failed to get updated user: %v", err)
+	}
+
+	// Check if the user first name is updated
+	if updatedUser.FirstName != "Updated" {
+		t.Fatalf("Expected user first name Updated, got %s", updatedUser.FirstName)
+	}
+	// Check if the user last name is still the same
+	if updatedUser.LastName != "User" {
+		t.Fatalf("Expected user last name User, got %s", updatedUser.LastName)
+	}
+}
+
 func GetAllUsers(t *testing.T) {
-	params := utils.GetUrlParams(nil)
+	params := utils.GetUrlParams(&gin.Context{})
 	users, err := userRepo.GetAll(params)
 	if err != nil {
 		t.Fatalf("Failed to get all users: %v", err)
@@ -84,5 +112,20 @@ func GetAllUsers(t *testing.T) {
 	// Check if the users slice is not empty
 	if len(users) == 0 {
 		t.Fatal("Expected at least one user, got none")
+	}
+}
+
+func DeleteUser(t *testing.T) {
+	err := userRepo.Delete(testUser.ID)
+	if err != nil {
+		t.Fatalf("Failed to delete user: %v", err)
+	}
+	// Check if the user is deleted
+	_, err = userRepo.GetByID(testUser.ID, nil)
+	if err == nil {
+		t.Fatalf("Expected error when getting deleted user, got nil")
+	}
+	if err.Error() != "record not found" {
+		t.Fatalf("Expected 'record not found' error, got %v", err)
 	}
 }
