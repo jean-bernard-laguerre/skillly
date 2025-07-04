@@ -78,9 +78,10 @@ func GetUserByEmail(t *testing.T) {
 
 func UpdateUser(t *testing.T) {
 	// Create a new user to update
-	user, err := userRepo.GetByID(1, nil)
+	params := utils.GetUrlParams(&gin.Context{})
+	user, _ := userRepo.GetByID(1, &params.Populate)
 	user.FirstName = "Updated"
-	err = userRepo.Update(&user)
+	err := userRepo.Update(&user)
 
 	if err != nil {
 		t.Fatalf("Failed to update user: %v", err)
