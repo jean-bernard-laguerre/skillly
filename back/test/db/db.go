@@ -2,6 +2,7 @@ package db_test
 
 import (
 	"context"
+	"fmt"
 	chatConfig "skillly/chat/config"
 	"skillly/pkg/config"
 	"slices"
@@ -50,6 +51,7 @@ func MongoCollectionCheck(t *testing.T) {
 	}
 
 	dbCollections, err := chatConfig.DBMongo.ListCollectionNames(context.TODO(), bson.D{})
+	fmt.Printf("MongoDB Collections: %v\n", dbCollections)
 
 	if err != nil {
 		t.Fatalf("Error listing collections: %v", err)
