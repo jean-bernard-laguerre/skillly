@@ -13,7 +13,6 @@ import (
 )
 
 var userRepo user.UserRepository
-var testUser models.User
 
 func CreateUser(t *testing.T) {
 	userRepo := user.NewUserRepository(config.DB)
@@ -53,15 +52,15 @@ func CreateUser(t *testing.T) {
 }
 
 func GetUserById(t *testing.T) {
-	testUser, err := userRepo.GetByID(1, nil)
+	user, err := userRepo.GetByID(1, nil)
 
 	if err != nil {
 		t.Fatalf("Failed to get user by ID: %v", err)
 	}
 
 	// Check if the user ID is correct
-	if testUser.ID != 1 {
-		t.Fatalf("Expected user ID 1, got %d", testUser.ID)
+	if user.ID != 1 {
+		t.Fatalf("Expected user ID 1, got %d", user.ID)
 	}
 }
 
@@ -79,15 +78,16 @@ func GetUserByEmail(t *testing.T) {
 
 func UpdateUser(t *testing.T) {
 	// Create a new user to update
-	testUser.FirstName = "Updated"
-	err := userRepo.Update(&testUser)
+	user, err := userRepo.GetByID(1, nil)
+	user.FirstName = "Updated"
+	err = userRepo.Update(&user)
 
 	if err != nil {
 		t.Fatalf("Failed to update user: %v", err)
 	}
 
 	// Fetch the updated user
-	updatedUser, err := userRepo.GetByID(testUser.ID, nil)
+	updatedUser, err := userRepo.GetByID(user.ID, nil)
 	if err != nil {
 		t.Fatalf("Failed to get updated user: %v", err)
 	}
@@ -116,12 +116,12 @@ func GetAllUsers(t *testing.T) {
 }
 
 func DeleteUser(t *testing.T) {
-	err := userRepo.Delete(testUser.ID)
+	err := userRepo.Delete(1)
 	if err != nil {
 		t.Fatalf("Failed to delete user: %v", err)
 	}
 	// Check if the user is deleted
-	_, err = userRepo.GetByID(testUser.ID, nil)
+	_, err = userRepo.GetByID(1, nil)
 	if err == nil {
 		t.Fatalf("Expected error when getting deleted user, got nil")
 	}
