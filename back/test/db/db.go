@@ -6,6 +6,8 @@ import (
 	"skillly/pkg/config"
 	"slices"
 	"testing"
+
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func PostgresDatabaseConnection(t *testing.T) {
@@ -47,7 +49,7 @@ func MongoCollectionCheck(t *testing.T) {
 		"room", "message",
 	}
 
-	dbCollections, err := chatConfig.DBMongo.ListCollectionNames(context.TODO(), nil)
+	dbCollections, err := chatConfig.DBMongo.ListCollectionNames(context.TODO(), bson.D{})
 
 	if err != nil {
 		t.Fatalf("Error listing collections: %v", err)
