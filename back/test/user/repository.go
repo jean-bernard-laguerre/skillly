@@ -12,8 +12,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var userRepo user.UserRepository
-var testUser models.User
+var userRepo = user.NewUserRepository(config.DB)
+var testUser = models.User{}
 
 func CreateUser(t *testing.T) {
 	userRepo := user.NewUserRepository(config.DB)
