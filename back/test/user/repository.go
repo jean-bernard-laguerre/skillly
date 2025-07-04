@@ -13,6 +13,7 @@ import (
 )
 
 var userRepo user.UserRepository
+var testUser models.User
 
 func CreateUser(t *testing.T) {
 	userRepo := user.NewUserRepository(config.DB)
@@ -52,15 +53,15 @@ func CreateUser(t *testing.T) {
 }
 
 func GetUserById(t *testing.T) {
-	user, err := userRepo.GetByID(1, nil)
+	testUser, err := userRepo.GetByID(1, nil)
 
 	if err != nil {
 		t.Fatalf("Failed to get user by ID: %v", err)
 	}
 
 	// Check if the user ID is correct
-	if user.ID != 1 {
-		t.Fatalf("Expected user ID 1, got %d", user.ID)
+	if testUser.ID != 1 {
+		t.Fatalf("Expected user ID 1, got %d", testUser.ID)
 	}
 }
 
@@ -79,7 +80,8 @@ func GetUserByEmail(t *testing.T) {
 func UpdateUser(t *testing.T) {
 	// Create a new user to update
 	params := utils.GetUrlParams(&gin.Context{})
-	user, _ := userRepo.GetByID(1, &params.Populate)
+	user, _ := userRepo.GetByID(testUser.ID, &params.Populate)
+
 	user.FirstName = "Updated"
 	err := userRepo.Update(&user)
 
@@ -117,7 +119,7 @@ func GetAllUsers(t *testing.T) {
 }
 
 func DeleteUser(t *testing.T) {
-	err := userRepo.Delete(1)
+	err := userRepo.Delete(testUser.ID)
 	if err != nil {
 		t.Fatalf("Failed to delete user: %v", err)
 	}
