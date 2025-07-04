@@ -11,8 +11,8 @@ db.createUser({
   ],
 })
 
-db.createCollection('message');
 db.createCollection('room');
+db.createCollection('message');
 
-db.message.insertOne({ _init: true });
 db.room.insertOne({ name: 'test_room', _init: true });
+db.message.insertOne({ _init: true });
