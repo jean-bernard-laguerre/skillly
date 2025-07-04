@@ -104,7 +104,7 @@ export default function RecruiterHome() {
   return (
     <ScreenWrapper>
       <Header
-        title="TABLEAU DE BORD"
+        title="ACCUEIL"
         showNotification={true}
         onNotificationPress={() => console.log("Notification pressed")}
       />
@@ -274,7 +274,9 @@ export default function RecruiterHome() {
           <View style={styles.actionsRow}>
             {/* Créer une offre */}
             <Pressable
-              onPress={() => navigation.navigate("jobs/create" as never)}
+              onPress={() =>
+                (navigation as any).navigate("Jobs", { create: true })
+              }
               style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1, flex: 1 })}
             >
               <LinearGradient
@@ -290,7 +292,7 @@ export default function RecruiterHome() {
 
             {/* Voir les offres */}
             <Pressable
-              onPress={() => navigation.navigate("jobs" as never)}
+              onPress={() => navigation.navigate("Jobs" as never)}
               style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1, flex: 1 })}
             >
               <LinearGradient
