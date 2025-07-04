@@ -1,4 +1,4 @@
-db = db.getSiblingDB(process.env.DB_NAME || 'skillly');
+db = db.getSiblingDB(process.env.DB_NAME || 'skillly_test');
 
 db.createUser({
   user: 'test',
