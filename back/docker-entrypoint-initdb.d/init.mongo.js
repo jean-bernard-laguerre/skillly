@@ -1,4 +1,4 @@
-db = db.getSiblingDB(process.env.DB_NAME || 'skillly');
+db = db.getSiblingDB(process.env.DB_NAME || 'skillly_test');
 
 db.createUser({
   user: 'test',
@@ -11,9 +11,8 @@ db.createUser({
   ],
 })
 
-db.createCollection('message');
 db.createCollection('room');
+db.createCollection('message');
 
-db.room.InsertOne({
-  name: 'test_room',  
-});
+db.room.insertOne({ name: 'test_room', _init: true });
+db.message.insertOne({ _init: true });

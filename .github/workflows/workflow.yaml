@@ -68,9 +68,13 @@ jobs:
           TEST_DB_USER: root
           TEST_DB_PASSWORD: root
           TEST_DB_NAME: skilly_test
+          DB_NAME: skillly_test
           MONGO_URI: mongodb://localhost:27018/
         run: go test -v ./test
         working-directory: ./back
+
+      - name: Fix permissions so runner can clean up
+        run: sudo chown -R $USER:$USER back/docker-entrypoint-initdb.d
 
   # GET REPO NAME
   get-repo-name:
