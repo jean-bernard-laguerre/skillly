@@ -3,8 +3,10 @@ package test
 import (
 	"testing"
 
+	application_test "skillly/test/application"
 	auth_test "skillly/test/auth"
 	db_test "skillly/test/db"
+	jobpost_test "skillly/test/jobPost"
 	user_test "skillly/test/user"
 )
 
@@ -29,6 +31,20 @@ func TestUser(t *testing.T) {
 	t.Run("GetUserById", user_test.GetUserById)
 }
 
+func TestJobPost(t *testing.T) {
+	t.Run("CreateJobPost", jobpost_test.CreateJobPost)
+	t.Run("GetJobPostById", jobpost_test.GetJobPostById)
+	t.Run("UpdateJobPost", jobpost_test.UpdateJobPost)
+}
+
+func TestApplication(t *testing.T) {
+	t.Run("CreateApplication", application_test.CreateApplication)
+	t.Run("GetApplicationById", application_test.GetApplicationById)
+	t.Run("UpdateApplication", application_test.UpdateApplication)
+}
+
 func DeleteEverything(t *testing.T) {
 	t.Run("DeleteUser", user_test.DeleteUser)
+	t.Run("DeleteJobPost", jobpost_test.DeleteJobPost)
+	t.Run("DeleteApplication", application_test.DeleteApplication)
 }

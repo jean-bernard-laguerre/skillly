@@ -1,7 +1,6 @@
 package user_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -37,7 +36,7 @@ func CreateUser(t *testing.T) {
 
 func GetUserById(t *testing.T) {
 	context := testUtils.CreateTestContext()
-	fmt.Println("Getting user by ID:", 1)
+
 	params := utils.GetUrlParams(context)
 	user, err := testUtils.UserRepo.GetByID(uint(1), &params.Populate)
 
