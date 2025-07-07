@@ -164,8 +164,12 @@ export const createChatroom = async (payload: {
   }
 };
 
-// Fonction utilitaire pour créer une URL WebSocket
-export const getWebSocketUrl = (roomId: string, userId: string): string => {
-  const baseUrl = "ws://localhost:8080"; // À adapter selon votre config
-  return `${baseUrl}/ws/${roomId}?id=${userId}`;
-};
+// Génère dynamiquement l'URL WebSocket selon l'environnement
+export function getWebSocketUrl(chatroomId: string, userId?: string) {
+  // On part du principe que EXPO_PUBLIC_API_URL = http://192.168.x.x:8080 ou https://...
+  const base = process.env.EXPO_PUBLIC_API_URL || "http://localhost:8080";
+  // Remplace http(s) par ws(s)
+  const wsBase = base.replace(/^http/, "ws");
+  // Ajoute l'ID utilisateur si besoin
+  return `${wsBase}/ws/${chatroomId}${userId ? `?id=${userId}` : ""}`;
+}

@@ -214,16 +214,36 @@ export default function ChatroomView({ onBack, chatroomId }: ChatroomProps) {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
       >
-        <View style={styles.inputContainer}>
-          <InputBox
-            value={newMessage}
-            onChange={setNewMessage}
-            onSend={handleSendMessage}
-            placeholder="Tapez votre message..."
-            disabled={false}
-            userRole={role || "candidate"}
-          />
-        </View>
+        {role === "candidate" && messages.length === 0 ? (
+          <View
+            style={{
+              backgroundColor: "#fff",
+              borderTopWidth: 1,
+              borderTopColor: "#E5E7EB",
+              padding: 20,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Text
+              style={{ color: "#6B7280", fontSize: 15, textAlign: "center" }}
+            >
+              Seul le recruteur peut initier la conversation. Vous pourrez
+              répondre dès qu'il aura envoyé un premier message.
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.inputContainer}>
+            <InputBox
+              value={newMessage}
+              onChange={setNewMessage}
+              onSend={handleSendMessage}
+              placeholder="Tapez votre message..."
+              disabled={false}
+              userRole={role || "candidate"}
+            />
+          </View>
+        )}
       </KeyboardAvoidingView>
     </ScreenWrapper>
   );
