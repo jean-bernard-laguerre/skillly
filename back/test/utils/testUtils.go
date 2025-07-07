@@ -68,7 +68,7 @@ var UserRepo user.UserRepository
 var CandidateRepo candidate.CandidateRepository
 var RecruiterRepo recruiter.RecruiterRepository
 
-func init() {
+func InitTestRepositories() {
 	UserRepo = user.NewUserRepository(config.DB)
 	CandidateRepo = candidate.NewCandidateRepository(config.DB)
 	RecruiterRepo = recruiter.NewRecruiterRepository(config.DB)
