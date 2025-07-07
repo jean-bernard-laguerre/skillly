@@ -52,7 +52,8 @@ func CreateUser(t *testing.T) {
 }
 
 func GetUserById(t *testing.T) {
-	testUser, err := userRepo.GetByID(1, nil)
+	params := utils.GetUrlParams(&gin.Context{})
+	testUser, err := userRepo.GetByID(1, &params.Populate)
 
 	if err != nil {
 		t.Fatalf("Failed to get user by ID: %v", err)
