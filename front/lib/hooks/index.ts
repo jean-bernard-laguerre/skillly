@@ -21,3 +21,5 @@ export { useRecruiterStats } from "./useRecruiterStats";
 export type { RecruiterStats, RecruiterStatsData } from "./useRecruiterStats";
 
 export { useMessages } from "./useMessages";
+
+export { useResponsive } from "./useResponsive";

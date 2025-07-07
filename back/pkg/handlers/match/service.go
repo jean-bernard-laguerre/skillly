@@ -16,6 +16,7 @@ import (
 type MatchService interface {
 	CreateMatch(c *gin.Context)
 	GetCandidateMatches(c *gin.Context)
+	GetMyMatches(c *gin.Context)
 }
 
 type matchService struct {
@@ -81,7 +82,75 @@ func (s *matchService) CreateMatch(c *gin.Context) {
 	c.JSON(201, match) // Return 201 Created status with the created match
 }
 
-// GetCandidateMatches handles retrieving matches for the authenticated candidate
+// GetMyMatches handles retrieving matches for the authenticated user (candidates or recruiters)
+func (s *matchService) GetMyMatches(c *gin.Context) {
+	// Get user role and ID from context (set by auth middleware)
+	userRole, roleExists := c.Get("user_role")
+	if !roleExists {
+		c.JSON(403, gin.H{"error": "User role not found in context"})
+		return
+	}
+
+	roleStr, ok := userRole.(string)
+	if !ok {
+		c.JSON(500, gin.H{"error": "Invalid user role type"})
+		return
+	}
+
+	switch roleStr {
+	case "candidate":
+		// For candidates, use existing logic
+		candidateID, exists := c.Get("candidate_id")
+		if !exists {
+			c.JSON(403, gin.H{"error": "Candidate ID not found in context"})
+			return
+		}
+
+		candidateIDUint, ok := candidateID.(uint)
+		if !ok {
+			c.JSON(500, gin.H{"error": "Invalid candidate ID type"})
+			return
+		}
+
+		// Retrieve matches from repository
+		matches, err := s.matchRepository.GetCandidateMatches(candidateIDUint)
+		if err != nil {
+			c.JSON(500, gin.H{"error": "Failed to retrieve matches: " + err.Error()})
+			return
+		}
+
+		c.JSON(200, matches)
+
+	case "recruiter":
+		// For recruiters, get matches from their company's job posts
+		recruiterID, exists := c.Get("recruiter_id")
+		if !exists {
+			c.JSON(403, gin.H{"error": "Recruiter ID not found in context"})
+			return
+		}
+
+		recruiterIDUint, ok := recruiterID.(uint)
+		if !ok {
+			c.JSON(500, gin.H{"error": "Invalid recruiter ID type"})
+			return
+		}
+
+		// Retrieve matches for recruiter's job posts
+		matches, err := s.matchRepository.GetRecruiterMatches(recruiterIDUint)
+		if err != nil {
+			c.JSON(500, gin.H{"error": "Failed to retrieve matches: " + err.Error()})
+			return
+		}
+
+		c.JSON(200, matches)
+
+	default:
+		c.JSON(403, gin.H{"error": "Invalid user role"})
+		return
+	}
+}
+
+// GetCandidateMatches handles retrieving matches for the authenticated candidate (kept for compatibility)
 func (s *matchService) GetCandidateMatches(c *gin.Context) {
 	// Get candidate ID from context (set by auth middleware)
 	candidateID, exists := c.Get("candidate_id")

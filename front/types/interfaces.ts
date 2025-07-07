@@ -240,6 +240,11 @@ export interface Chatroom {
   id: string;
   name: string;
   created_at: string;
+  participants?: {
+    candidate: any;
+    recruiter: any;
+  };
+  jobPost?: any;
 }
 
 export interface Message {

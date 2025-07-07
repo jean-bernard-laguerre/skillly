@@ -1,22 +1,8 @@
 import React from "react";
-import { View, Text, StyleSheet, Dimensions } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Message } from "@/types/interfaces";
-
-const { height: screenHeight } = Dimensions.get("window");
-
-// Fonction pour obtenir les dimensions adaptatives
-const getAdaptiveStyles = () => {
-  const isSmallScreen = screenHeight < 700;
-  const isMediumScreen = screenHeight >= 700 && screenHeight < 850;
-
-  return {
-    fontSize: isSmallScreen ? 14 : 16,
-    timeSize: isSmallScreen ? 10 : 11,
-    bubblePadding: isSmallScreen ? 12 : 14,
-    marginVertical: isSmallScreen ? 4 : 6,
-  };
-};
+import { useResponsive } from "@/lib/hooks/useResponsive";
 
 interface MessageBoxProps {
   readonly isSender: boolean;
@@ -29,7 +15,7 @@ export default function MessageBox({
   message,
   userRole = "candidate",
 }: MessageBoxProps) {
-  const adaptive = getAdaptiveStyles();
+  const responsive = useResponsive();
 
   // Couleurs selon le rôle et si c'est l'expéditeur
   const roleColors = {
@@ -61,7 +47,9 @@ export default function MessageBox({
         styles.messageContainer,
         {
           alignSelf: isSender ? "flex-end" : "flex-start",
-          marginVertical: adaptive.marginVertical,
+          marginVertical: responsive.config.spacing.xs,
+          marginHorizontal: responsive.config.spacing.sm,
+          maxWidth: responsive.config.compactMode ? "85%" : "80%",
         },
       ]}
     >
@@ -69,11 +57,20 @@ export default function MessageBox({
         style={[
           styles.messageBubble,
           isSender ? styles.senderBubble : styles.receiverBubble,
+          { borderRadius: responsive.config.compactMode ? 14 : 18 },
         ]}
       >
         <LinearGradient
           colors={colors}
-          style={[styles.messageGradient, { padding: adaptive.bubblePadding }]}
+          style={[
+            styles.messageGradient,
+            {
+              padding: responsive.config.compactMode
+                ? responsive.config.spacing.sm
+                : responsive.config.spacing.md,
+              borderRadius: responsive.config.compactMode ? 14 : 18,
+            },
+          ]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
         >
@@ -81,8 +78,9 @@ export default function MessageBox({
             style={[
               styles.messageText,
               {
-                fontSize: adaptive.fontSize,
+                fontSize: responsive.config.fontSize.md,
                 color: isSender ? "white" : "#374151",
+                lineHeight: responsive.config.fontSize.lg,
               },
             ]}
           >
@@ -95,8 +93,10 @@ export default function MessageBox({
         style={[
           styles.timeText,
           {
-            fontSize: adaptive.timeSize,
+            fontSize: responsive.config.fontSize.xs,
             textAlign: isSender ? "right" : "left",
+            marginTop: responsive.config.spacing.xs,
+            marginHorizontal: responsive.config.spacing.xs,
           },
         ]}
       >
@@ -108,11 +108,9 @@ export default function MessageBox({
 
 const styles = StyleSheet.create({
   messageContainer: {
-    maxWidth: "80%",
-    marginHorizontal: 8,
+    // Styles de base, les dimensions sont gérées inline avec responsive
   },
   messageBubble: {
-    borderRadius: 18,
     shadowColor: "#000000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.08,
@@ -126,17 +124,13 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 6,
   },
   messageGradient: {
-    borderRadius: 18,
+    // Styles gérés inline avec responsive
   },
   messageText: {
     fontWeight: "500",
-    lineHeight: 20,
   },
   timeText: {
     color: "#6B7280",
     fontWeight: "500",
-    marginTop: 4,
-    marginHorizontal: 4,
-    fontSize: 11,
   },
 });

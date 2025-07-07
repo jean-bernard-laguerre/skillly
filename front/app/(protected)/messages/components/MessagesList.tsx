@@ -7,9 +7,11 @@ import {
   Dimensions,
   ActivityIndicator,
   RefreshControl,
+  Pressable,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { MessageCircle, Users } from "lucide-react-native";
+import { useNavigation } from "@react-navigation/native";
 import ScreenWrapper from "@/navigation/ScreenWrapper";
 import Header from "@/components/Header";
 import ChatroomItem from "./ChatroomItem";
@@ -39,6 +41,7 @@ interface MessagesListProps {
 export default function MessagesList({ userRole }: MessagesListProps) {
   const [selectedChatroom, setSelectedChatroom] = useState<string>("");
   const [refreshing, setRefreshing] = useState(false);
+  const navigation = useNavigation();
   const adaptive = getAdaptiveStyles();
 
   // Utiliser le hook pour récupérer les conversations
@@ -86,6 +89,16 @@ export default function MessagesList({ userRole }: MessagesListProps) {
 
   const onBack = () => {
     setSelectedChatroom("");
+  };
+
+  const handleCTAPress = () => {
+    if (userRole === "candidate") {
+      // Naviguer vers l'onglet JobOffers pour les candidats
+      navigation.navigate("JobOffers" as never);
+    } else {
+      // Naviguer vers l'onglet Applications pour les recruteurs
+      navigation.navigate("Applications" as never);
+    }
   };
 
   // Si une conversation est sélectionnée, afficher la vue de conversation
@@ -214,7 +227,7 @@ export default function MessagesList({ userRole }: MessagesListProps) {
             </Text>
 
             {/* CTA card */}
-            <View style={styles.ctaCard}>
+            <Pressable style={styles.ctaCard} onPress={handleCTAPress}>
               <LinearGradient
                 colors={[config.colors[1], config.colors[0]]}
                 style={styles.ctaGradient}
@@ -233,7 +246,7 @@ export default function MessagesList({ userRole }: MessagesListProps) {
                   </View>
                 </View>
               </LinearGradient>
-            </View>
+            </Pressable>
           </ScrollView>
         ) : (
           <ScrollView

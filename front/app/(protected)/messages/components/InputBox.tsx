@@ -1,29 +1,8 @@
 import React from "react";
-import {
-  View,
-  TouchableOpacity,
-  TextInput,
-  StyleSheet,
-  Dimensions,
-} from "react-native";
+import { View, TouchableOpacity, TextInput, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { SendHorizontal, Plus } from "lucide-react-native";
-
-const { height: screenHeight } = Dimensions.get("window");
-
-// Fonction pour obtenir les dimensions adaptatives
-const getAdaptiveStyles = () => {
-  const isSmallScreen = screenHeight < 700;
-  const isMediumScreen = screenHeight >= 700 && screenHeight < 850;
-
-  return {
-    containerPadding: isSmallScreen ? 12 : 16,
-    inputHeight: isSmallScreen ? 40 : 44,
-    buttonSize: isSmallScreen ? 40 : 44,
-    fontSize: isSmallScreen ? 14 : 16,
-    iconSize: isSmallScreen ? 18 : 20,
-  };
-};
+import { useResponsive } from "@/lib/hooks/useResponsive";
 
 interface InputBoxProps {
   readonly value: string;
@@ -42,7 +21,7 @@ export default function InputBox({
   disabled = false,
   userRole = "candidate",
 }: InputBoxProps) {
-  const adaptive = getAdaptiveStyles();
+  const responsive = useResponsive();
 
   // Couleurs selon le rôle
   const roleColors = {
@@ -51,19 +30,18 @@ export default function InputBox({
   };
 
   const colors = roleColors[userRole];
-
   const canSend = value.trim().length > 0 && !disabled;
 
   return (
-    <View style={[styles.container, { padding: adaptive.containerPadding }]}>
-      <View style={styles.inputRow}>
+    <View style={[styles.container, { padding: responsive.config.spacing.md }]}>
+      <View style={[styles.inputRow, { gap: responsive.config.spacing.md }]}>
         {/* Bouton plus (pour les futurs attachements) */}
         <TouchableOpacity
           style={[
             styles.attachButton,
             {
-              width: adaptive.buttonSize,
-              height: adaptive.buttonSize,
+              width: responsive.config.button.height,
+              height: responsive.config.button.height,
             },
           ]}
           activeOpacity={0.7}
@@ -74,26 +52,33 @@ export default function InputBox({
             style={[
               styles.attachGradient,
               {
-                width: adaptive.buttonSize,
-                height: adaptive.buttonSize,
-                borderRadius: adaptive.buttonSize / 2,
+                width: responsive.config.button.height,
+                height: responsive.config.button.height,
+                borderRadius: responsive.config.button.height / 2,
               },
             ]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
           >
-            <Plus size={adaptive.iconSize} color="#6B7280" />
+            <Plus size={responsive.config.iconSize.sm} color="#6B7280" />
           </LinearGradient>
         </TouchableOpacity>
 
         {/* Input de texte */}
-        <View style={styles.inputContainer}>
+        <View
+          style={[
+            styles.inputContainer,
+            { borderRadius: responsive.config.button.height / 2 },
+          ]}
+        >
           <TextInput
             style={[
               styles.textInput,
               {
-                height: adaptive.inputHeight,
-                fontSize: adaptive.fontSize,
+                height: responsive.config.button.height,
+                fontSize: responsive.config.fontSize.md,
+                paddingHorizontal: responsive.config.spacing.lg,
+                borderRadius: responsive.config.button.height / 2,
               },
             ]}
             value={value}
@@ -113,8 +98,8 @@ export default function InputBox({
           style={[
             styles.sendButton,
             {
-              width: adaptive.buttonSize,
-              height: adaptive.buttonSize,
+              width: responsive.config.button.height,
+              height: responsive.config.button.height,
             },
           ]}
           onPress={onSend}
@@ -126,16 +111,16 @@ export default function InputBox({
             style={[
               styles.sendGradient,
               {
-                width: adaptive.buttonSize,
-                height: adaptive.buttonSize,
-                borderRadius: adaptive.buttonSize / 2,
+                width: responsive.config.button.height,
+                height: responsive.config.button.height,
+                borderRadius: responsive.config.button.height / 2,
               },
             ]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
           >
             <SendHorizontal
-              size={adaptive.iconSize}
+              size={responsive.config.iconSize.sm}
               color={canSend ? "white" : "#9CA3AF"}
             />
           </LinearGradient>
@@ -152,7 +137,6 @@ const styles = StyleSheet.create({
   inputRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
   },
   attachButton: {
     shadowColor: "#000000",
@@ -168,7 +152,6 @@ const styles = StyleSheet.create({
   inputContainer: {
     flex: 1,
     backgroundColor: "#F9FAFB",
-    borderRadius: 22,
     borderWidth: 1,
     borderColor: "#E5E7EB",
     shadowColor: "#000000",
@@ -178,12 +161,9 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   textInput: {
-    paddingHorizontal: 16,
     paddingVertical: 0,
     color: "#374151",
     fontWeight: "500",
-    borderRadius: 22,
-    backgroundColor: "transparent",
   },
   sendButton: {
     shadowColor: "#000000",

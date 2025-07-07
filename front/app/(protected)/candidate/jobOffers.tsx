@@ -33,10 +33,12 @@ import {
   Briefcase,
   DollarSign,
   Building2,
+  ChevronRight,
 } from "lucide-react-native";
 import { JobPost } from "@/types/interfaces";
 import { useJobPost } from "@/lib/hooks/useJobPost";
 import { useApplication } from "@/lib/hooks/useApplication";
+import { useResponsive } from "@/lib/hooks/useResponsive";
 import Toast from "react-native-toast-message";
 import { Portal } from "react-native-portalize";
 
@@ -47,6 +49,7 @@ export default function JobOffers() {
   const { candidateJobPosts, isLoadingCandidateJobPosts } = useJobPost();
   const { applications, isLoadingApplications, createApplication } =
     useApplication();
+  const responsive = useResponsive();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedJob, setSelectedJob] = useState<JobPost | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -432,62 +435,176 @@ export default function JobOffers() {
                     </LinearGradient>
                   </View>
 
-                  <View style={{ flex: 1, padding: 16 }}>
-                    {/* Informations principales */}
-                    <View style={styles.infoSectionCard}>
-                      <View style={styles.infoCardContainer}>
-                        <View style={styles.infoCard}>
-                          <MapPin size={18} color="#4717F6" />
-                          <View style={styles.infoCardContent}>
-                            <Text style={styles.infoCardLabel}>
-                              Localisation
-                            </Text>
-                            <Text style={styles.infoCardValue}>
+                  <View
+                    style={[
+                      { flex: 1 },
+                      { padding: responsive.config.card.padding },
+                    ]}
+                  >
+                    {/* Informations principales - Layout adaptatif */}
+                    <View
+                      style={[
+                        styles.infoSectionCard,
+                        { marginBottom: responsive.config.spacing.sm },
+                      ]}
+                    >
+                      {responsive.config.compactMode ? (
+                        // Mode compact pour petits écrans
+                        <View style={styles.compactInfoContainer}>
+                          {/* Localisation sur une ligne séparée */}
+                          <View style={styles.compactInfoRow}>
+                            <MapPin
+                              size={responsive.config.iconSize.sm}
+                              color="#4717F6"
+                            />
+                            <Text
+                              style={[
+                                styles.compactInfoText,
+                                { fontSize: responsive.config.fontSize.sm },
+                              ]}
+                            >
                               {currentJob.location}
                             </Text>
                           </View>
-                        </View>
-
-                        <View style={styles.infoCard}>
-                          <Briefcase size={18} color="#4717F6" />
-                          <View style={styles.infoCardContent}>
-                            <Text style={styles.infoCardLabel}>Contrat</Text>
-                            <Text style={styles.infoCardValue}>
-                              {currentJob.contract_type}
-                            </Text>
+                          {/* Contrat et salaire sur la même ligne */}
+                          <View style={styles.compactCombinedRow}>
+                            <View style={styles.compactHalfItem}>
+                              <Briefcase
+                                size={responsive.config.iconSize.sm}
+                                color="#4717F6"
+                              />
+                              <Text
+                                style={[
+                                  styles.compactInfoText,
+                                  { fontSize: responsive.config.fontSize.sm },
+                                ]}
+                              >
+                                {currentJob.contract_type}
+                              </Text>
+                            </View>
+                            <View style={styles.compactHalfItem}>
+                              <DollarSign
+                                size={responsive.config.iconSize.sm}
+                                color="#22c55e"
+                              />
+                              <Text
+                                style={[
+                                  styles.compactSalaryText,
+                                  { fontSize: responsive.config.fontSize.sm },
+                                ]}
+                              >
+                                {currentJob.salary_range}
+                              </Text>
+                            </View>
                           </View>
                         </View>
-
-                        <View style={styles.infoCard}>
-                          <DollarSign size={18} color="#22c55e" />
-                          <View style={styles.infoCardContent}>
-                            <Text style={styles.infoCardLabel}>Salaire</Text>
-                            <Text style={styles.salaryCardValue}>
-                              {currentJob.salary_range}
-                            </Text>
+                      ) : (
+                        // Mode standard pour écrans plus grands
+                        <View style={styles.infoCardContainer}>
+                          {/* Localisation sur une ligne séparée */}
+                          <View style={styles.infoCard}>
+                            <MapPin size={18} color="#4717F6" />
+                            <View style={styles.infoCardContent}>
+                              <Text style={styles.infoCardLabel}>
+                                Localisation
+                              </Text>
+                              <Text style={styles.infoCardValue}>
+                                {currentJob.location}
+                              </Text>
+                            </View>
+                          </View>
+                          {/* Contrat et salaire sur la même ligne */}
+                          <View style={styles.combinedInfoRow}>
+                            <View style={styles.halfInfoCard}>
+                              <Briefcase size={18} color="#4717F6" />
+                              <View style={styles.infoCardContent}>
+                                <Text style={styles.infoCardLabel}>
+                                  Contrat
+                                </Text>
+                                <Text style={styles.infoCardValue}>
+                                  {currentJob.contract_type}
+                                </Text>
+                              </View>
+                            </View>
+                            <View style={styles.halfInfoCard}>
+                              <DollarSign size={18} color="#22c55e" />
+                              <View style={styles.infoCardContent}>
+                                <Text style={styles.infoCardLabel}>
+                                  Salaire
+                                </Text>
+                                <Text style={styles.salaryCardValue}>
+                                  {currentJob.salary_range}
+                                </Text>
+                              </View>
+                            </View>
                           </View>
                         </View>
-                      </View>
+                      )}
                     </View>
 
-                    {/* Compétences */}
+                    {/* Compétences - Affichage conditionnel */}
                     {currentJob.skills && currentJob.skills.length > 0 && (
-                      <View style={styles.skillsSectionCard}>
-                        <Text style={styles.sectionTitleCard}>
+                      <View
+                        style={[
+                          styles.skillsSectionCard,
+                          { marginBottom: responsive.config.spacing.sm },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.sectionTitleCard,
+                            { fontSize: responsive.config.fontSize.md },
+                          ]}
+                        >
                           Compétences requises
                         </Text>
                         <View style={styles.skillsContainerCard}>
-                          {currentJob.skills.slice(0, 4).map((skill) => (
-                            <View key={skill.id} style={styles.skillBadgeCard}>
-                              <Text style={styles.skillTextCard}>
-                                {skill.name}
-                              </Text>
-                            </View>
-                          ))}
-                          {currentJob.skills.length > 4 && (
-                            <View style={styles.skillBadgeExtra}>
-                              <Text style={styles.skillTextExtra}>
-                                +{currentJob.skills.length - 4}
+                          {currentJob.skills
+                            .slice(0, responsive.config.maxItemsInRow)
+                            .map((skill) => (
+                              <View
+                                key={skill.id}
+                                style={[
+                                  styles.skillBadgeCard,
+                                  {
+                                    paddingHorizontal:
+                                      responsive.config.spacing.sm,
+                                    paddingVertical:
+                                      responsive.config.spacing.xs,
+                                  },
+                                ]}
+                              >
+                                <Text
+                                  style={[
+                                    styles.skillTextCard,
+                                    { fontSize: responsive.config.fontSize.xs },
+                                  ]}
+                                >
+                                  {skill.name}
+                                </Text>
+                              </View>
+                            ))}
+                          {currentJob.skills.length >
+                            responsive.config.maxItemsInRow && (
+                            <View
+                              style={[
+                                styles.skillBadgeExtra,
+                                {
+                                  paddingHorizontal:
+                                    responsive.config.spacing.sm,
+                                  paddingVertical: responsive.config.spacing.xs,
+                                },
+                              ]}
+                            >
+                              <Text
+                                style={[
+                                  styles.skillTextExtra,
+                                  { fontSize: responsive.config.fontSize.xs },
+                                ]}
+                              >
+                                +
+                                {currentJob.skills.length -
+                                  responsive.config.maxItemsInRow}
                               </Text>
                             </View>
                           )}
@@ -495,50 +612,89 @@ export default function JobOffers() {
                       </View>
                     )}
 
-                    {/* Description */}
-                    {currentJob.description && (
-                      <View style={styles.descriptionSectionCard}>
-                        <Text style={styles.sectionTitleCard}>Description</Text>
-                        <View style={styles.descriptionContainer}>
+                    {/* Description - Lignes adaptatives */}
+                    {currentJob.description &&
+                      responsive.config.showSecondaryInfo && (
+                        <View
+                          style={[
+                            styles.descriptionSectionCard,
+                            { marginBottom: responsive.config.spacing.sm },
+                          ]}
+                        >
                           <Text
-                            style={styles.descriptionTextCard}
-                            numberOfLines={3}
+                            style={[
+                              styles.sectionTitleCard,
+                              { fontSize: responsive.config.fontSize.md },
+                            ]}
                           >
-                            {currentJob.description}
+                            Description
                           </Text>
+                          <View style={styles.descriptionContainer}>
+                            <Text
+                              style={[
+                                styles.descriptionTextCard,
+                                { fontSize: responsive.config.fontSize.sm },
+                              ]}
+                              numberOfLines={
+                                responsive.config.compactMode ? 2 : 3
+                              }
+                            >
+                              {currentJob.description}
+                            </Text>
+                          </View>
                         </View>
-                      </View>
-                    )}
-                  </View>
+                      )}
 
-                  {/* Bouton "Voir plus" */}
-                  <View style={styles.cardFooter}>
-                    <TouchableOpacity
-                      style={styles.seeMoreButton}
-                      onPressIn={() => {
-                        isSwipeDisabled.value = true;
-                      }}
-                      onPressOut={() => {
-                        setTimeout(() => {
-                          isSwipeDisabled.value = false;
-                        }, 100);
-                      }}
-                      onPress={() => {
-                        const jobAtPress = availableJobs[currentIndex];
-                        handleOpenModal(jobAtPress);
-                      }}
+                    {/* Bouton "Voir plus" - Toujours visible */}
+                    <View
+                      style={[
+                        styles.cardFooter,
+                        { paddingVertical: responsive.config.spacing.sm },
+                      ]}
                     >
-                      <LinearGradient
-                        colors={["#01E6C3", "#00D4AA"]}
-                        style={styles.seeMoreGradient}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 1 }}
+                      <TouchableOpacity
+                        style={styles.seeMoreButton}
+                        onPressIn={() => {
+                          isSwipeDisabled.value = true;
+                        }}
+                        onPressOut={() => {
+                          setTimeout(() => {
+                            isSwipeDisabled.value = false;
+                          }, 100);
+                        }}
+                        onPress={() => {
+                          const jobAtPress = availableJobs[currentIndex];
+                          handleOpenModal(jobAtPress);
+                        }}
                       >
-                        <Text style={styles.seeMoreText}>
-                          Voir plus de détails
-                        </Text>
-                      </LinearGradient>
-                    </TouchableOpacity>
+                        <LinearGradient
+                          colors={["#01E6C3", "#00D4AA"]}
+                          style={[
+                            styles.seeMoreGradient,
+                            {
+                              height: responsive.config.button.height,
+                              paddingHorizontal:
+                                responsive.config.button.padding,
+                            },
+                          ]}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 1 }}
+                        >
+                          <ChevronRight
+                            size={responsive.config.iconSize.sm}
+                            color="white"
+                          />
+                          <Text
+                            style={[
+                              styles.seeMoreText,
+                              { fontSize: responsive.config.fontSize.md },
+                            ]}
+                          >
+                            Voir détails
+                          </Text>
+                        </LinearGradient>
+                      </TouchableOpacity>
+                    </View>
                   </View>
                 </LinearGradient>
               </View>
@@ -960,6 +1116,10 @@ const styles = StyleSheet.create({
     alignSelf: "center",
   },
   seeMoreGradient: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
@@ -1298,5 +1458,55 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "#374151",
+  },
+
+  // Styles pour le mode compact
+  compactInfoContainer: {
+    gap: 8,
+  },
+  compactInfoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: 4,
+  },
+  compactInfoText: {
+    flex: 1,
+    fontWeight: "600",
+    color: "#374151",
+  },
+  compactSalaryText: {
+    flex: 1,
+    fontWeight: "700",
+    color: "#22c55e",
+  },
+
+  // Nouveaux styles pour le layout amélioré
+  compactCombinedRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: 4,
+  },
+  compactHalfItem: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  combinedInfoRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  halfInfoCard: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    backgroundColor: "rgba(71, 23, 246, 0.05)",
+    padding: 10,
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: "#4717F6",
   },
 });
