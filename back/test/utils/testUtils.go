@@ -7,8 +7,12 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"net/url"
+	"skillly/pkg/config"
 	authDto "skillly/pkg/handlers/auth/dto"
+	candidate "skillly/pkg/handlers/candidateProfile"
 	companyDto "skillly/pkg/handlers/company/dto"
+	recruiter "skillly/pkg/handlers/recruiterProfile"
+	"skillly/pkg/handlers/user"
 	"skillly/pkg/models"
 )
 
@@ -58,4 +62,14 @@ var TestCandidate = authDto.CandidateRegisterDTO{
 
 	Certifications: []uint{1, 2},
 	Skills:         []uint{1, 2},
+}
+
+var UserRepo user.UserRepository
+var CandidateRepo candidate.CandidateRepository
+var RecruiterRepo recruiter.RecruiterRepository
+
+func init() {
+	UserRepo = user.NewUserRepository(config.DB)
+	CandidateRepo = candidate.NewCandidateRepository(config.DB)
+	RecruiterRepo = recruiter.NewRecruiterRepository(config.DB)
 }
