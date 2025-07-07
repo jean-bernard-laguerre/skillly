@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -43,9 +42,9 @@ func CreateUser(t *testing.T) {
 	testUser = user // Store the created user for further tests
 }
 
-func GetUserById(t *testing.T, ctx *gin.Context) {
+func GetUserById(t *testing.T) {
 	fmt.Println("Getting user by ID:", testUser)
-	params := utils.GetUrlParams(ctx)
+	params := utils.GetUrlParams(context)
 	user, err := userRepo.GetByID(testUser.ID, &params.Populate)
 
 	require.NoError(t, err, "Failed to get user by ID")
@@ -59,9 +58,9 @@ func GetUserByEmail(t *testing.T) {
 	assert.Equal(t, testUser.Email, user.Email, "Expected user email to match")
 }
 
-func UpdateUser(t *testing.T, ctx *gin.Context) {
+func UpdateUser(t *testing.T) {
 	// Create a new user to update
-	params := utils.GetUrlParams(ctx)
+	params := utils.GetUrlParams(context)
 
 	testUser.FirstName = "Updated"
 	err := userRepo.Update(&testUser)
@@ -69,7 +68,7 @@ func UpdateUser(t *testing.T, ctx *gin.Context) {
 	require.NoError(t, err, "Failed to update user")
 
 	// Fetch the updated user
-	params = utils.GetUrlParams(ctx)
+	params = utils.GetUrlParams(context)
 	updatedUser, err := userRepo.GetByID(testUser.ID, &params.Populate)
 	require.NoError(t, err, "Failed to get updated user")
 
@@ -77,8 +76,8 @@ func UpdateUser(t *testing.T, ctx *gin.Context) {
 	assert.Equal(t, testUser.LastName, updatedUser.LastName, "Expected user last name to remain unchanged")
 }
 
-func GetAllUsers(t *testing.T, ctx *gin.Context) {
-	params := utils.GetUrlParams(ctx)
+func GetAllUsers(t *testing.T) {
+	params := utils.GetUrlParams(context)
 	users, err := userRepo.GetAll(params)
 	require.NoError(t, err, "Failed to get all users")
 
@@ -86,12 +85,12 @@ func GetAllUsers(t *testing.T, ctx *gin.Context) {
 
 }
 
-func DeleteUser(t *testing.T, ctx *gin.Context) {
+func DeleteUser(t *testing.T) {
 	err := userRepo.Delete(testUser.ID)
 	require.NoError(t, err, "Failed to delete user")
 	// Check if the user is deleted
 
-	params := utils.GetUrlParams(ctx)
+	params := utils.GetUrlParams(context)
 	_, err = userRepo.GetByID(1, &params.Populate)
 	assert.NotNil(t, err, "Expected error when getting deleted user")
 	assert.Equal(t, "record not found", err.Error(), "Expected 'record not found' error")
