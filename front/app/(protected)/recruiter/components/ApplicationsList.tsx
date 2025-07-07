@@ -437,18 +437,9 @@ export default function ApplicationsList({
                   start={{ x: 0, y: -3 }}
                   end={{ x: 0, y: 0.9 }}
                 >
-                  {/* Informations principales */}
+                  {/* Informations principales - Simplifiées */}
                   <View style={styles.infoSectionCard}>
-                    <ScrollView
-                      horizontal
-                      showsHorizontalScrollIndicator={false}
-                      contentContainerStyle={styles.infoScrollContent}
-                      nestedScrollEnabled={true}
-                      scrollEnabled={true}
-                      bounces={false}
-                      alwaysBounceHorizontal={false}
-                      directionalLockEnabled={true}
-                    >
+                    <View style={styles.infoCardContainer}>
                       <View style={styles.infoCard}>
                         <Mail size={16} color="#4717F6" />
                         <View style={styles.infoCardContent}>
@@ -463,40 +454,14 @@ export default function ApplicationsList({
                         <Calendar size={16} color="#4717F6" />
                         <View style={styles.infoCardContent}>
                           <Text style={styles.infoCardLabel}>Postulé le</Text>
-                          <Text style={styles.infoCardValue} numberOfLines={2}>
+                          <Text style={styles.infoCardValue} numberOfLines={1}>
                             {new Date(
                               currentApplication.created_at
                             ).toLocaleDateString("fr-FR")}
                           </Text>
                         </View>
                       </View>
-
-                      <View style={styles.infoCard}>
-                        <MapPin size={16} color="#4717F6" />
-                        <View style={styles.infoCardContent}>
-                          <Text style={styles.infoCardLabel}>Localisation</Text>
-                          <Text style={styles.infoCardValue} numberOfLines={2}>
-                            {currentApplication.candidate.location ||
-                              "Non renseigné"}
-                          </Text>
-                        </View>
-                      </View>
-
-                      {currentApplication.candidate.experience_year && (
-                        <View style={styles.infoCard}>
-                          <Briefcase size={16} color="#4717F6" />
-                          <View style={styles.infoCardContent}>
-                            <Text style={styles.infoCardLabel}>Expérience</Text>
-                            <Text
-                              style={styles.infoCardValue}
-                              numberOfLines={1}
-                            >
-                              {currentApplication.candidate.experience_year} ans
-                            </Text>
-                          </View>
-                        </View>
-                      )}
-                    </ScrollView>
+                    </View>
                   </View>
 
                   {/* Compétences */}
@@ -745,6 +710,26 @@ export default function ApplicationsList({
                       <Text style={styles.modalInfoLabel}>Email</Text>
                       <Text style={styles.modalInfoValue}>
                         {selectedApplication?.candidate.user.email}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.modalInfoCard}>
+                    <Calendar size={20} color="#4717F6" />
+                    <View style={styles.modalInfoContent}>
+                      <Text style={styles.modalInfoLabel}>
+                        Date de candidature
+                      </Text>
+                      <Text style={styles.modalInfoValue}>
+                        {selectedApplication?.created_at
+                          ? new Date(
+                              selectedApplication.created_at
+                            ).toLocaleDateString("fr-FR", {
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric",
+                            })
+                          : "Non renseigné"}
                       </Text>
                     </View>
                   </View>
@@ -1045,23 +1030,18 @@ const styles = StyleSheet.create({
     marginBottom: adaptive.sectionMargin,
   },
 
-  infoScrollContent: {
-    flexDirection: "row",
-    gap: 10,
-    paddingHorizontal: 4,
-    paddingRight: 30,
-    minWidth: 450, // Force le scroll en garantissant une largeur minimale
+  infoCardContainer: {
+    gap: 8,
   },
   infoCard: {
     flexDirection: "row",
     alignItems: "flex-start",
     gap: 8,
     backgroundColor: "rgba(71, 23, 246, 0.05)",
-    padding: 10,
+    padding: 12,
     borderRadius: 8,
     borderLeftWidth: 3,
     borderLeftColor: "#4717F6",
-    minWidth: 130,
   },
   infoCardContent: {
     flex: 1,

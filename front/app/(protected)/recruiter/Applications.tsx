@@ -1,20 +1,15 @@
 import React, { useState, useEffect } from "react";
 import ScreenWrapper from "@/navigation/ScreenWrapper";
 import Header from "@/components/Header";
-import {
-  View,
-  Text,
-  Pressable,
-  StyleSheet,
-  TouchableOpacity,
-} from "react-native";
+import { View, Text, Pressable, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useJobPost } from "@/lib/hooks/useJobPost";
 import { useRoute, RouteProp } from "@react-navigation/native";
+// Import des composants originaux
 import ApplicationsList from "./components/ApplicationsList";
 import MatchesList from "./components/MatchesList";
 import JobSelector from "./components/JobSelector";
-import { FileText, Heart, ArrowLeft, Briefcase } from "lucide-react-native";
+import { FileText, Heart, Briefcase } from "lucide-react-native";
 
 type Tab = "applications" | "matches";
 
@@ -42,53 +37,39 @@ export default function Applications() {
     }
   }, [route.params?.tab]);
 
-  // Trouver l'offre sélectionnée
-  const selectedJob = selectedJobId
-    ? selectedTab === "applications"
-      ? applications?.find((job) => job.id === selectedJobId)
-      : matches?.find((job) => job.id === selectedJobId)
-    : null;
-
   const renderTabContent = () => {
-    if (selectedTab === "applications") {
-      if (selectedJobId) {
+    if (selectedJobId) {
+      // Utiliser les composants originaux selon le type
+      if (selectedTab === "applications") {
         return (
           <ApplicationsList
             jobId={selectedJobId}
             onBack={() => setSelectedJobId(null)}
-            hideHeader={true}
+            hideHeader={false}
           />
         );
-      }
-      return (
-        <JobSelector
-          jobs={applications || []}
-          selectedJobId={selectedJobId}
-          onSelectJob={setSelectedJobId}
-          type="applications"
-        />
-      );
-    }
-
-    if (selectedTab === "matches") {
-      if (selectedJobId) {
+      } else {
         return (
           <MatchesList
             jobId={selectedJobId}
             onBack={() => setSelectedJobId(null)}
-            hideHeader={true}
+            hideHeader={false}
           />
         );
       }
-      return (
-        <JobSelector
-          jobs={matches || []}
-          selectedJobId={selectedJobId}
-          onSelectJob={setSelectedJobId}
-          type="matches"
-        />
-      );
     }
+
+    // JobSelector pour choisir une offre
+    return (
+      <JobSelector
+        jobs={
+          selectedTab === "applications" ? applications || [] : matches || []
+        }
+        selectedJobId={selectedJobId}
+        onSelectJob={setSelectedJobId}
+        type={selectedTab}
+      />
+    );
   };
 
   return (
@@ -106,44 +87,6 @@ export default function Applications() {
       )}
 
       <View className="flex-1" style={{ backgroundColor: "#F7F7F7" }}>
-        {/* Header avec titre de l'offre quand une offre est sélectionnée */}
-        {selectedJobId && selectedJob && (
-          <View style={styles.jobHeaderContainer}>
-            <LinearGradient
-              colors={["#4717F6", "#6366f1"]}
-              style={styles.jobHeaderGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            >
-              <View style={styles.jobHeaderContent}>
-                <TouchableOpacity
-                  onPress={() => setSelectedJobId(null)}
-                  style={styles.backButton}
-                  activeOpacity={0.8}
-                >
-                  <ArrowLeft size={20} color="white" />
-                </TouchableOpacity>
-
-                <View style={styles.jobTitleContainer}>
-                  <View style={styles.jobTitleSection}>
-                    <Briefcase size={18} color="rgba(255, 255, 255, 0.9)" />
-                    <Text
-                      style={styles.jobTitle}
-                      numberOfLines={1}
-                      ellipsizeMode="tail"
-                    >
-                      {selectedJob.title}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Espace équivalent au bouton pour centrer le titre */}
-                <View style={styles.spacer} />
-              </View>
-            </LinearGradient>
-          </View>
-        )}
-
         {/* Section onglets - affichée seulement quand aucune offre n'est sélectionnée */}
         {!selectedJobId && (
           <View style={styles.tabsContainer}>
@@ -212,60 +155,6 @@ export default function Applications() {
 }
 
 const styles = StyleSheet.create({
-  // Styles pour le header combiné
-  jobHeaderContainer: {
-    marginHorizontal: 16,
-    marginTop: 8,
-    marginBottom: 8,
-    borderRadius: 12,
-    overflow: "hidden",
-  },
-  jobHeaderGradient: {
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  jobHeaderContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 16,
-    paddingBottom: 8,
-    minHeight: 80,
-  },
-  backButton: {
-    alignItems: "center",
-    justifyContent: "center",
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
-  },
-  jobTitleContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 16,
-  },
-  jobTitleSection: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    maxWidth: "100%",
-  },
-  jobTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "white",
-    textAlign: "center",
-    maxWidth: 200,
-  },
-  spacer: {
-    width: 40,
-  },
-
   // Styles existants pour les onglets
   tabsContainer: {
     paddingHorizontal: 16,

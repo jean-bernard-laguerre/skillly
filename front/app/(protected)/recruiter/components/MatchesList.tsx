@@ -44,7 +44,6 @@ export default function MatchesList({
 
               <View style={styles.titleContainer}>
                 <View style={styles.titleSection}>
-                  <Heart size={20} color="rgba(255, 255, 255, 0.9)" />
                   <Text
                     style={styles.jobTitle}
                     numberOfLines={1}
@@ -118,43 +117,65 @@ export default function MatchesList({
                   <View style={styles.infoRow}>
                     <MapPin size={16} color="#6B7280" />
                     <Text style={styles.infoText}>
-                      Localisation non renseignée
+                      {(match.candidate as any)?.location ||
+                        "Localisation non renseignée"}
                     </Text>
                   </View>
                   <View style={styles.infoRow}>
                     <Briefcase size={16} color="#6B7280" />
                     <Text style={styles.infoText}>
-                      Expérience non renseignée
+                      {(match.candidate as any)?.experience_year
+                        ? `${
+                            (match.candidate as any).experience_year
+                          } ans d'expérience`
+                        : "Expérience non renseignée"}
                     </Text>
                   </View>
                 </View>
 
-                {/* Compétences */}
-                {match.candidate.skills &&
-                  match.candidate.skills.length > 0 && (
-                    <View style={styles.skillsSection}>
-                      <Text style={styles.sectionTitle}>Compétences</Text>
-                      <View style={styles.skillsContainer}>
-                        {match.candidate.skills.slice(0, 4).map((skill) => (
-                          <View key={skill.id} style={styles.skillBadge}>
-                            <Text style={styles.skillText}>{skill.name}</Text>
-                          </View>
-                        ))}
-                        {match.candidate.skills.length > 4 && (
-                          <View style={styles.skillBadgeExtra}>
-                            <Text style={styles.skillTextExtra}>
-                              +{match.candidate.skills.length - 4}
-                            </Text>
-                          </View>
-                        )}
-                      </View>
+                {/* Bio si disponible */}
+                {(match.candidate as any)?.bio && (
+                  <View style={styles.bioSection}>
+                    <Text style={styles.sectionTitle}>À propos</Text>
+                    <Text style={styles.bioText} numberOfLines={3}>
+                      {(match.candidate as any).bio}
+                    </Text>
+                  </View>
+                )}
+
+                {/* Compétences - maintenant populées côté backend */}
+                {match.candidate.skills && match.candidate.skills.length > 0 ? (
+                  <View style={styles.skillsSection}>
+                    <Text style={styles.sectionTitle}>Compétences</Text>
+                    <View style={styles.skillsContainer}>
+                      {match.candidate.skills.slice(0, 4).map((skill) => (
+                        <View key={skill.id} style={styles.skillBadge}>
+                          <Text style={styles.skillText}>{skill.name}</Text>
+                        </View>
+                      ))}
+                      {match.candidate.skills.length > 4 && (
+                        <View style={styles.skillBadgeExtra}>
+                          <Text style={styles.skillTextExtra}>
+                            +{match.candidate.skills.length - 4}
+                          </Text>
+                        </View>
+                      )}
                     </View>
-                  )}
+                  </View>
+                ) : (
+                  <View style={styles.skillsSection}>
+                    <Text style={styles.sectionTitle}>Compétences</Text>
+                    <Text style={styles.noSkillsText}>
+                      Aucune compétence renseignée
+                    </Text>
+                  </View>
+                )}
 
                 {/* Statut du match */}
                 <View style={styles.dateSection}>
                   <Text style={styles.dateText}>
-                    Match confirmé - Candidat approuvé
+                    Match confirmé -{" "}
+                    {new Date(match.matched_at).toLocaleDateString("fr-FR")}
                   </Text>
                 </View>
               </LinearGradient>
@@ -186,7 +207,11 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   headerContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     padding: 16,
+    minHeight: 80,
   },
   backButton: {
     alignItems: "center",
@@ -195,7 +220,6 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     backgroundColor: "rgba(255, 255, 255, 0.15)",
-    marginBottom: 12,
   },
   titleContainer: {
     flex: 1,
@@ -205,15 +229,15 @@ const styles = StyleSheet.create({
   },
   titleSection: {
     alignItems: "center",
-    gap: 6,
     maxWidth: "100%",
   },
   jobTitle: {
     fontSize: 18,
     fontWeight: "700",
     color: "white",
+    marginBottom: 4,
     textAlign: "center",
-    maxWidth: 200,
+    maxWidth: 220,
   },
   spacer: {
     width: 40,
@@ -221,7 +245,9 @@ const styles = StyleSheet.create({
   matchCount: {
     fontSize: 14,
     color: "rgba(255, 255, 255, 0.9)",
+    fontWeight: "600",
     textAlign: "center",
+    marginTop: 2,
   },
   scrollView: {
     flex: 1,
@@ -335,7 +361,7 @@ const styles = StyleSheet.create({
     color: "#6B7280",
     fontWeight: "500",
   },
-  skillsSection: {
+  bioSection: {
     marginBottom: 16,
   },
   sectionTitle: {
@@ -343,6 +369,14 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#374151",
     marginBottom: 8,
+  },
+  bioText: {
+    fontSize: 14,
+    color: "#6B7280",
+    lineHeight: 20,
+  },
+  skillsSection: {
+    marginBottom: 16,
   },
   skillsContainer: {
     flexDirection: "row",
@@ -375,6 +409,16 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
     color: "white",
+  },
+  noSkillsText: {
+    fontSize: 12,
+    color: "#6B7280",
+    fontStyle: "italic",
+    backgroundColor: "rgba(107, 114, 128, 0.1)",
+    padding: 8,
+    borderRadius: 6,
+    borderLeftWidth: 3,
+    borderLeftColor: "#6B7280",
   },
   dateSection: {
     backgroundColor: "rgba(124, 58, 237, 0.05)",

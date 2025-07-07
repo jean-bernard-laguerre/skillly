@@ -59,7 +59,7 @@ export const getCompanyApplications = async (): Promise<JobPost[]> => {
 export const getCompanyMatches = async (): Promise<JobPost[]> => {
   try {
     const response = await instance.get<JobPost[]>(
-      "/jobpost/company?populate=Skills&populate=Certifications&populate=Matches&populate=Applications&populate=Matches.Candidate&populate=Matches.Candidate.User"
+      "/jobpost/company?populate=Skills&populate=Certifications&populate=Matches&populate=Applications&populate=Matches.Candidate&populate=Matches.Candidate.User&populate=Matches.Candidate.Skills&populate=Matches.Candidate.Certifications"
     );
     return response.data;
   } catch (error) {
