@@ -1,59 +1,32 @@
-import { useState } from "react";
-import ChatroomView from "./components/Chatroom";
-import ChatroomItem from "@/components/messages/ChatroomItem";
-import MessageItem from "@/components/messages/ChatroomItem";
+import React from "react";
+import MessagesList from "./components/MessagesList";
 import { Chatroom } from "@/types/interfaces";
-import { View, Text } from "react-native";
 
+// Mock data - à remplacer par des données réelles de l'API
 const chatrooms: Chatroom[] = [
   {
-    id: '1',
-    name: "Candidat 1",
-    created_at: new Date().toDateString(),
+    id: "1",
+    name: "Marie Dupont - Frontend Dev",
+    created_at: new Date().toISOString(),
   },
   {
-    id: '2',
-    name: "Candidat 2",
-    created_at: new Date().toDateString(),
+    id: "2",
+    name: "Jean Martin - Backend Dev",
+    created_at: new Date(Date.now() - 86400000).toISOString(), // Hier
   },
   {
-    id: '3',
-    name: "Candidat 3",
-    created_at: new Date().toDateString(),
-  }
-]
+    id: "3",
+    name: "Sophie Bernard - UX Designer",
+    created_at: new Date(Date.now() - 172800000).toISOString(), // Il y a 2 jours
+  },
+];
 
 export default function RecruiterMessages() {
-  const [selectedChatroom, setSelectedChatroom] = useState('')
-  
-    const handlePress = (room: Chatroom) => {
-      setSelectedChatroom(room.id)
-    }
-  
-    const onBack = () => {
-      setSelectedChatroom('')
-    }
-    if (selectedChatroom) {
-      return (
-        <ChatroomView
-          onBack={onBack}
-          chatroomId={selectedChatroom}
-        />
-      )
-    }
-  
-    return (
-      <View className="flex-1 flex-col p-4">
-        <Text className="mb-4 text-xl font-bold">Mes conversations</Text>
-        <Text className="text-gray-600">
-          Vous pourrez ici voir vos conversations avec les candidats
-          {chatrooms.map(room => (
-            <ChatroomItem
-              handlePress={() => {handlePress(room)}}
-              key={room.id}
-            />
-          ))}
-        </Text>
-      </View>
-    );
+  return (
+    <MessagesList
+      userRole="recruiter"
+      chatrooms={chatrooms}
+      isLoading={false}
+    />
+  );
 }

@@ -1,61 +1,32 @@
-import { useState } from "react";
-import ChatroomItem from "@/components/messages/ChatroomItem";
-import { View, Text } from "react-native";
+import React from "react";
+import MessagesList from "./components/MessagesList";
 import { Chatroom } from "@/types/interfaces";
-import ChatroomView from "./components/Chatroom";
 
-const chatrooms : Chatroom[] = [
+// Mock data - à remplacer par des données réelles de l'API
+const chatrooms: Chatroom[] = [
   {
-    id: '1',
-    name: "Recruteur 1",
-    created_at: new Date().toDateString(),
+    id: "1",
+    name: "TechCorp - Développeur Frontend",
+    created_at: new Date().toISOString(),
   },
   {
-    id: '2',
-    name: "Recruteur 2",
-    created_at: new Date().toDateString(),
-
+    id: "2",
+    name: "StartupXYZ - UX Designer",
+    created_at: new Date(Date.now() - 86400000).toISOString(), // Hier
   },
   {
-    id: '3',
-    name: "Recruteur 3",
-    created_at: new Date().toDateString(),
-  }
-]
+    id: "3",
+    name: "DigitalAgency - Full Stack Dev",
+    created_at: new Date(Date.now() - 172800000).toISOString(), // Il y a 2 jours
+  },
+];
 
 export default function CandidateMessages() {
-
-  const [selectedChatroom, setSelectedChatroom] = useState('')
-
-  const handlePress = (room: Chatroom) => {
-    setSelectedChatroom(room.id)
-  }
-
-  const onBack = () => {
-    setSelectedChatroom('')
-  }
-
-  if (selectedChatroom) {
-    return (
-      <ChatroomView
-        onBack={onBack}
-        chatroomId={selectedChatroom}
-      />
-    )
-  }
-
   return (
-    <View className="flex-1 flex-col p-4">
-      <Text className="mb-4 text-xl font-bold">Mes conversations</Text>
-      <Text className="text-gray-600">
-        Vous pourrez ici voir vos conversations avec les recruteurs
-        {chatrooms.map(room => (
-          <ChatroomItem
-            handlePress={() => {handlePress(room)}}
-            key={room.id}
-          />
-        ))}
-      </Text>
-    </View>
+    <MessagesList
+      userRole="candidate"
+      chatrooms={chatrooms}
+      isLoading={false}
+    />
   );
 }

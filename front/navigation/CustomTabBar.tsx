@@ -14,6 +14,7 @@ import Animated, {
   LinearTransition,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useNavigationVisibility } from "@/context/NavigationVisibilityContext";
 
 const { width } = Dimensions.get("window");
 const AnimatedTouchableOpacity =
@@ -24,6 +25,12 @@ export default function CustomTabBar({
   navigation,
 }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
+  const { isNavigationVisible } = useNavigationVisibility();
+
+  // Ne pas afficher la navigation si elle est masquée
+  if (!isNavigationVisible) {
+    return null;
+  }
 
   return (
     <LinearGradient
