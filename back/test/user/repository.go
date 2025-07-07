@@ -1,6 +1,7 @@
 package user_test
 
 import (
+	"fmt"
 	"testing"
 
 	"skillly/pkg/config"
@@ -12,8 +13,8 @@ import (
 )
 
 var userRepo = user.NewUserRepository(config.DB)
-var testUser = models.User{}
 var context = testUtils.CreateTestContext()
+var testUser = models.User{}
 
 func CreateUser(t *testing.T) {
 
@@ -54,6 +55,7 @@ func CreateUser(t *testing.T) {
 }
 
 func GetUserById(t *testing.T) {
+	fmt.Println("Getting user by ID:", testUser)
 	params := utils.GetUrlParams(context)
 	user, err := userRepo.GetByID(testUser.ID, &params.Populate)
 
