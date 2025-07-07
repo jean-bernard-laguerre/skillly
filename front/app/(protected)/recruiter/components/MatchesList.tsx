@@ -15,38 +15,55 @@ import {
 interface MatchesListProps {
   jobId: string;
   onBack: () => void;
+  hideHeader?: boolean;
 }
 
-export default function MatchesList({ jobId, onBack }: MatchesListProps) {
+export default function MatchesList({
+  jobId,
+  onBack,
+  hideHeader = false,
+}: MatchesListProps) {
   const { matches } = useJobPost();
   const job = matches?.find((job) => job.id === jobId);
 
   return (
     <View style={styles.container}>
-      {/* Header moderne */}
-      <View style={styles.headerContainer}>
-        <LinearGradient
-          colors={["#7C3AED", "#8B5CF6"]}
-          style={styles.headerGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-        >
-          <View style={styles.headerContent}>
-            <Pressable onPress={onBack} style={styles.backButton}>
-              <ArrowLeft size={20} color="white" />
-              <Text style={styles.backText}>Retour</Text>
-            </Pressable>
-            <View style={styles.titleSection}>
-              <Heart size={24} color="white" />
-              <Text style={styles.jobTitle}>{job?.title}</Text>
-              <Text style={styles.matchCount}>
-                {job?.matches?.length || 0} match
-                {(job?.matches?.length || 0) > 1 ? "es" : ""}
-              </Text>
+      {/* Header moderne - conditionné par hideHeader */}
+      {!hideHeader && (
+        <View style={styles.headerContainer}>
+          <LinearGradient
+            colors={["#7C3AED", "#8B5CF6"]}
+            style={styles.headerGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            <View style={styles.headerContent}>
+              <Pressable onPress={onBack} style={styles.backButton}>
+                <ArrowLeft size={20} color="white" />
+              </Pressable>
+
+              <View style={styles.titleContainer}>
+                <View style={styles.titleSection}>
+                  <Heart size={20} color="rgba(255, 255, 255, 0.9)" />
+                  <Text
+                    style={styles.jobTitle}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {job?.title}
+                  </Text>
+                  <Text style={styles.matchCount}>
+                    {job?.matches?.length || 0} match
+                    {(job?.matches?.length || 0) > 1 ? "es" : ""}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.spacer} />
             </View>
-          </View>
-        </LinearGradient>
-      </View>
+          </LinearGradient>
+        </View>
+      )}
 
       <ScrollView
         style={styles.scrollView}
@@ -172,25 +189,34 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   backButton: {
-    flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    justifyContent: "center",
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
     marginBottom: 12,
   },
-  backText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "white",
+  titleContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 16,
   },
   titleSection: {
     alignItems: "center",
-    gap: 8,
+    gap: 6,
+    maxWidth: "100%",
   },
   jobTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "700",
     color: "white",
     textAlign: "center",
+    maxWidth: 200,
+  },
+  spacer: {
+    width: 40,
   },
   matchCount: {
     fontSize: 14,

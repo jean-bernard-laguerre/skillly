@@ -9,6 +9,7 @@ import {
   Animated,
   Dimensions,
   PanResponder,
+  Platform,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import {
@@ -31,7 +32,6 @@ import {
   Briefcase,
   Mail,
   Calendar,
-  Award,
   Check,
   X,
 } from "lucide-react-native";
@@ -41,16 +41,39 @@ import { useMatch } from "@/lib/hooks/useMatch";
 import Toast from "react-native-toast-message";
 import { Portal } from "react-native-portalize";
 
-const { height: screenHeight } = Dimensions.get("window");
+const { height: screenHeight, width: screenWidth } = Dimensions.get("window");
+
+// Fonction pour obtenir les dimensions adaptatives
+const getAdaptiveStyles = () => {
+  const isSmallScreen = screenHeight < 700;
+  const isMediumScreen = screenHeight >= 700 && screenHeight < 850;
+  const isLargeScreen = screenHeight >= 850;
+
+  return {
+    // Marges et paddings adaptatifs
+    cardMargin: isSmallScreen ? 8 : isMediumScreen ? 12 : 16,
+    cardPadding: isSmallScreen ? 12 : isMediumScreen ? 16 : 18,
+    sectionMargin: isSmallScreen ? 8 : isMediumScreen ? 12 : 16,
+    progressPadding: isSmallScreen ? 4 : isMediumScreen ? 6 : 8,
+    buttonSpacing: isSmallScreen ? 20 : isMediumScreen ? 28 : 32,
+    buttonSize: isSmallScreen ? 45 : isMediumScreen ? 48 : 50,
+    iconSize: isSmallScreen ? 20 : isMediumScreen ? 22 : 24,
+    // Légende adaptative
+    showLegend: !isSmallScreen, // Masquer la légende sur petits écrans
+    legendPadding: isSmallScreen ? 8 : isMediumScreen ? 12 : 20,
+  };
+};
 
 interface ApplicationsListProps {
   jobId: string;
   onBack: () => void;
+  hideHeader?: boolean;
 }
 
 export default function ApplicationsList({
   jobId,
   onBack,
+  hideHeader = false,
 }: ApplicationsListProps) {
   const { applications: companyJobPosts, isLoadingApplications } = useJobPost();
   const { createMatch } = useMatch();
@@ -62,15 +85,23 @@ export default function ApplicationsList({
   const slideAnim = useRef(new Animated.Value(screenHeight)).current;
   const backdropAnim = useRef(new Animated.Value(0)).current;
 
+  // Obtenir les styles adaptatifs
+  const adaptiveStyles = getAdaptiveStyles();
+
   // Valeurs pour le swipe
   const translateX = useSharedValue(0);
+  const translateY = useSharedValue(0);
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
+  const isSwipeDisabled = useSharedValue(false);
 
   const job = companyJobPosts?.find((job) => job.id === jobId);
   const pendingApplications =
     job?.applications?.filter((app) => app.state === "pending") || [];
 
+  const SWIPE_THRESHOLD = 100;
+
+  // PanResponder pour la bottom sheet (comme dans jobOffers)
   const panResponder = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: (_, gestureState) => {
@@ -150,93 +181,146 @@ export default function ApplicationsList({
   };
 
   const handleMatch = (application: Application) => {
-    createMatch(
-      {
-        application_id: parseInt(application.id, 10),
-        candidate_id: parseInt(application.candidate.id, 10),
-        job_post_id: parseInt(jobId, 10),
-      },
-      {
-        onSuccess: () => {
-          Toast.show({
-            type: "success",
-            text1: "Match créé ! 🎉",
-            text2: `Match avec ${application.candidate.user.first_name}.`,
-          });
+    animateCardExit("right", () => {
+      createMatch(
+        {
+          application_id: parseInt(application.id, 10),
+          candidate_id: parseInt(application.candidate.id, 10),
+          job_post_id: parseInt(jobId, 10),
         },
-        onError: () => {
-          Toast.show({
-            type: "error",
-            text1: "Erreur",
-            text2: "Impossible de créer le match.",
-          });
-        },
-      }
-    );
+        {
+          onSuccess: () => {
+            Toast.show({
+              type: "success",
+              text1: "Match créé ! 🎉",
+              text2: `Match avec ${application.candidate.user.first_name}.`,
+            });
+            // Toujours aller à la candidature suivante (même si c'est la fin)
+            setCurrentIndex(currentIndex + 1);
+          },
+          onError: () => {
+            Toast.show({
+              type: "error",
+              text1: "Erreur",
+              text2: "Impossible de créer le match.",
+            });
+            // Même en cas d'erreur, on passe à la suivante
+            setCurrentIndex(currentIndex + 1);
+          },
+        }
+      );
+    });
   };
 
   const handlePass = (application: Application) => {
-    // Logique pour passer/rejeter une candidature
-    console.log("Candidature passée:", application.id);
-  };
-
-  // Créer les gestes pour le swipe
-  const createSwipeGesture = (application: Application) => {
-    return Gesture.Pan()
-      .onStart(() => {
-        scale.value = withSpring(0.95);
-      })
-      .onUpdate((event) => {
-        translateX.value = event.translationX;
-      })
-      .onEnd((event) => {
-        scale.value = withSpring(1);
-
-        if (Math.abs(event.translationX) > 100) {
-          // Swipe détecté
-          const direction = event.translationX > 0 ? "right" : "left";
-
-          if (direction === "right") {
-            runOnJS(handleMatch)(application);
-          } else {
-            runOnJS(handlePass)(application);
-          }
-
-          // Animation de sortie
-          translateX.value = withSpring(event.translationX > 0 ? 400 : -400);
-          opacity.value = withSpring(0);
-
-          setTimeout(() => {
-            translateX.value = 0;
-            opacity.value = 1;
-          }, 300);
-        } else {
-          // Retour à la position initiale
-          translateX.value = withSpring(0);
-        }
-      });
-  };
-
-  // Styles animés pour le swipe
-  const createAnimatedStyle = () => {
-    return useAnimatedStyle(() => {
-      const rotation = interpolate(
-        translateX.value,
-        [-200, 0, 200],
-        [-5, 0, 5],
-        Extrapolation.CLAMP
-      );
-
-      return {
-        transform: [
-          { translateX: translateX.value },
-          { scale: scale.value },
-          { rotate: `${rotation}deg` },
-        ],
-        opacity: opacity.value,
-      };
+    animateCardExit("left", () => {
+      // Logique pour passer/rejeter une candidature
+      // Toujours aller à la candidature suivante (même si c'est la fin)
+      setCurrentIndex(currentIndex + 1);
     });
   };
+
+  // Fonction pour animer la sortie de la card
+  const animateCardExit = (
+    direction: "left" | "right",
+    callback: () => void
+  ) => {
+    const exitX = direction === "left" ? -400 : 400;
+
+    translateX.value = withSpring(exitX, { damping: 15 });
+    opacity.value = withSpring(0, { damping: 15 });
+
+    setTimeout(() => {
+      callback();
+      // Réinitialiser pour la prochaine card
+      translateX.value = 0;
+      translateY.value = 0;
+      scale.value = 1;
+      opacity.value = 1;
+    }, 300);
+  };
+
+  // Gestionnaire de gestes avec la même logique que jobOffers
+  const panGesture = Gesture.Pan()
+    .onStart(() => {
+      if (isSwipeDisabled.value) return;
+      scale.value = withSpring(0.95);
+    })
+    .onUpdate((event) => {
+      if (isSwipeDisabled.value) return;
+      translateX.value = event.translationX;
+      translateY.value = event.translationY * 0.5; // Réduire le mouvement vertical
+    })
+    .onEnd((event) => {
+      if (isSwipeDisabled.value) return;
+      scale.value = withSpring(1);
+
+      if (Math.abs(event.translationX) > SWIPE_THRESHOLD) {
+        // Swipe détecté
+        const direction = event.translationX > 0 ? "right" : "left";
+        const application = pendingApplications[currentIndex];
+
+        if (direction === "right") {
+          runOnJS(handleMatch)(application);
+        } else {
+          runOnJS(handlePass)(application);
+        }
+      } else {
+        // Retour à la position initiale
+        translateX.value = withSpring(0);
+        translateY.value = withSpring(0);
+      }
+    });
+
+  const tapGesture = Gesture.Tap().onStart(() => {
+    // Ne pas ouvrir la modal si un swipe est en cours
+    if (Math.abs(translateX.value) < 10) {
+      const application = pendingApplications[currentIndex];
+      runOnJS(handleOpenModal)(application);
+    }
+  });
+
+  // Composition des gestes
+  const composedGestures = Gesture.Simultaneous(panGesture, tapGesture);
+
+  // Styles animés pour le swipe
+  const animatedCardStyle = useAnimatedStyle(() => {
+    const rotation = interpolate(
+      translateX.value,
+      [-200, 0, 200],
+      [-10, 0, 10],
+      Extrapolation.CLAMP
+    );
+
+    return {
+      transform: [
+        { translateX: translateX.value },
+        { translateY: translateY.value },
+        { scale: scale.value },
+        { rotate: `${rotation}deg` },
+      ],
+      opacity: opacity.value,
+    };
+  });
+
+  // Styles des overlays
+  const leftOverlayStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(
+      translateX.value,
+      [-150, -50, 0],
+      [1, 0.5, 0],
+      Extrapolation.CLAMP
+    ),
+  }));
+
+  const rightOverlayStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(
+      translateX.value,
+      [0, 50, 150],
+      [0, 0.5, 1],
+      Extrapolation.CLAMP
+    ),
+  }));
 
   if (isLoadingApplications) {
     return (
@@ -247,30 +331,50 @@ export default function ApplicationsList({
     );
   }
 
+  const currentApplication = pendingApplications[currentIndex];
+
   return (
     <View style={styles.container}>
-      {/* Header moderne */}
-      <View style={styles.headerContainer}>
-        <LinearGradient
-          colors={["#4717F6", "#6366f1"]}
-          style={styles.headerGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-        >
-          <View style={styles.headerContent}>
-            <TouchableOpacity onPress={onBack} style={styles.backButton}>
-              <ArrowLeft size={20} color="white" />
-              <Text style={styles.backText}>Retour</Text>
-            </TouchableOpacity>
-            <View style={styles.titleSection}>
-              <Text style={styles.jobTitle}>{job?.title}</Text>
-              <Text style={styles.candidateCount}>
-                {currentIndex + 1} candidature(s) / {pendingApplications.length}
-              </Text>
+      {/* Header moderne - conditionné par hideHeader */}
+      {!hideHeader && (
+        <View style={styles.headerContainer}>
+          <LinearGradient
+            colors={["#4717F6", "#6366f1"]}
+            style={styles.headerGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            <View style={styles.headerContent}>
+              <TouchableOpacity
+                onPress={onBack}
+                style={styles.backButton}
+                activeOpacity={0.8}
+                delayPressIn={0}
+              >
+                <ArrowLeft size={20} color="white" />
+              </TouchableOpacity>
+
+              <View style={styles.titleContainer}>
+                <View style={styles.titleSection}>
+                  <Text
+                    style={styles.jobTitle}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {job?.title}
+                  </Text>
+                  <Text style={styles.candidateCount}>
+                    {currentIndex + 1} candidature(s) /{" "}
+                    {pendingApplications.length}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.spacer} />
             </View>
-          </View>
-        </LinearGradient>
-      </View>
+          </LinearGradient>
+        </View>
+      )}
 
       {pendingApplications.length === 0 ? (
         <View style={styles.emptyContainer}>
@@ -280,62 +384,77 @@ export default function ApplicationsList({
             Aucune candidature en attente pour ce poste.
           </Text>
         </View>
+      ) : currentIndex >= pendingApplications.length ? (
+        <View style={styles.emptyContainer}>
+          <Check size={40} color="#36E9CD" />
+          <Text style={styles.emptyTitle}>
+            Toutes les candidatures traitées !
+          </Text>
+          <Text style={styles.emptySubtitle}>
+            Bravo ! Vous avez évalué toutes les candidatures pour ce poste.
+          </Text>
+        </View>
       ) : (
         <GestureHandlerRootView style={{ flex: 1 }}>
-          <ScrollView
-            style={styles.scrollView}
-            contentContainerStyle={styles.scrollContent}
-          >
-            {pendingApplications.map((application, index) => (
-              <GestureDetector
-                key={application.id}
-                gesture={createSwipeGesture(application)}
+          {/* Indicateur de progression discret */}
+          <View style={styles.progressIndicator}>
+            <Text style={styles.progressText}>
+              Candidature {currentIndex + 1} / {pendingApplications?.length}{" "}
+            </Text>
+          </View>
+          <View style={styles.cardContainer}>
+            {/* Carte active uniquement */}
+            <GestureDetector gesture={composedGestures}>
+              <ReanimatedAnimated.View
+                style={[
+                  styles.candidateCard,
+                  animatedCardStyle,
+                  styles.activeCard,
+                ]}
               >
-                <ReanimatedAnimated.View
-                  style={[
-                    styles.candidateCard,
-                    createAnimatedStyle(),
-                    index === currentIndex && styles.activeCard,
-                  ]}
-                >
+                {/* Header candidat - avec geste de swipe */}
+                <View style={styles.candidateHeaderFull}>
                   <LinearGradient
-                    colors={["#8464F9", "#F2F2F2"]}
-                    style={styles.cardGradient}
-                    start={{ x: 0, y: -3 }}
-                    end={{ x: 0, y: 0.9 }}
+                    colors={["#4717F6", "#6366f1"]}
+                    style={styles.candidateHeaderFullGradient}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
                   >
-                    {/* Header candidat compact */}
-                    <View style={styles.candidateHeader}>
-                      <LinearGradient
-                        colors={["#4717F6", "#6366f1"]}
-                        style={styles.candidateHeaderGradient}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 0 }}
-                      >
-                        <Text style={styles.candidateName}>
-                          {application.candidate.user.first_name}{" "}
-                          {application.candidate.user.last_name}
-                        </Text>
-                        <View style={styles.candidateInfo}>
-                          <User size={14} color="rgba(255, 255, 255, 0.9)" />
-                          <Text style={styles.candidateRole}>Candidat</Text>
-                        </View>
-                      </LinearGradient>
+                    <Text style={styles.candidateNameFull}>
+                      {currentApplication.candidate.user.first_name}{" "}
+                      {currentApplication.candidate.user.last_name}
+                    </Text>
+                    <View style={styles.candidateInfoFull}>
+                      <User size={14} color="rgba(255, 255, 255, 0.9)" />
+                      <Text style={styles.candidateRoleFull}>Candidat</Text>
                     </View>
+                  </LinearGradient>
+                </View>
 
-                    {/* Informations en scroll horizontal */}
+                <LinearGradient
+                  colors={["#8464F9", "#F2F2F2"]}
+                  style={styles.cardGradientBody}
+                  start={{ x: 0, y: -3 }}
+                  end={{ x: 0, y: 0.9 }}
+                >
+                  {/* Informations principales */}
+                  <View style={styles.infoSectionCard}>
                     <ScrollView
                       horizontal
                       showsHorizontalScrollIndicator={false}
-                      style={styles.infoScrollView}
                       contentContainerStyle={styles.infoScrollContent}
+                      nestedScrollEnabled={true}
+                      scrollEnabled={true}
+                      bounces={false}
+                      alwaysBounceHorizontal={false}
+                      directionalLockEnabled={true}
                     >
                       <View style={styles.infoCard}>
                         <Mail size={16} color="#4717F6" />
                         <View style={styles.infoCardContent}>
                           <Text style={styles.infoCardLabel}>Email</Text>
-                          <Text style={styles.infoCardValue} numberOfLines={1}>
-                            {application.candidate.user.email}
+                          <Text style={styles.infoCardValue} numberOfLines={2}>
+                            {currentApplication.candidate.user.email}
                           </Text>
                         </View>
                       </View>
@@ -344,9 +463,9 @@ export default function ApplicationsList({
                         <Calendar size={16} color="#4717F6" />
                         <View style={styles.infoCardContent}>
                           <Text style={styles.infoCardLabel}>Postulé le</Text>
-                          <Text style={styles.infoCardValue}>
+                          <Text style={styles.infoCardValue} numberOfLines={2}>
                             {new Date(
-                              application.created_at
+                              currentApplication.created_at
                             ).toLocaleDateString("fr-FR")}
                           </Text>
                         </View>
@@ -356,103 +475,122 @@ export default function ApplicationsList({
                         <MapPin size={16} color="#4717F6" />
                         <View style={styles.infoCardContent}>
                           <Text style={styles.infoCardLabel}>Localisation</Text>
-                          <Text style={styles.infoCardValue}>
-                            {application.candidate.location || "Non renseigné"}
+                          <Text style={styles.infoCardValue} numberOfLines={2}>
+                            {currentApplication.candidate.location ||
+                              "Non renseigné"}
                           </Text>
                         </View>
                       </View>
 
-                      {application.candidate.experience_year && (
+                      {currentApplication.candidate.experience_year && (
                         <View style={styles.infoCard}>
                           <Briefcase size={16} color="#4717F6" />
                           <View style={styles.infoCardContent}>
                             <Text style={styles.infoCardLabel}>Expérience</Text>
-                            <Text style={styles.infoCardValue}>
-                              {application.candidate.experience_year} ans
+                            <Text
+                              style={styles.infoCardValue}
+                              numberOfLines={1}
+                            >
+                              {currentApplication.candidate.experience_year} ans
                             </Text>
                           </View>
                         </View>
                       )}
                     </ScrollView>
+                  </View>
 
-                    {/* Compétences compactes */}
-                    {application.candidate.skills &&
-                      application.candidate.skills.length > 0 && (
-                        <View style={styles.skillsSection}>
-                          <Text style={styles.sectionTitle}>Compétences</Text>
-                          <View style={styles.skillsContainer}>
-                            {application.candidate.skills
-                              .filter((skill) =>
-                                (application.job_post?.skills ?? []).some(
-                                  (jobSkill) => jobSkill.id === skill.id
-                                )
+                  {/* Compétences */}
+                  {currentApplication.candidate.skills &&
+                    currentApplication.candidate.skills.length > 0 && (
+                      <View style={styles.skillsSection}>
+                        <Text style={styles.sectionTitle}>Compétences</Text>
+                        <View style={styles.skillsContainer}>
+                          {currentApplication.candidate.skills
+                            .filter((skill) =>
+                              (currentApplication.job_post?.skills ?? []).some(
+                                (jobSkill) => jobSkill.id === skill.id
                               )
-                              .slice(0, 2)
-                              .map((skill) => (
-                                <View
-                                  key={skill.id}
-                                  style={styles.skillBadgeMatched}
-                                >
-                                  <Text style={styles.skillTextMatched}>
-                                    {skill.name}
-                                  </Text>
-                                </View>
-                              ))}
-                            {application.candidate.skills
-                              .filter(
-                                (skill) =>
-                                  !(application.job_post?.skills ?? []).some(
-                                    (jobSkill) => jobSkill.id === skill.id
-                                  )
-                              )
-                              .slice(0, 1)
-                              .map((skill) => (
-                                <View key={skill.id} style={styles.skillBadge}>
-                                  <Text style={styles.skillText}>
-                                    {skill.name}
-                                  </Text>
-                                </View>
-                              ))}
-                            {application.candidate.skills.length > 3 && (
-                              <View style={styles.skillBadgeExtra}>
-                                <Text style={styles.skillTextExtra}>
-                                  +{application.candidate.skills.length - 3}
+                            )
+                            .slice(0, 2)
+                            .map((skill) => (
+                              <View
+                                key={skill.id}
+                                style={styles.skillBadgeMatched}
+                              >
+                                <Text style={styles.skillTextMatched}>
+                                  {skill.name}
                                 </Text>
                               </View>
-                            )}
-                          </View>
-                          <View style={styles.legend}>
-                            <View style={styles.legendRow}>
-                              <View style={styles.legendItem}>
-                                <View style={styles.legendPillGreen} />
-                                <Text style={styles.legendText}>
-                                  correspond à l'offre
+                            ))}
+                          {currentApplication.candidate.skills
+                            .filter(
+                              (skill) =>
+                                !(
+                                  currentApplication.job_post?.skills ?? []
+                                ).some((jobSkill) => jobSkill.id === skill.id)
+                            )
+                            .slice(0, 1)
+                            .map((skill) => (
+                              <View key={skill.id} style={styles.skillBadge}>
+                                <Text style={styles.skillText}>
+                                  {skill.name}
                                 </Text>
                               </View>
-                              <View style={styles.legendItem}>
-                                <View style={styles.legendPillGray} />
-                                <Text style={styles.legendText}>autres</Text>
-                              </View>
+                            ))}
+                          {currentApplication.candidate.skills.length > 3 && (
+                            <View style={styles.skillBadgeExtra}>
+                              <Text style={styles.skillTextExtra}>
+                                +
+                                {currentApplication.candidate.skills.length - 3}
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+                        <View style={styles.legend}>
+                          <View style={styles.legendRow}>
+                            <View style={styles.legendItem}>
+                              <View style={styles.legendPillGreen} />
+                              <Text style={styles.legendText}>
+                                correspond à l'offre
+                              </Text>
+                            </View>
+                            <View style={styles.legendItem}>
+                              <View style={styles.legendPillGray} />
+                              <Text style={styles.legendText}>autres</Text>
                             </View>
                           </View>
                         </View>
-                      )}
-
-                    {/* Bio courte */}
-                    {application.candidate.bio && (
-                      <View style={styles.bioSection}>
-                        <Text style={styles.sectionTitle}>À propos</Text>
-                        <Text style={styles.bioText} numberOfLines={2}>
-                          {application.candidate.bio}
-                        </Text>
                       </View>
                     )}
 
-                    {/* Action voir plus uniquement */}
-                    <View style={styles.actionsSection}>
+                  {/* Bio */}
+                  {currentApplication.candidate.bio && (
+                    <View style={styles.bioSection}>
+                      <Text style={styles.sectionTitle}>À propos</Text>
+                      <Text style={styles.bioText} numberOfLines={2}>
+                        {currentApplication.candidate.bio}
+                      </Text>
+                    </View>
+                  )}
+
+                  {/* Zone bouton */}
+                  <View style={styles.actionsSection}>
+                    <View style={styles.buttonRow}>
                       <TouchableOpacity
                         style={styles.seeProfileButton}
-                        onPress={() => handleOpenModal(application)}
+                        onPress={() => {
+                          handleOpenModal(currentApplication);
+                        }}
+                        onPressIn={() => {
+                          isSwipeDisabled.value = true;
+                        }}
+                        onPressOut={() => {
+                          setTimeout(() => {
+                            isSwipeDisabled.value = false;
+                          }, 100);
+                        }}
+                        activeOpacity={0.7}
+                        hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
                       >
                         <LinearGradient
                           colors={["#36E9CD", "#36E9CD"]}
@@ -464,90 +602,72 @@ export default function ApplicationsList({
                         </LinearGradient>
                       </TouchableOpacity>
                     </View>
-                  </LinearGradient>
+                  </View>
+                </LinearGradient>
 
-                  {/* Overlays pour le swipe */}
-                  <ReanimatedAnimated.View
-                    style={[
-                      styles.leftOverlay,
-                      useAnimatedStyle(() => ({
-                        opacity: interpolate(
-                          translateX.value,
-                          [-150, -50, 0],
-                          [1, 0.5, 0],
-                          Extrapolation.CLAMP
-                        ),
-                      })),
-                    ]}
-                  >
-                    <View style={styles.overlayContent}>
-                      <X size={40} color="#ffffff" />
-                      <Text style={styles.overlayTextRed}>PASSER</Text>
-                    </View>
-                  </ReanimatedAnimated.View>
-
-                  <ReanimatedAnimated.View
-                    style={[
-                      styles.rightOverlay,
-                      useAnimatedStyle(() => ({
-                        opacity: interpolate(
-                          translateX.value,
-                          [0, 50, 150],
-                          [0, 0.5, 1],
-                          Extrapolation.CLAMP
-                        ),
-                      })),
-                    ]}
-                  >
-                    <View style={styles.overlayContent}>
-                      <Check size={40} color="#ffffff" />
-                      <Text style={styles.overlayTextGreen}>MATCH</Text>
-                    </View>
-                  </ReanimatedAnimated.View>
+                {/* Overlays pour le swipe */}
+                <ReanimatedAnimated.View
+                  style={[styles.leftOverlay, leftOverlayStyle]}
+                >
+                  <View style={styles.overlayContent}>
+                    <X size={adaptiveStyles.iconSize + 16} color="#ffffff" />
+                    <Text style={styles.overlayTextRed}>PASSER</Text>
+                  </View>
                 </ReanimatedAnimated.View>
-              </GestureDetector>
-            ))}
-          </ScrollView>
+
+                <ReanimatedAnimated.View
+                  style={[styles.rightOverlay, rightOverlayStyle]}
+                >
+                  <View style={styles.overlayContent}>
+                    <Check
+                      size={adaptiveStyles.iconSize + 16}
+                      color="#ffffff"
+                    />
+                    <Text style={styles.overlayTextGreen}>MATCH</Text>
+                  </View>
+                </ReanimatedAnimated.View>
+              </ReanimatedAnimated.View>
+            </GestureDetector>
+          </View>
 
           {/* Boutons d'action externes */}
           <View style={styles.actionButtons}>
             <TouchableOpacity
               onPress={() => {
-                const currentApp = pendingApplications[currentIndex];
-                if (currentApp) {
-                  handlePass(currentApp);
-                  if (currentIndex < pendingApplications.length - 1) {
-                    setCurrentIndex(currentIndex + 1);
-                  }
-                }
+                handlePass(currentApplication);
               }}
               style={styles.actionButtonRed}
+              activeOpacity={0.8}
+              delayPressIn={0}
             >
-              <X size={30} color="white" />
+              <X size={adaptiveStyles.iconSize} color="white" />
             </TouchableOpacity>
 
             <TouchableOpacity
               onPress={() => {
-                const currentApp = pendingApplications[currentIndex];
-                if (currentApp) {
-                  handleMatch(currentApp);
-                  if (currentIndex < pendingApplications.length - 1) {
-                    setCurrentIndex(currentIndex + 1);
-                  }
-                }
+                handleMatch(currentApplication);
               }}
               style={styles.actionButtonGreen}
+              activeOpacity={0.8}
+              delayPressIn={0}
             >
-              <Check size={30} color="white" />
+              <Check size={adaptiveStyles.iconSize} color="white" />
             </TouchableOpacity>
           </View>
 
-          {/* Légende explicative */}
-          <View style={styles.legendContainer}>
-            <Text style={styles.legendButtonText}>
-              Swipez ou utilisez les boutons pour évaluer les candidatures
-            </Text>
-          </View>
+          {/* Légende explicative - adaptative selon la taille d'écran */}
+          {adaptiveStyles.showLegend && (
+            <View
+              style={[
+                styles.legendContainer,
+                { paddingBottom: adaptiveStyles.legendPadding },
+              ]}
+            >
+              <Text style={styles.legendButtonText}>
+                Swipez ou utilisez les boutons pour évaluer les candidatures
+              </Text>
+            </View>
+          )}
         </GestureHandlerRootView>
       )}
 
@@ -723,7 +843,12 @@ export default function ApplicationsList({
 
                   <TouchableOpacity
                     style={styles.modalActionRed}
-                    onPress={handleCloseModal}
+                    onPress={() => {
+                      if (selectedApplication) {
+                        handlePass(selectedApplication);
+                        handleCloseModal();
+                      }
+                    }}
                   >
                     <LinearGradient
                       colors={["#FF2056", "#FF2056"]}
@@ -751,6 +876,8 @@ export default function ApplicationsList({
     </View>
   );
 }
+
+const adaptive = getAdaptiveStyles();
 
 const styles = StyleSheet.create({
   container: {
@@ -784,32 +911,45 @@ const styles = StyleSheet.create({
   headerContent: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
     padding: 16,
+    minHeight: 80,
   },
   backButton: {
-    flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    marginRight: 16,
+    justifyContent: "center",
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
   },
-  backText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "white",
-  },
-  titleSection: {
+  titleContainer: {
     flex: 1,
     alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 16,
+  },
+  titleSection: {
+    alignItems: "center",
+    maxWidth: "100%",
   },
   jobTitle: {
     fontSize: 18,
     fontWeight: "700",
     color: "white",
     marginBottom: 4,
+    textAlign: "center",
+    maxWidth: 220,
+  },
+  spacer: {
+    width: 40,
   },
   candidateCount: {
     fontSize: 14,
     color: "rgba(255, 255, 255, 0.9)",
+    fontWeight: "600",
+    textAlign: "center",
+    marginTop: 2,
   },
   emptyContainer: {
     flex: 1,
@@ -829,15 +969,25 @@ const styles = StyleSheet.create({
     color: "#6B7280",
     textAlign: "center",
   },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
+  progressIndicator: {
+    alignItems: "center",
+    paddingVertical: adaptive.progressPadding,
     paddingHorizontal: 16,
-    paddingBottom: 20,
-    gap: 12,
+    marginBottom: 4,
+  },
+  progressText: {
+    fontSize: 12,
+    color: "#6B7280",
+    fontWeight: "500",
+    fontStyle: "italic",
+  },
+  cardContainer: {
+    flex: 1,
+    marginHorizontal: adaptive.cardMargin,
+    marginVertical: adaptive.cardMargin,
   },
   candidateCard: {
+    flex: 1,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: "#E5E5E5",
@@ -856,115 +1006,129 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 6,
   },
-  cardGradient: {
-    borderRadius: 12,
-    padding: 20,
-  },
-  candidateHeader: {
-    marginBottom: 18,
-    borderRadius: 8,
+  // Nouveaux styles pour header pleine largeur
+  candidateHeaderFull: {
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
     overflow: "hidden",
   },
-  candidateHeaderGradient: {
+  candidateHeaderFullGradient: {
     alignItems: "center",
-    padding: 10,
+    padding: 14,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
   },
-  candidateName: {
+  candidateNameFull: {
     fontSize: 16,
     fontWeight: "700",
     color: "white",
-    marginBottom: 3,
+    marginBottom: 4,
   },
-  candidateInfo: {
+  candidateInfoFull: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
   },
-  candidateRole: {
+  candidateRoleFull: {
     fontSize: 12,
     fontWeight: "600",
     color: "rgba(255, 255, 255, 0.9)",
   },
-  infoScrollView: {
-    marginBottom: 18,
+  cardGradientBody: {
+    flex: 1,
+    borderBottomLeftRadius: 12,
+    borderBottomRightRadius: 12,
+    padding: adaptive.cardPadding,
   },
+
+  infoSectionCard: {
+    marginBottom: adaptive.sectionMargin,
+  },
+
   infoScrollContent: {
-    paddingHorizontal: 4,
+    flexDirection: "row",
     gap: 10,
+    paddingHorizontal: 4,
+    paddingRight: 30,
+    minWidth: 450, // Force le scroll en garantissant une largeur minimale
   },
   infoCard: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     gap: 8,
     backgroundColor: "rgba(71, 23, 246, 0.05)",
-    padding: 8,
-    borderRadius: 6,
-    borderLeftWidth: 2,
+    padding: 10,
+    borderRadius: 8,
+    borderLeftWidth: 3,
     borderLeftColor: "#4717F6",
-    minWidth: 120,
+    minWidth: 130,
   },
   infoCardContent: {
     flex: 1,
+    minWidth: 0, // Permet au contenu de se rétrécir si nécessaire
   },
   infoCardLabel: {
     fontSize: 10,
     color: "#6B7280",
     fontWeight: "600",
+    marginBottom: 3,
+    textTransform: "uppercase",
   },
   infoCardValue: {
     fontSize: 12,
     color: "#374151",
     fontWeight: "700",
+    lineHeight: 16,
   },
   skillsSection: {
-    marginBottom: 16,
+    marginBottom: adaptive.sectionMargin,
   },
   sectionTitle: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: "600",
     color: "#374151",
-    marginBottom: 6,
+    marginBottom: 10,
   },
   skillsContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 4,
+    gap: 8,
   },
   skillBadgeMatched: {
     backgroundColor: "#36E9CD",
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
   },
   skillTextMatched: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: "600",
     color: "white",
   },
   skillBadge: {
     backgroundColor: "#6B7280",
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
   },
   skillText: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: "600",
     color: "white",
   },
   skillBadgeExtra: {
     backgroundColor: "#9CA3AF",
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
   },
   skillTextExtra: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: "600",
     color: "white",
   },
   legend: {
-    marginTop: 6,
+    marginTop: 4,
   },
   legendRow: {
     flexDirection: "row",
@@ -989,31 +1153,58 @@ const styles = StyleSheet.create({
     backgroundColor: "#6B7280",
   },
   legendText: {
-    fontSize: 10,
+    fontSize: 11,
     color: "#6B7280",
     fontStyle: "italic",
   },
   bioSection: {
-    marginBottom: 16,
+    marginBottom: adaptive.sectionMargin,
   },
   bioText: {
-    fontSize: 12,
+    fontSize: 14,
     color: "#6B7280",
-    lineHeight: 16,
+    lineHeight: 20,
   },
   actionsSection: {
     gap: 12,
+    flex: 1,
+    justifyContent: "center",
+  },
+  swipeZoneTop: {
+    height: 20,
+    backgroundColor: "transparent",
+  },
+  swipeZoneBottom: {
+    height: 20,
+    backgroundColor: "transparent",
+  },
+  buttonRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 60,
+  },
+  swipeZoneLeft: {
+    flex: 1,
+    height: 60,
+    backgroundColor: "transparent",
+  },
+  swipeZoneRight: {
+    flex: 1,
+    height: 60,
+    backgroundColor: "transparent",
   },
   seeProfileButton: {
     alignSelf: "center",
+    zIndex: 1000,
   },
   seeProfileGradient: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
+    paddingHorizontal: 28,
+    paddingVertical: 12,
+    borderRadius: 10,
   },
   seeProfileText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: "600",
     color: "white",
   },
@@ -1021,41 +1212,41 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    gap: 40,
-    paddingBottom: 16,
+    gap: adaptive.buttonSpacing,
+    paddingBottom: adaptive.progressPadding,
   },
   actionButtonRed: {
-    width: 50,
-    height: 50,
-    borderRadius: 30,
+    width: adaptive.buttonSize,
+    height: adaptive.buttonSize,
+    borderRadius: adaptive.buttonSize / 2,
     backgroundColor: "#FF2056",
     justifyContent: "center",
     alignItems: "center",
     shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
   },
   actionButtonGreen: {
-    width: 50,
-    height: 50,
-    borderRadius: 30,
+    width: adaptive.buttonSize,
+    height: adaptive.buttonSize,
+    borderRadius: adaptive.buttonSize / 2,
     backgroundColor: "#36E9CD",
     justifyContent: "center",
     alignItems: "center",
     shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
   },
   legendContainer: {
-    paddingHorizontal: 24,
-    paddingBottom: 20,
+    paddingHorizontal: adaptive.cardMargin + 8,
+    paddingBottom: adaptive.legendPadding,
   },
   legendButtonText: {
-    fontSize: 14,
+    fontSize: adaptive.iconSize < 22 ? 12 : 14,
     fontStyle: "italic",
     textAlign: "center",
     color: "#6B7280",

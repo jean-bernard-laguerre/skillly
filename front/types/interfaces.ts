@@ -120,6 +120,17 @@ export interface User {
     title: string;
     companyID: number;
     role: "admin" | "member";
+    company?: {
+      id: number;
+      company_name: string;
+      description?: string;
+      industry?: string;
+      web_site?: string;
+      location?: string;
+      logo?: string;
+      size?: string;
+      siret?: string;
+    };
   };
 }
 
@@ -223,16 +234,15 @@ export interface CreateJobPostDTO {
   certifications: number[];
 }
 
-
 export interface Chatroom {
-  id: string,
-  name: string,
-  created_at: string,
+  id: string;
+  name: string;
+  created_at: string;
 }
 
 export interface Message {
-  sender: string,
-  content: string,
-  sent_at: string,
-  room: string,
+  sender: string;
+  content: string;
+  sent_at: string;
+  room: string;
 }
