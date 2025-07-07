@@ -16,7 +16,6 @@ import (
 )
 
 var userRepo = user.NewUserRepository(config.DB)
-var context = testUtils.CreateTestContext()
 var testUser = models.User{}
 
 func CreateUser(t *testing.T) {
@@ -43,6 +42,7 @@ func CreateUser(t *testing.T) {
 }
 
 func GetUserById(t *testing.T) {
+	context := testUtils.CreateTestContext()
 	fmt.Println("Getting user by ID:", testUser)
 	params := utils.GetUrlParams(context)
 	user, err := userRepo.GetByID(testUser.ID, &params.Populate)
@@ -60,6 +60,7 @@ func GetUserByEmail(t *testing.T) {
 
 func UpdateUser(t *testing.T) {
 	// Create a new user to update
+	context := testUtils.CreateTestContext()
 	params := utils.GetUrlParams(context)
 
 	testUser.FirstName = "Updated"
@@ -77,6 +78,7 @@ func UpdateUser(t *testing.T) {
 }
 
 func GetAllUsers(t *testing.T) {
+	context := testUtils.CreateTestContext()
 	params := utils.GetUrlParams(context)
 	users, err := userRepo.GetAll(params)
 	require.NoError(t, err, "Failed to get all users")
@@ -90,6 +92,7 @@ func DeleteUser(t *testing.T) {
 	require.NoError(t, err, "Failed to delete user")
 	// Check if the user is deleted
 
+	context := testUtils.CreateTestContext()
 	params := utils.GetUrlParams(context)
 	_, err = userRepo.GetByID(1, &params.Populate)
 	assert.NotNil(t, err, "Expected error when getting deleted user")
