@@ -59,14 +59,14 @@ func UpdateUser(t *testing.T) {
 	// Create a new user to update
 	context := testUtils.CreateTestContext()
 	params := utils.GetUrlParams(context)
-
+	fmt.Println("Updating user with ID:", params)
 	update, err := userRepo.GetByID(uint(1), &params.Populate)
 	require.NoError(t, err, "Failed to get user for update")
-
+	fmt.Println("User before update:", update)
 	update.FirstName = "Updated"
 	err = userRepo.Update(&update)
-
 	require.NoError(t, err, "Failed to update user")
+	fmt.Println("Updating user:", update)
 
 	// Fetch the updated user
 	updatedUser, err := userRepo.GetByID(update.ID, &params.Populate)
