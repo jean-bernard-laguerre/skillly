@@ -15,9 +15,8 @@ import (
 	testUtils "skillly/test/utils"
 )
 
-var userRepo = user.NewUserRepository(config.DB)
-
 func CreateUser(t *testing.T) {
+	userRepo := user.NewUserRepository(config.DB)
 
 	// Create a new user
 	newUser := userDto.CreateUserDTO{
@@ -39,6 +38,7 @@ func CreateUser(t *testing.T) {
 }
 
 func GetUserById(t *testing.T) {
+	userRepo := user.NewUserRepository(config.DB)
 	context := testUtils.CreateTestContext()
 	fmt.Println("Getting user by ID:", 1)
 	params := utils.GetUrlParams(context)
@@ -56,6 +56,7 @@ func GetUserByEmail(t *testing.T) {
 }
 
 func UpdateUser(t *testing.T) {
+	userRepo := user.NewUserRepository(config.DB)
 	// Create a new user to update
 	context := testUtils.CreateTestContext()
 	params := utils.GetUrlParams(context)
@@ -77,6 +78,7 @@ func UpdateUser(t *testing.T) {
 }
 
 func GetAllUsers(t *testing.T) {
+	userRepo := user.NewUserRepository(config.DB)
 	context := testUtils.CreateTestContext()
 	params := utils.GetUrlParams(context)
 	users, err := userRepo.GetAll(params)
@@ -87,6 +89,7 @@ func GetAllUsers(t *testing.T) {
 }
 
 func DeleteUser(t *testing.T) {
+	userRepo := user.NewUserRepository(config.DB)
 	err := userRepo.Delete(uint(1))
 	require.NoError(t, err, "Failed to delete user")
 	// Check if the user is deleted
