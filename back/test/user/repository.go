@@ -49,41 +49,42 @@ func CreateUser(t *testing.T) {
 	if user.Password == newUser.Password {
 		t.Fatalf("User password should be hashed, got %s", user.Password)
 	}
+
+	testUser = user // Store the created user for further tests
 }
 
 func GetUserById(t *testing.T) {
 	params := utils.GetUrlParams(context)
-	testUser, err := userRepo.GetByID(1, &params.Populate)
+	user, err := userRepo.GetByID(testUser.ID, &params.Populate)
 
 	if err != nil {
 		t.Fatalf("Failed to get user by ID: %v", err)
 	}
 
 	// Check if the user ID is correct
-	if testUser.ID != 1 {
-		t.Fatalf("Expected user ID 1, got %d", testUser.ID)
+	if testUser.ID != user.ID {
+		t.Fatalf("Expected user ID %d, got %d", testUser.ID, user.ID)
 	}
 }
 
 func GetUserByEmail(t *testing.T) {
-	user, err := userRepo.GetByEmail("test@test.com")
+	user, err := userRepo.GetByEmail(testUser.Email)
 	if err != nil {
 		t.Fatalf("Failed to get user by email: %v", err)
 	}
 
 	// Check if the user email is correct
-	if user.Email != "test@test.com" {
-		t.Fatalf("Expected user email test@test.com, got %s", user.Email)
+	if user.Email != testUser.Email {
+		t.Fatalf("Expected user email %s, got %s", testUser.Email, user.Email)
 	}
 }
 
 func UpdateUser(t *testing.T) {
 	// Create a new user to update
 	params := utils.GetUrlParams(context)
-	user, _ := userRepo.GetByID(testUser.ID, &params.Populate)
 
-	user.FirstName = "Updated"
-	err := userRepo.Update(&user)
+	testUser.FirstName = "Updated"
+	err := userRepo.Update(&testUser)
 
 	if err != nil {
 		t.Fatalf("Failed to update user: %v", err)
@@ -91,7 +92,7 @@ func UpdateUser(t *testing.T) {
 
 	// Fetch the updated user
 	params = utils.GetUrlParams(context)
-	updatedUser, err := userRepo.GetByID(user.ID, &params.Populate)
+	updatedUser, err := userRepo.GetByID(testUser.ID, &params.Populate)
 	if err != nil {
 		t.Fatalf("Failed to get updated user: %v", err)
 	}
