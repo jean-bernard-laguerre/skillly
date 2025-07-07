@@ -23,10 +23,10 @@ func TestAuth(t *testing.T) {
 
 func TestUser(t *testing.T) {
 	t.Run("CreateUser", user_test.CreateUser)
-	t.Run("GetUserById", user_test.GetUserById)
 	t.Run("GetUserByEmail", user_test.GetUserByEmail)
 	t.Run("UpdateUser", user_test.UpdateUser)
 	t.Run("GetAllUsers", user_test.GetAllUsers)
+	t.Run("GetUserById", user_test.GetUserById)
 }
 
 func DeleteEverything(t *testing.T) {
