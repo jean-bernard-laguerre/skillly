@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import { useRoute, RouteProp } from "@react-navigation/native";
 import {
   ActivityIndicator,
   Pressable,
@@ -15,8 +16,6 @@ import {
   Calendar,
   DollarSign,
   Users,
-  Clock,
-  Building2,
 } from "lucide-react-native";
 import { useJobPost } from "@/lib/hooks/useJobPost";
 import { Portal } from "react-native-portalize";
@@ -26,7 +25,15 @@ import CreateJobPost from "./jobs/create";
 
 type JobFilter = "all" | "active" | "expired";
 
+type JobRouteParams = {
+  create?: boolean;
+};
+
+type JobRouteProp = RouteProp<{ Jobs: JobRouteParams }, "Jobs">;
+
 export default function Jobs() {
+  const route = useRoute<JobRouteProp>();
+
   const { jobPosts, isLoadingJobPosts, jobPostsError } = useJobPost();
   const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<JobFilter>("active");
@@ -400,6 +407,12 @@ export default function Jobs() {
       </View>
     );
   };
+
+  useEffect(() => {
+    if (route.params?.create) {
+      setIsCreateModalVisible(true);
+    }
+  }, [route.params?.create]);
 
   return (
     <ScreenWrapper>

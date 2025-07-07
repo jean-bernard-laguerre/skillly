@@ -2,12 +2,13 @@ package jobPost
 
 import (
 	"fmt"
+
+	"github.com/gin-gonic/gin"
+
 	"skillly/pkg/config"
 	jobPostDto "skillly/pkg/handlers/jobPost/dto"
 	"skillly/pkg/models"
 	"skillly/pkg/utils"
-
-	"github.com/gin-gonic/gin"
 )
 
 type JobPostService interface {
