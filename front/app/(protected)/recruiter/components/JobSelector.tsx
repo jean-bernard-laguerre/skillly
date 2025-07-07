@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   View,
   StyleSheet,
+  RefreshControl,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Briefcase, MapPin, Users, Heart } from "lucide-react-native";
@@ -15,6 +16,8 @@ export default function JobSelector({
   selectedJobId,
   onSelectJob,
   type,
+  refreshing = false,
+  onRefresh,
 }: JobSelectorProps) {
   const isApplications = type === "applications";
 
@@ -51,6 +54,17 @@ export default function JobSelector({
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          onRefresh ? (
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={isApplications ? "#4717F6" : "#7C3AED"}
+              colors={[isApplications ? "#4717F6" : "#7C3AED"]}
+              progressBackgroundColor="#ffffff"
+            />
+          ) : undefined
+        }
       >
         {jobs.length === 0 ? (
           <View style={styles.emptyContainer}>

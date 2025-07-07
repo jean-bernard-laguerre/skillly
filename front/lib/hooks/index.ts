@@ -19,3 +19,5 @@ export type { BottomSheetConfig } from "./useBottomSheet";
 
 export { useRecruiterStats } from "./useRecruiterStats";
 export type { RecruiterStats, RecruiterStatsData } from "./useRecruiterStats";
+
+export { useMessages } from "./useMessages";

@@ -46,6 +46,8 @@ export interface JobSelectorProps {
   selectedJobId: string | null;
   onSelectJob: (jobId: string) => void;
   type: "applications" | "matches";
+  refreshing?: boolean;
+  onRefresh?: () => Promise<void>;
 }
 
 export interface ApplicationsListProps {

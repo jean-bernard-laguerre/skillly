@@ -8,19 +8,26 @@ import {
   ScrollView,
   Image,
   StyleSheet,
+  RefreshControl,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { AlarmClock } from "lucide-react-native";
 import { useApplication } from "@/lib/hooks/useApplication";
 import { useJobPost } from "@/lib/hooks/useJobPost";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 
 export default function CandidateHome() {
   const { handleLogOut, user } = useAuth();
-  const { applications, isLoadingApplications } = useApplication();
-  const { candidateJobPosts, isLoadingCandidateJobPosts } = useJobPost();
+  const { applications, isLoadingApplications, refetchApplications } =
+    useApplication();
+  const {
+    candidateJobPosts,
+    isLoadingCandidateJobPosts,
+    refetchCandidateJobPosts,
+  } = useJobPost();
   const navigation = useNavigation();
+  const [refreshing, setRefreshing] = useState(false);
 
   // Calcul des statistiques réelles
   const stats = useMemo(() => {
@@ -58,6 +65,17 @@ export default function CandidateHome() {
     };
   }, [user, applications, candidateJobPosts]);
 
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([refetchApplications(), refetchCandidateJobPosts()]);
+    } catch (error) {
+      console.error("Erreur lors du refresh:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   return (
     <ScreenWrapper>
       <Header
@@ -65,7 +83,19 @@ export default function CandidateHome() {
         showNotification={true}
         onNotificationPress={() => console.log("Notification pressed")}
       />
-      <ScrollView className="flex-1 p-3" style={{ backgroundColor: "#F7F7F7" }}>
+      <ScrollView
+        className="flex-1 p-3"
+        style={{ backgroundColor: "#F7F7F7" }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor="#4717F6"
+            colors={["#4717F6"]}
+            progressBackgroundColor="#ffffff"
+          />
+        }
+      >
         {/* Welcome Section */}
         <View className="mb-4">
           {/* Greeting Section */}

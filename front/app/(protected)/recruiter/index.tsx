@@ -1,7 +1,14 @@
 import { useAuth } from "@/context/AuthContext";
 import ScreenWrapper from "@/navigation/ScreenWrapper";
 import Header from "@/components/Header";
-import { Pressable, Text, View, ScrollView, StyleSheet } from "react-native";
+import {
+  Pressable,
+  Text,
+  View,
+  ScrollView,
+  StyleSheet,
+  RefreshControl,
+} from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import {
   Briefcase,
@@ -14,7 +21,7 @@ import {
   Building2,
 } from "lucide-react-native";
 import { useJobPost } from "@/lib/hooks/useJobPost";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 
 export default function RecruiterHome() {
@@ -26,8 +33,12 @@ export default function RecruiterHome() {
     isLoadingApplications,
     matches,
     isLoadingMatches,
+    refetchJobPosts,
+    refetchApplications,
+    refetchMatches,
   } = useJobPost();
   const navigation = useNavigation();
+  const [refreshing, setRefreshing] = useState(false);
 
   // Calcul des statistiques réelles
   const stats = useMemo(() => {
@@ -89,6 +100,21 @@ export default function RecruiterHome() {
     };
   }, [user, jobPosts, applications, matches]);
 
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        refetchJobPosts(),
+        refetchApplications(),
+        refetchMatches(),
+      ]);
+    } catch (error) {
+      console.error("Erreur lors du refresh:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   if (isLoadingJobPosts || isLoadingApplications || isLoadingMatches) {
     return (
       <ScreenWrapper>
@@ -108,7 +134,19 @@ export default function RecruiterHome() {
         showNotification={true}
         onNotificationPress={() => console.log("Notification pressed")}
       />
-      <ScrollView className="flex-1 p-3" style={{ backgroundColor: "#F7F7F7" }}>
+      <ScrollView
+        className="flex-1 p-3"
+        style={{ backgroundColor: "#F7F7F7" }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor="#7C3AED"
+            colors={["#7C3AED"]}
+            progressBackgroundColor="#ffffff"
+          />
+        }
+      >
         {/* Welcome Section */}
         <View className="mb-4">
           {/* Greeting Section */}

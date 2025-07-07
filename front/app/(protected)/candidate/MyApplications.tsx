@@ -7,6 +7,7 @@ import {
   Pressable,
   StyleSheet,
   Image,
+  RefreshControl,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useApplication } from "@/lib/hooks/useApplication";
@@ -143,8 +144,10 @@ const FilterButton = ({
 };
 
 const MyApplications = () => {
-  const { applications, isLoadingApplications } = useApplication();
+  const { applications, isLoadingApplications, refetchApplications } =
+    useApplication();
   const [selectedStatus, setSelectedStatus] = useState<Status>("all");
+  const [refreshing, setRefreshing] = useState(false);
 
   const filteredApplications = React.useMemo(() => {
     if (!applications) return [];
@@ -152,6 +155,17 @@ const MyApplications = () => {
     if (selectedStatus === "all") return applications;
     return applications.filter((app) => app.state === selectedStatus);
   }, [applications, selectedStatus]);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await refetchApplications();
+    } catch (error) {
+      console.error("Erreur lors du refresh:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   if (isLoadingApplications) {
     return (
@@ -164,14 +178,35 @@ const MyApplications = () => {
   if (!applications || applications.length === 0) {
     return (
       <ScreenWrapper>
-        <View className="flex-1 justify-center items-center bg-gray-100">
+        <View className="flex-1" style={{ backgroundColor: "#F7F7F7" }}>
           <Header
             title="Mes candidatures"
             subtitle="Suis l'avancée de tes candidatures en un coup d'œil  👀"
           />
-          <Text className="text-gray-600">
-            Vous n'avez pas encore de candidatures
-          </Text>
+          <ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={{
+              flex: 1,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+                tintColor="#4717F6"
+                colors={["#4717F6"]}
+                progressBackgroundColor="#ffffff"
+              />
+            }
+          >
+            <Text style={{ color: "#6B7280", fontSize: 16 }}>
+              Vous n'avez pas encore de candidatures
+            </Text>
+            <Text style={{ color: "#9CA3AF", fontSize: 14, marginTop: 8 }}>
+              Tirez vers le bas pour actualiser
+            </Text>
+          </ScrollView>
         </View>
       </ScreenWrapper>
     );
@@ -239,6 +274,15 @@ const MyApplications = () => {
         <ScrollView
           className="flex-1 px-3"
           contentContainerStyle={styles.scrollContainer}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor="#4717F6"
+              colors={["#4717F6"]}
+              progressBackgroundColor="#ffffff"
+            />
+          }
         >
           {filteredApplications.map((application) => (
             <Pressable

@@ -18,6 +18,7 @@ import MessageBox from "./MessageBox";
 import { Message } from "@/types/interfaces";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigationVisibility } from "@/context/NavigationVisibilityContext";
+import { useMessages } from "@/lib/hooks/useMessages";
 import { useChatWS } from "@/hooks/useChatWS";
 
 const { height: screenHeight } = Dimensions.get("window");
@@ -71,21 +72,53 @@ export default function ChatroomView({ onBack, chatroomId }: ChatroomProps) {
 
   const colors = roleColors[role || "candidate"];
 
-  const ws = useChatWS(chatroomId, (message: Message) => {
-    setMessages((prevMessages) => [...prevMessages, message]);
-  });
+  const { useMessagesByRoom, addMessageToCache } = useMessages();
+
+  // Hook pour récupérer l'historique des messages
+  const { data: historicalMessages, isLoading: isLoadingMessages } =
+    useMessagesByRoom(chatroomId);
+
+  const {
+    sendMessage,
+    isConnected,
+    isConnecting,
+    error: wsError,
+  } = useChatWS(
+    chatroomId,
+    (message: Message) => {
+      setMessages((prevMessages) => [...prevMessages, message]);
+      // Ajouter aussi au cache React Query
+      addMessageToCache(chatroomId, message);
+    },
+    () => {
+      console.log("WebSocket connecté");
+    },
+    () => {
+      console.log("WebSocket déconnecté");
+    }
+  );
+
+  // Charger l'historique au montage du composant
+  useEffect(() => {
+    if (historicalMessages) {
+      setMessages(historicalMessages);
+    }
+  }, [historicalMessages]);
 
   const handleSendMessage = () => {
-    if (!newMessage.trim()) return;
-    const message: Message = {
+    if (!newMessage.trim() || !user?.id) return;
+
+    const messageData = {
       content: newMessage,
-      sender: user?.id.toString() || "",
-      sent_at: new Date().toISOString(),
+      sender: user.id.toString(),
       room: chatroomId,
     };
-    if (ws) {
-      ws.send(JSON.stringify(message));
+
+    const success = sendMessage(messageData);
+    if (success) {
       setNewMessage("");
+    } else {
+      console.error("Erreur lors de l'envoi du message");
     }
   };
 

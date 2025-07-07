@@ -1,5 +1,13 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, ScrollView, Dimensions } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Dimensions,
+  ActivityIndicator,
+  RefreshControl,
+} from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { MessageCircle, Users } from "lucide-react-native";
 import ScreenWrapper from "@/navigation/ScreenWrapper";
@@ -7,6 +15,7 @@ import Header from "@/components/Header";
 import ChatroomItem from "./ChatroomItem";
 import ChatroomView from "./Chatroom";
 import { Chatroom } from "@/types/interfaces";
+import { useMessages } from "@/lib/hooks/useMessages";
 
 const { height: screenHeight } = Dimensions.get("window");
 
@@ -25,17 +34,16 @@ const getAdaptiveStyles = () => {
 
 interface MessagesListProps {
   userRole: "candidate" | "recruiter";
-  chatrooms: Chatroom[];
-  isLoading?: boolean;
 }
 
-export default function MessagesList({
-  userRole,
-  chatrooms,
-  isLoading = false,
-}: MessagesListProps) {
+export default function MessagesList({ userRole }: MessagesListProps) {
   const [selectedChatroom, setSelectedChatroom] = useState<string>("");
+  const [refreshing, setRefreshing] = useState(false);
   const adaptive = getAdaptiveStyles();
+
+  // Utiliser le hook pour récupérer les conversations
+  const { chatrooms, isLoadingChatrooms, chatroomsError, refetchChatrooms } =
+    useMessages();
 
   // Configuration selon le rôle
   const roleConfig = {
@@ -61,6 +69,17 @@ export default function MessagesList({
 
   const config = roleConfig[userRole];
 
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await refetchChatrooms();
+    } catch (error) {
+      console.error("Erreur lors du refresh:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   const handlePress = (chatroom: Chatroom) => {
     setSelectedChatroom(chatroom.id);
   };
@@ -79,8 +98,87 @@ export default function MessagesList({
       <Header title={config.title} subtitle={config.subtitle} />
 
       <View style={styles.container}>
-        {chatrooms.length === 0 ? (
-          <View style={styles.emptyContainer}>
+        {isLoadingChatrooms ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={config.colors[0]} />
+            <Text style={styles.loadingText}>
+              Chargement des conversations...
+            </Text>
+          </View>
+        ) : chatroomsError ? (
+          <ScrollView
+            style={styles.container}
+            contentContainerStyle={styles.emptyContainer}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+                tintColor={config.colors[0]}
+                colors={[config.colors[0]]}
+                progressBackgroundColor="#ffffff"
+              />
+            }
+          >
+            <View style={styles.emptyIconContainer}>
+              <LinearGradient
+                colors={["#EF4444", "#DC2626"]}
+                style={[
+                  styles.emptyIconGradient,
+                  {
+                    width: adaptive.emptyIconSize,
+                    height: adaptive.emptyIconSize,
+                    borderRadius: adaptive.emptyIconSize / 2,
+                  },
+                ]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <MessageCircle
+                  size={adaptive.emptyIconSize * 0.4}
+                  color="white"
+                />
+              </LinearGradient>
+            </View>
+            <Text
+              style={[styles.emptyTitle, { fontSize: adaptive.emptyTitleSize }]}
+            >
+              Erreur de chargement
+            </Text>
+            <Text
+              style={[
+                styles.emptySubtitle,
+                { fontSize: adaptive.emptySubtitleSize },
+              ]}
+            >
+              Impossible de charger les conversations. Vérifiez votre connexion.
+            </Text>
+            <Text
+              style={[
+                styles.emptySubtitle,
+                {
+                  fontSize: adaptive.emptySubtitleSize - 2,
+                  marginTop: 8,
+                  color: "#6B7280",
+                },
+              ]}
+            >
+              Tirez vers le bas pour réessayer
+            </Text>
+          </ScrollView>
+        ) : !chatrooms || chatrooms.length === 0 ? (
+          <ScrollView
+            style={styles.container}
+            contentContainerStyle={styles.emptyContainer}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+                tintColor={config.colors[0]}
+                colors={[config.colors[0]]}
+                progressBackgroundColor="#ffffff"
+              />
+            }
+          >
             <View style={styles.emptyIconContainer}>
               <LinearGradient
                 colors={config.colors}
@@ -136,12 +234,21 @@ export default function MessagesList({
                 </View>
               </LinearGradient>
             </View>
-          </View>
+          </ScrollView>
         ) : (
           <ScrollView
             style={styles.scrollView}
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+                tintColor={config.colors[0]}
+                colors={[config.colors[0]]}
+                progressBackgroundColor="#ffffff"
+              />
+            }
           >
             {chatrooms.map((chatroom) => (
               <ChatroomItem
@@ -236,5 +343,17 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingTop: 8,
     paddingBottom: 24,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 40,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: "#6B7280",
+    marginTop: 12,
+    fontWeight: "500",
   },
 });
