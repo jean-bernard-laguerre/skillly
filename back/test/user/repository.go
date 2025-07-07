@@ -8,12 +8,12 @@ import (
 	userDto "skillly/pkg/handlers/user/dto"
 	"skillly/pkg/models"
 	"skillly/pkg/utils"
-
-	"github.com/gin-gonic/gin"
+	testUtils "skillly/test/utils"
 )
 
 var userRepo = user.NewUserRepository(config.DB)
 var testUser = models.User{}
+var context = testUtils.CreateTestContext()
 
 func CreateUser(t *testing.T) {
 
@@ -52,7 +52,7 @@ func CreateUser(t *testing.T) {
 }
 
 func GetUserById(t *testing.T) {
-	params := utils.GetUrlParams(&gin.Context{})
+	params := utils.GetUrlParams(context)
 	testUser, err := userRepo.GetByID(1, &params.Populate)
 
 	if err != nil {
@@ -79,7 +79,7 @@ func GetUserByEmail(t *testing.T) {
 
 func UpdateUser(t *testing.T) {
 	// Create a new user to update
-	params := utils.GetUrlParams(&gin.Context{})
+	params := utils.GetUrlParams(context)
 	user, _ := userRepo.GetByID(testUser.ID, &params.Populate)
 
 	user.FirstName = "Updated"
@@ -90,7 +90,8 @@ func UpdateUser(t *testing.T) {
 	}
 
 	// Fetch the updated user
-	updatedUser, err := userRepo.GetByID(user.ID, nil)
+	params = utils.GetUrlParams(context)
+	updatedUser, err := userRepo.GetByID(user.ID, &params.Populate)
 	if err != nil {
 		t.Fatalf("Failed to get updated user: %v", err)
 	}
@@ -106,7 +107,7 @@ func UpdateUser(t *testing.T) {
 }
 
 func GetAllUsers(t *testing.T) {
-	params := utils.GetUrlParams(&gin.Context{})
+	params := utils.GetUrlParams(context)
 	users, err := userRepo.GetAll(params)
 	if err != nil {
 		t.Fatalf("Failed to get all users: %v", err)
