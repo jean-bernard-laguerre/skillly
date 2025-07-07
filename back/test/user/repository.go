@@ -49,6 +49,7 @@ func GetUserById(t *testing.T) {
 }
 
 func GetUserByEmail(t *testing.T) {
+	userRepo := user.NewUserRepository(config.DB)
 	user, err := userRepo.GetByEmail(testUtils.TestCandidate.Email)
 	require.NoError(t, err, "Failed to get user by email")
 
