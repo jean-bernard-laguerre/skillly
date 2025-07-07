@@ -38,6 +38,7 @@ func RegisterCandidate(t *testing.T) {
 	// Call the service method
 	authService.RegisterCandidate(c)
 
+	// Assert the response status code
 	assert.Equal(t, http.StatusOK, w.Code)
 
 	var response map[string]interface{}

@@ -16,7 +16,6 @@ import (
 )
 
 var userRepo = user.NewUserRepository(config.DB)
-var testUser = models.User{}
 
 func CreateUser(t *testing.T) {
 
@@ -37,25 +36,23 @@ func CreateUser(t *testing.T) {
 	assert.Equal(t, newUser.FirstName, user.FirstName, "Expected user first name to match")
 	assert.Equal(t, newUser.LastName, user.LastName, "Expected user last name to match")
 	assert.NotEqual(t, newUser.Password, user.Password, "Expected user password to be hashed")
-
-	testUser = user // Store the created user for further tests
 }
 
 func GetUserById(t *testing.T) {
 	context := testUtils.CreateTestContext()
-	fmt.Println("Getting user by ID:", testUser)
+	fmt.Println("Getting user by ID:", 1)
 	params := utils.GetUrlParams(context)
-	user, err := userRepo.GetByID(testUser.ID, &params.Populate)
+	user, err := userRepo.GetByID(uint(1), &params.Populate)
 
 	require.NoError(t, err, "Failed to get user by ID")
-	assert.Equal(t, testUser.ID, user.ID, "Expected user ID to match")
+	assert.Equal(t, user.ID, user.ID, "Expected user ID to match")
 }
 
 func GetUserByEmail(t *testing.T) {
-	user, err := userRepo.GetByEmail(testUser.Email)
+	user, err := userRepo.GetByEmail(testUtils.TestCandidate.Email)
 	require.NoError(t, err, "Failed to get user by email")
 
-	assert.Equal(t, testUser.Email, user.Email, "Expected user email to match")
+	assert.Equal(t, testUtils.TestCandidate.Email, user.Email, "Expected user email to match")
 }
 
 func UpdateUser(t *testing.T) {
@@ -63,18 +60,20 @@ func UpdateUser(t *testing.T) {
 	context := testUtils.CreateTestContext()
 	params := utils.GetUrlParams(context)
 
-	testUser.FirstName = "Updated"
-	err := userRepo.Update(&testUser)
+	update, err := userRepo.GetByID(uint(1), &params.Populate)
+	require.NoError(t, err, "Failed to get user for update")
+
+	update.FirstName = "Updated"
+	err = userRepo.Update(&update)
 
 	require.NoError(t, err, "Failed to update user")
 
 	// Fetch the updated user
-	params = utils.GetUrlParams(context)
-	updatedUser, err := userRepo.GetByID(testUser.ID, &params.Populate)
+	updatedUser, err := userRepo.GetByID(update.ID, &params.Populate)
 	require.NoError(t, err, "Failed to get updated user")
 
 	assert.Equal(t, "Updated", updatedUser.FirstName, "Expected user first name to be Updated")
-	assert.Equal(t, testUser.LastName, updatedUser.LastName, "Expected user last name to remain unchanged")
+	assert.Equal(t, update.LastName, updatedUser.LastName, "Expected user last name to remain unchanged")
 }
 
 func GetAllUsers(t *testing.T) {
@@ -88,7 +87,7 @@ func GetAllUsers(t *testing.T) {
 }
 
 func DeleteUser(t *testing.T) {
-	err := userRepo.Delete(testUser.ID)
+	err := userRepo.Delete(uint(1))
 	require.NoError(t, err, "Failed to delete user")
 	// Check if the user is deleted
 
