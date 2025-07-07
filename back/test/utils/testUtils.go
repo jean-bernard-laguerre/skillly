@@ -7,6 +7,9 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"net/url"
+	authDto "skillly/pkg/handlers/auth/dto"
+	companyDto "skillly/pkg/handlers/company/dto"
+	"skillly/pkg/models"
 )
 
 func CreateTestContext() *gin.Context {
@@ -21,4 +24,39 @@ func CreateTestContext() *gin.Context {
 	}
 
 	return c
+}
+
+var TestRecruiter = authDto.RecruterRegisterDTO{
+	FirstName: "Test",
+	LastName:  "Recruiter",
+	Email:     "TestRecruiter@test.com",
+	Password:  "password123",
+	Title:     "Test Title",
+	NewCompany: &companyDto.CreateCompanyDTO{
+		CompanyName: "Test Company",
+		SIRET:       "12345678901234",
+		Description: "Test Company Description",
+		Industry:    "Test Industry",
+		WebSite:     "https://testcompany.com",
+		Location:    "Test Location",
+		Logo:        "https://testcompany.com/logo.png",
+		Size:        "50-100",
+	},
+}
+
+var TestCandidate = authDto.CandidateRegisterDTO{
+	FirstName:        "Test",
+	LastName:         "Candidate",
+	Email:            "TestCandidate@test.com",
+	Password:         "password123",
+	Bio:              "Test Bio",
+	ExperienceYear:   5,
+	PreferedContract: models.CDIContract,
+	PreferedJob:      "Software Engineer",
+	Location:         "Test Location",
+	Availability:     "Full-time",
+	ResumeID:         1,
+
+	Certifications: []uint{1, 2},
+	Skills:         []uint{1, 2},
 }

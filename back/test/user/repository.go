@@ -4,6 +4,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"skillly/pkg/config"
 	"skillly/pkg/handlers/user"
 	userDto "skillly/pkg/handlers/user/dto"
@@ -27,112 +31,68 @@ func CreateUser(t *testing.T) {
 		Role:      models.RoleRecruiter,
 	}
 	user, err := userRepo.CreateUser(newUser, config.DB)
-	if err != nil {
-		t.Fatalf("Failed to create user: %v", err)
-	}
-	// Check if the user is created successfully
-	if user.ID == 0 {
-		t.Fatalf("Expected user ID to be set, got nil")
-	}
-	// Check if the user email is correct
-	if user.Email != newUser.Email {
-		t.Fatalf("Expected user email %s, got %s", newUser.Email, user.Email)
-	}
-	// Check if the user name is correct
-	if user.FirstName != newUser.FirstName {
-		t.Fatalf("Expected user name %s, got %s", newUser.FirstName, user.FirstName)
-	}
-	// Check if the user last name is correct
-	if user.LastName != newUser.LastName {
-		t.Fatalf("Expected user last name %s, got %s", newUser.LastName, user.LastName)
-	}
-	// Check if the user password is hashed
-	if user.Password == newUser.Password {
-		t.Fatalf("User password should be hashed, got %s", user.Password)
-	}
+	require.NoError(t, err, "Failed to create user")
+
+	assert.NotNil(t, user, "Expected user to be created")
+
+	assert.Equal(t, newUser.Email, user.Email, "Expected user email to match")
+	assert.Equal(t, newUser.FirstName, user.FirstName, "Expected user first name to match")
+	assert.Equal(t, newUser.LastName, user.LastName, "Expected user last name to match")
+	assert.NotEqual(t, newUser.Password, user.Password, "Expected user password to be hashed")
 
 	testUser = user // Store the created user for further tests
 }
 
-func GetUserById(t *testing.T) {
+func GetUserById(t *testing.T, ctx *gin.Context) {
 	fmt.Println("Getting user by ID:", testUser)
-	params := utils.GetUrlParams(context)
+	params := utils.GetUrlParams(ctx)
 	user, err := userRepo.GetByID(testUser.ID, &params.Populate)
 
-	if err != nil {
-		t.Fatalf("Failed to get user by ID: %v", err)
-	}
-
-	// Check if the user ID is correct
-	if testUser.ID != user.ID {
-		t.Fatalf("Expected user ID %d, got %d", testUser.ID, user.ID)
-	}
+	require.NoError(t, err, "Failed to get user by ID")
+	assert.Equal(t, testUser.ID, user.ID, "Expected user ID to match")
 }
 
 func GetUserByEmail(t *testing.T) {
 	user, err := userRepo.GetByEmail(testUser.Email)
-	if err != nil {
-		t.Fatalf("Failed to get user by email: %v", err)
-	}
+	require.NoError(t, err, "Failed to get user by email")
 
-	// Check if the user email is correct
-	if user.Email != testUser.Email {
-		t.Fatalf("Expected user email %s, got %s", testUser.Email, user.Email)
-	}
+	assert.Equal(t, testUser.Email, user.Email, "Expected user email to match")
 }
 
-func UpdateUser(t *testing.T) {
+func UpdateUser(t *testing.T, ctx *gin.Context) {
 	// Create a new user to update
-	params := utils.GetUrlParams(context)
+	params := utils.GetUrlParams(ctx)
 
 	testUser.FirstName = "Updated"
 	err := userRepo.Update(&testUser)
 
-	if err != nil {
-		t.Fatalf("Failed to update user: %v", err)
-	}
+	require.NoError(t, err, "Failed to update user")
 
 	// Fetch the updated user
-	params = utils.GetUrlParams(context)
+	params = utils.GetUrlParams(ctx)
 	updatedUser, err := userRepo.GetByID(testUser.ID, &params.Populate)
-	if err != nil {
-		t.Fatalf("Failed to get updated user: %v", err)
-	}
+	require.NoError(t, err, "Failed to get updated user")
 
-	// Check if the user first name is updated
-	if updatedUser.FirstName != "Updated" {
-		t.Fatalf("Expected user first name Updated, got %s", updatedUser.FirstName)
-	}
-	// Check if the user last name is still the same
-	if updatedUser.LastName != "User" {
-		t.Fatalf("Expected user last name User, got %s", updatedUser.LastName)
-	}
+	assert.Equal(t, "Updated", updatedUser.FirstName, "Expected user first name to be Updated")
+	assert.Equal(t, testUser.LastName, updatedUser.LastName, "Expected user last name to remain unchanged")
 }
 
-func GetAllUsers(t *testing.T) {
-	params := utils.GetUrlParams(context)
+func GetAllUsers(t *testing.T, ctx *gin.Context) {
+	params := utils.GetUrlParams(ctx)
 	users, err := userRepo.GetAll(params)
-	if err != nil {
-		t.Fatalf("Failed to get all users: %v", err)
-	}
+	require.NoError(t, err, "Failed to get all users")
 
-	// Check if the users slice is not empty
-	if len(users) == 0 {
-		t.Fatal("Expected at least one user, got none")
-	}
+	assert.NotEmpty(t, users, "Expected at least one user in the list")
+
 }
 
-func DeleteUser(t *testing.T) {
+func DeleteUser(t *testing.T, ctx *gin.Context) {
 	err := userRepo.Delete(testUser.ID)
-	if err != nil {
-		t.Fatalf("Failed to delete user: %v", err)
-	}
+	require.NoError(t, err, "Failed to delete user")
 	// Check if the user is deleted
-	_, err = userRepo.GetByID(1, nil)
-	if err == nil {
-		t.Fatalf("Expected error when getting deleted user, got nil")
-	}
-	if err.Error() != "record not found" {
-		t.Fatalf("Expected 'record not found' error, got %v", err)
-	}
+
+	params := utils.GetUrlParams(ctx)
+	_, err = userRepo.GetByID(1, &params.Populate)
+	assert.NotNil(t, err, "Expected error when getting deleted user")
+	assert.Equal(t, "record not found", err.Error(), "Expected 'record not found' error")
 }
