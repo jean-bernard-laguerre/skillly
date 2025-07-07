@@ -55,7 +55,6 @@ var TestCandidate = authDto.CandidateRegisterDTO{
 	PreferedJob:      "Software Engineer",
 	Location:         "Test Location",
 	Availability:     "Full-time",
-	ResumeID:         1,
 
 	Certifications: []uint{1, 2},
 	Skills:         []uint{1, 2},
