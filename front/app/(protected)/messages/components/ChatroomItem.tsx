@@ -50,7 +50,11 @@ export default function ChatroomItem({
     recruiter: ["#7C3AED", "#8B5CF6"] as const,
   };
 
+  // Ajout : choisir l'heure à afficher (dernier message ou création)
+  const timeToDisplay = chatroom.lastMessage?.sent_at || chatroom.created_at;
+
   const formatTime = (dateString: string) => {
+    if (!dateString) return "";
     const date = new Date(dateString);
     const now = new Date();
     const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
@@ -122,7 +126,7 @@ export default function ChatroomItem({
               <View style={styles.timeContainer}>
                 <Clock size={adaptive.iconSize - 6} color="#6B7280" />
                 <Text style={[styles.time, { fontSize: adaptive.timeSize }]}>
-                  {formatTime(chatroom.created_at)}
+                  {formatTime(timeToDisplay)}
                 </Text>
               </View>
             </View>

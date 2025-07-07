@@ -25,11 +25,13 @@ export function useChatWS(
   const { user } = useAuth();
   const reconnectTimeoutRef = useRef<number | null>(null);
   const reconnectAttemptsRef = useRef(0);
+  const isConnectingRef = useRef(false);
   const maxReconnectAttempts = 3;
 
   const connect = useCallback(() => {
-    if (!chatroomId || !user?.id || state.isConnecting) return;
+    if (!chatroomId || !user?.id || isConnectingRef.current) return;
 
+    isConnectingRef.current = true;
     setState((prev) => ({ ...prev, isConnecting: true, error: null }));
 
     try {
@@ -40,6 +42,7 @@ export function useChatWS(
 
       socket.onopen = () => {
         console.log("WebSocket connection established");
+        isConnectingRef.current = false;
         setState({
           isConnected: true,
           isConnecting: false,
@@ -61,6 +64,7 @@ export function useChatWS(
 
       socket.onerror = (error) => {
         console.error("WebSocket error:", error);
+        isConnectingRef.current = false;
         setState((prev) => ({
           ...prev,
           isConnecting: false,
@@ -70,6 +74,7 @@ export function useChatWS(
 
       socket.onclose = (event) => {
         console.log("WebSocket connection closed:", event.code, event.reason);
+        isConnectingRef.current = false;
         setState({
           isConnected: false,
           isConnecting: false,
@@ -81,7 +86,7 @@ export function useChatWS(
 
         onDisconnect?.();
 
-        // Tentative de reconnexion automatique
+        // Tentative de reconnexion automatique seulement si pas fermé volontairement
         if (
           event.code !== 1000 &&
           reconnectAttemptsRef.current < maxReconnectAttempts
@@ -93,27 +98,21 @@ export function useChatWS(
 
           reconnectTimeoutRef.current = setTimeout(() => {
             connect();
-          }, 2000 * reconnectAttemptsRef.current) as unknown as number; // Délai progressif
+          }, 2000 * reconnectAttemptsRef.current) as unknown as number;
         }
       };
 
       setWs(socket);
     } catch (error) {
       console.error("Error creating WebSocket:", error);
+      isConnectingRef.current = false;
       setState({
         isConnected: false,
         isConnecting: false,
         error: "Impossible de créer la connexion WebSocket",
       });
     }
-  }, [
-    chatroomId,
-    user?.id,
-    onMessage,
-    onConnect,
-    onDisconnect,
-    state.isConnecting,
-  ]);
+  }, [chatroomId, user?.id, onMessage, onConnect, onDisconnect]);
 
   const disconnect = useCallback(() => {
     if (reconnectTimeoutRef.current) {
@@ -147,13 +146,14 @@ export function useChatWS(
     [ws, state.isConnected]
   );
 
+  // useEffect avec dépendances stables
   useEffect(() => {
     connect();
 
     return () => {
       disconnect();
     };
-  }, [connect, disconnect]);
+  }, [chatroomId, user?.id]); // Dépendances minimales et stables
 
   return {
     ws,

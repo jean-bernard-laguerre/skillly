@@ -9,6 +9,7 @@ import (
 
 	"skillly/chat"
 	chatDB "skillly/chat/db"
+	messageHandler "skillly/chat/handlers/message"
 	chatModels "skillly/chat/models"
 
 	"skillly/pkg/db"
@@ -61,6 +62,7 @@ func main() {
 
 	// Add routes
 	handlers.AddRoutes(r)
+	messageHandler.AddRoutes(r)
 
 	// Swagger route
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

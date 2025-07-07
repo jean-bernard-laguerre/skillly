@@ -1,5 +1,6 @@
 import instance from "./api";
 import { Message, Chatroom } from "@/types/interfaces";
+import { AxiosError } from "axios";
 
 interface CreateMessagePayload {
   room: string;
@@ -9,12 +10,68 @@ interface CreateMessagePayload {
 
 export const getMessagesByRoom = async (roomId: string): Promise<Message[]> => {
   try {
-    console.log(`Fetching messages for room: ${roomId}`);
+    console.log(`🔍 [FRONT] Fetching messages for room: ${roomId}`);
 
-    // TODO: Adapter quand l'endpoint sera disponible
-    // const response = await instance.get<Message[]>(`/messages/room/${roomId}`);
+    const url = `/messages/room/${roomId}`;
+    console.log(`🔍 [FRONT] Calling URL: ${url}`);
 
-    // Mock pour le développement
+    // Appel à l'API REST pour récupérer les vrais messages
+    const response = await instance.get<Message[]>(url);
+
+    console.log(`📡 [FRONT] Response status: ${response.status}`);
+    console.log(`📡 [FRONT] Response data:`, response.data);
+    console.log(`📡 [FRONT] Response data type:`, typeof response.data);
+    console.log(
+      `📡 [FRONT] Response data is array:`,
+      Array.isArray(response.data)
+    );
+
+    // Vérification de la réponse avant d'accéder aux propriétés
+    if (!response || response.data === null || response.data === undefined) {
+      console.log(
+        `📝 [FRONT] Aucun message trouvé pour la room ${roomId}, retour d'un tableau vide`
+      );
+      return [];
+    }
+
+    if (!Array.isArray(response.data)) {
+      console.error(`❌ [FRONT] Response data is not an array:`, response.data);
+      throw new Error("Response data is not an array");
+    }
+
+    // Mapping des clés backend -> frontend
+    const mappedMessages = response.data.map((msg: any) => ({
+      id: msg.ID || msg.id,
+      content: msg.Content || msg.content,
+      sender: msg.SenderID || msg.sender,
+      room: msg.Room || msg.room,
+      sent_at: msg.CreatedAt || msg.created_at || msg.sent_at,
+    }));
+
+    console.log(
+      `✅ [FRONT] Retrieved ${mappedMessages.length} messages for room ${roomId}`,
+      mappedMessages
+    );
+    return mappedMessages;
+  } catch (error) {
+    console.error("❌ [FRONT] Error fetching messages:", error);
+
+    // Log détaillé de l'erreur
+    const axiosError = error as AxiosError;
+    if (axiosError.response) {
+      console.error("❌ [FRONT] Error response:", {
+        status: axiosError.response.status,
+        data: axiosError.response.data,
+        headers: axiosError.response.headers,
+      });
+    } else if (axiosError.request) {
+      console.error("❌ [FRONT] No response received:", axiosError.request);
+    } else {
+      console.error("❌ [FRONT] Error setting up request:", axiosError.message);
+    }
+
+    // Fallback vers mock en cas d'erreur (pour le développement)
+    console.log("🔄 [FRONT] Falling back to mock messages due to error");
     const mockMessages: Message[] = [
       {
         sender: "1",
@@ -31,93 +88,41 @@ export const getMessagesByRoom = async (roomId: string): Promise<Message[]> => {
     ];
 
     return mockMessages;
-  } catch (error) {
-    console.error("Error fetching messages:", error);
-    throw new Error("Impossible de récupérer les messages");
   }
 };
 
 export const getChatrooms = async (): Promise<Chatroom[]> => {
   try {
-    console.log("Fetching chatrooms from matches...");
+    console.log("Fetching chatrooms from /match/rooms...");
 
-    // Récupérer les matches selon le rôle de l'utilisateur
-    // Pour les candidats: GET /match/me
-    // Pour les recruteurs: utiliser les applications avec état "matched"
-    let matches: any[] = [];
+    // Utiliser la nouvelle route enrichie
+    const response = await instance.get("/match/rooms");
+    const rooms = response.data;
+    console.log(`Found ${rooms.length} rooms`);
 
-    try {
-      // Essayer d'abord l'endpoint candidat
-      const candidateResponse = await instance.get("/match/me");
-      matches = candidateResponse.data;
-      console.log(`Found ${matches.length} matches for candidate`);
-    } catch (candidateError: any) {
-      // Si échec (probablement un recruteur), essayer via les applications
-      console.log("Not a candidate, trying recruiter approach...");
-
-      try {
-        // Pour les recruteurs, on peut récupérer les applications avec état "matched"
-        // via l'endpoint /application/jobpost/{id} pour chaque offre
-        // Mais on va d'abord essayer de récupérer via les offres de l'entreprise
-        const jobPostsResponse = await instance.get("/jobpost/company");
-        const jobPosts = jobPostsResponse.data;
-
-        // Récupérer toutes les applications matchées pour chaque offre
-        const matchedApplicationsPromises = jobPosts.map(
-          async (jobPost: any) => {
-            try {
-              const applicationsResponse = await instance.get(
-                `/application/jobpost/${jobPost.id}`
-              );
-              const applications = applicationsResponse.data;
-
-              // Filtrer les applications avec état "matched"
-              return applications
-                .filter((app: any) => app.state === "matched")
-                .map((app: any) => ({
-                  id: app.id, // Utiliser l'ID de l'application comme ID du match temporaire
-                  candidate: app.candidate,
-                  job_post: jobPost,
-                  matched_at: app.updated_at || app.created_at,
-                  application: app,
-                }));
-            } catch (error) {
-              console.error(
-                `Error fetching applications for job ${jobPost.id}:`,
-                error
-              );
-              return [];
-            }
+    // Transformer les rooms en conversations enrichies
+    const chatrooms: Chatroom[] = rooms.map((room: any) => ({
+      id: room.id.toString(),
+      name: room.name || "Conversation",
+      created_at: room.created_at,
+      participants: room.participants,
+      jobPost: room.jobPost,
+      lastMessage: room.lastMessage
+        ? {
+            content: room.lastMessage.content,
+            sender: room.lastMessage.sender,
+            sent_at: room.lastMessage.sent_at,
           }
-        );
-
-        const allMatchedApplications = await Promise.all(
-          matchedApplicationsPromises
-        );
-        matches = allMatchedApplications.flat();
-        console.log(`Found ${matches.length} matches for recruiter`);
-      } catch (recruiterError) {
-        console.error("Failed to fetch matches for recruiter:", recruiterError);
-        throw new Error("Impossible de récupérer les conversations");
-      }
-    }
-
-    // Transformer les matches en conversations
-    const chatrooms: Chatroom[] = matches.map((match: any) => ({
-      id: match.id.toString(), // Room ID = Match ID (ou Application ID pour recruteurs)
-      name: match.job_post?.title || "Conversation", // Nom = Titre de l'offre
-      created_at: match.matched_at, // Date de création = Date du match
-      participants: {
-        candidate: match.candidate,
-        recruiter: match.job_post?.company,
-      },
-      jobPost: match.job_post,
+        : undefined,
     }));
 
-    console.log(`Transformed ${chatrooms.length} matches into chatrooms`);
+    console.log(
+      `Transformed ${chatrooms.length} rooms into chatrooms`,
+      chatrooms
+    );
     return chatrooms;
   } catch (error) {
-    console.error("Error fetching chatrooms from matches:", error);
+    console.error("Error fetching chatrooms from /match/rooms:", error);
     throw new Error("Impossible de récupérer les conversations");
   }
 };

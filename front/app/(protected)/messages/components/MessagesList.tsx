@@ -103,7 +103,14 @@ export default function MessagesList({ userRole }: MessagesListProps) {
 
   // Si une conversation est sélectionnée, afficher la vue de conversation
   if (selectedChatroom) {
-    return <ChatroomView onBack={onBack} chatroomId={selectedChatroom} />;
+    const chatroom = chatrooms?.find((c) => c.id === selectedChatroom);
+    return (
+      <ChatroomView
+        onBack={onBack}
+        chatroomId={selectedChatroom}
+        chatroomName={chatroom?.name || "Conversation"}
+      />
+    );
   }
 
   return (
@@ -269,9 +276,10 @@ export default function MessagesList({ userRole }: MessagesListProps) {
                 chatroom={chatroom}
                 onPress={handlePress}
                 userRole={userRole}
-                // TODO: Ajouter lastMessage et unreadCount depuis l'API
-                lastMessage="Nouveau message..."
-                unreadCount={Math.floor(Math.random() * 3)} // Mock pour demo
+                lastMessage={
+                  chatroom.lastMessage?.content ||
+                  "Commencez une conversation..."
+                }
               />
             ))}
           </ScrollView>

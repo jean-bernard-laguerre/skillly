@@ -245,6 +245,11 @@ export interface Chatroom {
     recruiter: any;
   };
   jobPost?: any;
+  lastMessage?: {
+    content: string;
+    sender: string;
+    sent_at: string;
+  };
 }
 
 export interface Message {

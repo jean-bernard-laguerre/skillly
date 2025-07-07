@@ -39,6 +39,20 @@ func GetMyMatchesHandler(c *gin.Context) {
 	matchService.GetMyMatches(c)
 }
 
+// @Summary Récupérer mes rooms enrichies
+// @Description Retourne la liste des rooms (matches) avec le dernier message pour chaque room
+// @Tags matches
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {array} map[string]interface{} "Liste des rooms enrichies"
+// @Failure 401 {object} map[string]string "Non autorisé"
+// @Router /match/rooms [get]
+func GetRoomsWithLastMessageHandler(c *gin.Context) {
+	matchService := NewMatchService()
+	matchService.GetRoomsWithLastMessage(c)
+}
+
 func AddRoutes(r *gin.Engine) {
 	matchGroup := r.Group("/match")
 
@@ -47,6 +61,9 @@ func AddRoutes(r *gin.Engine) {
 
 	// Protect the route: authenticated users (both candidates and recruiters) can view their matches
 	matchGroup.GET("/me", middleware.AuthMiddleware(), GetMyMatchesHandler)
+
+	// Nouvelle route pour rooms enrichies
+	matchGroup.GET("/rooms", middleware.AuthMiddleware(), GetRoomsWithLastMessageHandler)
 
 	// Add other match-related routes here if needed (GET, DELETE, etc.)
 }

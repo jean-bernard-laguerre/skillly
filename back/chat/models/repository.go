@@ -72,6 +72,9 @@ func (r *mongoRepository[T]) GetAll(params utils.QueryParams) ([]T, error) {
 	collectionName := r.getCollectionName()
 	collection := r.db.Collection(collectionName)
 
+	fmt.Printf("🔍 [REPO] Collection: %s\n", collectionName)
+	fmt.Printf("🔍 [REPO] Paramètres: %+v\n", params)
+
 	filter := map[string]interface{}{}
 	if params.Filters != nil {
 		for key, value := range params.Filters {
@@ -81,6 +84,8 @@ func (r *mongoRepository[T]) GetAll(params utils.QueryParams) ([]T, error) {
 		}
 	}
 
+	fmt.Printf("🔍 [REPO] Filter MongoDB: %+v\n", filter)
+
 	options := options.Find()
 	options.SetSort(params.Sort)
 	if params.Order == "asc" {
@@ -89,21 +94,33 @@ func (r *mongoRepository[T]) GetAll(params utils.QueryParams) ([]T, error) {
 		options.SetSort(map[string]int{params.Sort: -1})
 	}
 
+	fmt.Printf("🔍 [REPO] Options MongoDB: %+v\n", options)
+
 	cursor, err := collection.Find(nil, filter, options)
 	if err != nil {
+		fmt.Printf("❌ [REPO] Erreur Find MongoDB: %v\n", err)
 		log.Printf("Error finding entities: %v", err)
-		return nil, err
+		return []T{}, err
 	}
 	defer cursor.Close(nil)
 
 	var entities []T
+	count := 0
 	for cursor.Next(nil) {
 		var entity T
 		if err := cursor.Decode(&entity); err != nil {
+			fmt.Printf("❌ [REPO] Erreur décodage entité: %v\n", err)
 			log.Printf("Error decoding entity: %v", err)
-			return nil, err
+			return []T{}, err
 		}
 		entities = append(entities, entity)
+		count++
+	}
+
+	fmt.Printf("✅ [REPO] %d entités récupérées depuis MongoDB\n", count)
+
+	if entities == nil {
+		entities = []T{}
 	}
 
 	return entities, nil

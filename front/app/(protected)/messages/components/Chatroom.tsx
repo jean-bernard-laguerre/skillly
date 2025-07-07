@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -40,11 +40,16 @@ const getAdaptiveStyles = () => {
 interface ChatroomProps {
   readonly onBack: () => void;
   readonly chatroomId: string;
+  readonly chatroomName?: string;
 }
 
 const mockMessages: Message[] = [];
 
-export default function ChatroomView({ onBack, chatroomId }: ChatroomProps) {
+export default function ChatroomView({
+  onBack,
+  chatroomId,
+  chatroomName,
+}: ChatroomProps) {
   const [chatroom, setChatroom] = useState<Chatroom>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -78,25 +83,30 @@ export default function ChatroomView({ onBack, chatroomId }: ChatroomProps) {
   const { data: historicalMessages, isLoading: isLoadingMessages } =
     useMessagesByRoom(chatroomId);
 
-  const {
-    sendMessage,
-    isConnected,
-    isConnecting,
-    error: wsError,
-  } = useChatWS(
-    chatroomId,
+  // Callbacks stabilisés pour éviter les re-renders
+  const handleNewMessage = useCallback(
     (message: Message) => {
       setMessages((prevMessages) => [...prevMessages, message]);
       // Ajouter aussi au cache React Query
       addMessageToCache(chatroomId, message);
     },
-    () => {
-      console.log("WebSocket connecté");
-    },
-    () => {
-      console.log("WebSocket déconnecté");
-    }
+    [chatroomId, addMessageToCache]
   );
+
+  const handleConnect = useCallback(() => {
+    console.log("WebSocket connecté");
+  }, []);
+
+  const handleDisconnect = useCallback(() => {
+    console.log("WebSocket déconnecté");
+  }, []);
+
+  const {
+    sendMessage,
+    isConnected,
+    isConnecting,
+    error: wsError,
+  } = useChatWS(chatroomId, handleNewMessage, handleConnect, handleDisconnect);
 
   // Charger l'historique au montage du composant
   useEffect(() => {
@@ -121,6 +131,8 @@ export default function ChatroomView({ onBack, chatroomId }: ChatroomProps) {
       console.error("Erreur lors de l'envoi du message");
     }
   };
+
+  console.log("CHATROOM", chatroom);
 
   return (
     <ScreenWrapper>
@@ -148,7 +160,7 @@ export default function ChatroomView({ onBack, chatroomId }: ChatroomProps) {
                 style={[styles.headerTitle, { fontSize: adaptive.titleSize }]}
                 numberOfLines={1}
               >
-                {chatroom?.name || "Conversation"}
+                {chatroomName || "Conversation"}
               </Text>
               <View style={styles.headerSubtitle}>
                 <MessageCircle size={14} color="rgba(255, 255, 255, 0.8)" />
