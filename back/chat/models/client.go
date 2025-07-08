@@ -6,6 +6,7 @@ import (
 	"log"
 
 	/* "skillly/chat/handlers/message" */
+	"skillly/chat/broadcast"
 	messageDto "skillly/chat/handlers/message/dto"
 	"time"
 
@@ -69,17 +70,38 @@ func (c *Client) ReadPump(room string) {
 			messageDto := messageDto.CreateMessageDTO{}
 			json.Unmarshal(content, &messageDto)
 
-			_, err := c.MessageService.CreateMessage(messageDto)
+			createdMessage, err := c.MessageService.CreateMessage(messageDto)
 
 			if err != nil {
 				log.Printf("error creating message: %v", err)
 				continue
 			}
 
+			// Diffuser le message dans la room
 			room.Broadcast <- Message{
 				SenderID: c.Id,
 				Content:  string(content),
 			}
+
+			// Diffuser le message globalement à tous les autres utilisateurs
+			// (sauf l'expéditeur)
+			globalMessage := map[string]interface{}{
+				"type":      "new_message",
+				"senderId":  c.Id,
+				"roomId":    messageDto.Room,
+				"content":   messageDto.Content,
+				"timestamp": createdMessage.CreatedAt,
+			}
+
+			// Convertir en JSON
+			globalMessageJSON, err := json.Marshal(globalMessage)
+			if err != nil {
+				log.Printf("error marshaling global message: %v", err)
+				continue
+			}
+
+			// Envoyer à tous les utilisateurs connectés (sauf l'expéditeur)
+			broadcast.BroadcastToAllUsersExcept(c.Id, globalMessageJSON)
 		}
 	}
 }

@@ -420,13 +420,19 @@ export default function ApplicationsList({
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                   >
-                    <Text style={styles.candidateNameFull}>
-                      {currentApplication.candidate.user.first_name}{" "}
-                      {currentApplication.candidate.user.last_name}
-                    </Text>
-                    <View style={styles.candidateInfoFull}>
-                      <User size={14} color="rgba(255, 255, 255, 0.9)" />
-                      <Text style={styles.candidateRoleFull}>Candidat</Text>
+                    <View style={styles.headerMainRow}>
+                      <Text style={styles.candidateNameFull}>
+                        {currentApplication.candidate.user.first_name}{" "}
+                        {currentApplication.candidate.user.last_name}
+                      </Text>
+                      <View style={styles.candidateDateBadge}>
+                        <Calendar size={12} color="#4717F6" />
+                        <Text style={styles.candidateDateText}>
+                          {new Date(
+                            currentApplication.created_at
+                          ).toLocaleDateString("fr-FR")}
+                        </Text>
+                      </View>
                     </View>
                   </LinearGradient>
                 </View>
@@ -437,27 +443,19 @@ export default function ApplicationsList({
                   start={{ x: 0, y: -3 }}
                   end={{ x: 0, y: 0.9 }}
                 >
-                  {/* Informations principales - Simplifiées */}
+                  {/* Informations principales - Email seulement */}
                   <View style={styles.infoSectionCard}>
-                    <View style={styles.infoCardContainer}>
-                      <View style={styles.infoCard}>
-                        <Mail size={16} color="#4717F6" />
+                    <View style={styles.emailOnlyContainer}>
+                      <View style={styles.emailInfoCard}>
+                        <Mail
+                          size={16}
+                          color="#4717F6"
+                          style={{ marginRight: 10 }}
+                        />
                         <View style={styles.infoCardContent}>
                           <Text style={styles.infoCardLabel}>Email</Text>
                           <Text style={styles.infoCardValue} numberOfLines={2}>
                             {currentApplication.candidate.user.email}
-                          </Text>
-                        </View>
-                      </View>
-
-                      <View style={styles.infoCard}>
-                        <Calendar size={16} color="#4717F6" />
-                        <View style={styles.infoCardContent}>
-                          <Text style={styles.infoCardLabel}>Postulé le</Text>
-                          <Text style={styles.infoCardValue} numberOfLines={1}>
-                            {new Date(
-                              currentApplication.created_at
-                            ).toLocaleDateString("fr-FR")}
                           </Text>
                         </View>
                       </View>
@@ -1477,5 +1475,45 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     color: "#ffffff",
     letterSpacing: 1,
+  },
+
+  // Nouveaux styles pour le header amélioré
+  headerMainRow: {
+    width: "90%",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 2,
+  },
+  candidateDateBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    paddingHorizontal: 10,
+    paddingVertical: 2,
+    borderRadius: 12,
+    gap: 6,
+    marginLeft: 8,
+  },
+  candidateDateText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#4717F6",
+  },
+
+  // Nouveaux styles pour l'email simplifié
+  emailOnlyContainer: {
+    alignItems: "center",
+  },
+  emailInfoCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(71, 23, 246, 0.05)",
+    padding: 16,
+    borderRadius: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: "#4717F6",
+    width: "100%",
+    maxWidth: 350,
   },
 });

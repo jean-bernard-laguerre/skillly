@@ -13,7 +13,7 @@ export default function Messages() {
   }
 
   return (
-    <View className="items-center justify-center flex-1">
+    <View className="flex-1 justify-center items-center">
       <Text>Accès non autorisé</Text>
     </View>
   );

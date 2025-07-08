@@ -14,6 +14,8 @@ import Animated, {
   LinearTransition,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useNavigationVisibility } from "@/context/NavigationVisibilityContext";
+import { useUnreadMessages } from "@/context/UnreadMessagesContext";
 
 const { width } = Dimensions.get("window");
 const AnimatedTouchableOpacity =
@@ -24,6 +26,13 @@ export default function CustomTabBar({
   navigation,
 }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
+  const { isNavigationVisible } = useNavigationVisibility();
+  const { totalUnreadCount } = useUnreadMessages();
+
+  // Ne pas afficher la navigation si elle est masquée
+  if (!isNavigationVisible) {
+    return null;
+  }
 
   return (
     <LinearGradient
@@ -43,6 +52,23 @@ export default function CustomTabBar({
             : route.name;
 
         const isFocused = state.index === index;
+
+        // Déterminer si c'est l'onglet Messages et s'il y a des messages non lus
+        const isMessagesTab =
+          route.name === "Messages" || route.name === "messages";
+
+        // S'assurer que badgeCount est toujours un nombre
+        let badgeCount = 0;
+        if (isMessagesTab) {
+          badgeCount = totalUnreadCount || 0;
+        } else if (options.tabBarBadge) {
+          if (typeof options.tabBarBadge === "number") {
+            badgeCount = options.tabBarBadge;
+          } else {
+            const parsed = parseInt(String(options.tabBarBadge));
+            badgeCount = isNaN(parsed) ? 0 : parsed;
+          }
+        }
 
         const onPress = () => {
           const event = navigation.emit({
@@ -107,7 +133,7 @@ export default function CustomTabBar({
                     fontWeight: "bold",
                   }}
                 >
-                  {typeof label === "string" ? label : ""}
+                  {String(label || "")}
                 </Animated.Text>
               </LinearGradient>
             ) : (
@@ -127,7 +153,7 @@ export default function CustomTabBar({
                   })}
               </View>
             )}
-            {options.tabBarBadge && (
+            {typeof badgeCount === "number" && badgeCount > 0 && (
               <View
                 style={{
                   position: "absolute",
@@ -148,7 +174,7 @@ export default function CustomTabBar({
                     fontWeight: "bold",
                   }}
                 >
-                  {options.tabBarBadge}
+                  {badgeCount > 99 ? "99+" : String(badgeCount || 0)}
                 </Text>
               </View>
             )}

@@ -26,18 +26,31 @@ func CreateMatchHandler(c *gin.Context) {
 }
 
 // @Summary Récupérer mes matchs
-// @Description Permet à un candidat de voir tous ses matchs
+// @Description Permet à un utilisateur de voir tous ses matchs (candidats: leurs matches, recruteurs: matches de leurs offres)
 // @Tags matches
 // @Accept json
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {array} map[string]interface{} "Liste de mes matchs"
 // @Failure 401 {object} map[string]string "Non autorisé"
-// @Failure 403 {object} map[string]string "Accès refusé - candidats uniquement"
 // @Router /match/me [get]
-func GetCandidateMatchesHandler(c *gin.Context) {
+func GetMyMatchesHandler(c *gin.Context) {
 	matchService := NewMatchService()
-	matchService.GetCandidateMatches(c)
+	matchService.GetMyMatches(c)
+}
+
+// @Summary Récupérer mes rooms enrichies
+// @Description Retourne la liste des rooms (matches) avec le dernier message pour chaque room
+// @Tags matches
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {array} map[string]interface{} "Liste des rooms enrichies"
+// @Failure 401 {object} map[string]string "Non autorisé"
+// @Router /match/rooms [get]
+func GetRoomsWithLastMessageHandler(c *gin.Context) {
+	matchService := NewMatchService()
+	matchService.GetRoomsWithLastMessage(c)
 }
 
 func AddRoutes(r *gin.Engine) {
@@ -46,8 +59,11 @@ func AddRoutes(r *gin.Engine) {
 	// Protect the route: only authenticated recruiters can create matches
 	matchGroup.POST("", middleware.AuthMiddleware(), middleware.RoleMiddleware(models.RoleRecruiter), CreateMatchHandler)
 
-	// Protect the route: only authenticated candidates can view their matches
-	matchGroup.GET("/me", middleware.AuthMiddleware(), middleware.RoleMiddleware(models.RoleCandidate), GetCandidateMatchesHandler)
+	// Protect the route: authenticated users (both candidates and recruiters) can view their matches
+	matchGroup.GET("/me", middleware.AuthMiddleware(), GetMyMatchesHandler)
+
+	// Nouvelle route pour rooms enrichies
+	matchGroup.GET("/rooms", middleware.AuthMiddleware(), GetRoomsWithLastMessageHandler)
 
 	// Add other match-related routes here if needed (GET, DELETE, etc.)
 }

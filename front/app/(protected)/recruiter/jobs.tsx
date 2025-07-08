@@ -7,6 +7,7 @@ import {
   Text,
   View,
   StyleSheet,
+  RefreshControl,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import {
@@ -34,9 +35,11 @@ type JobRouteProp = RouteProp<{ Jobs: JobRouteParams }, "Jobs">;
 export default function Jobs() {
   const route = useRoute<JobRouteProp>();
 
-  const { jobPosts, isLoadingJobPosts, jobPostsError } = useJobPost();
+  const { jobPosts, isLoadingJobPosts, jobPostsError, refetchJobPosts } =
+    useJobPost();
   const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<JobFilter>("active");
+  const [refreshing, setRefreshing] = useState(false);
 
   // Statistiques des offres
   const stats = useMemo(() => {
@@ -71,6 +74,17 @@ export default function Jobs() {
         return jobPosts;
     }
   }, [jobPosts, selectedFilter]);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await refetchJobPosts();
+    } catch (error) {
+      console.error("Erreur lors du refresh:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const renderContent = () => {
     if (isLoadingJobPosts) {
@@ -237,6 +251,15 @@ export default function Jobs() {
           className="flex-1 px-4"
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 20 }}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor="#7C3AED"
+              colors={["#7C3AED"]}
+              progressBackgroundColor="#ffffff"
+            />
+          }
         >
           {/* Liste des offres */}
           {filteredJobPosts && filteredJobPosts.length === 0 ? (
