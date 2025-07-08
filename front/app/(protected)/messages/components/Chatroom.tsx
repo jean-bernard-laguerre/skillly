@@ -9,6 +9,8 @@ import {
   Platform,
   Dimensions,
   Keyboard,
+  BackHandler,
+  InteractionManager,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { ArrowLeft, MessageCircle } from "lucide-react-native";
@@ -22,6 +24,7 @@ import { useNavigationVisibility } from "@/context/NavigationVisibilityContext";
 import { useUnreadMessages } from "@/context/UnreadMessagesContext";
 import { useMessages } from "@/lib/hooks/useMessages";
 import { useChatWS } from "@/hooks/useChatWS";
+import { useNavigation } from "@react-navigation/native";
 
 const { height: screenHeight } = Dimensions.get("window");
 
@@ -62,6 +65,8 @@ export default function ChatroomView({
   const { markRoomAsRead, incrementUnreadCount } = useUnreadMessages();
   const adaptive = getAdaptiveStyles();
   const scrollViewRef = useRef<ScrollView>(null);
+  const navigation = useNavigation();
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
   // Masquer la navigation quand le composant se monte
   useEffect(() => {
@@ -72,6 +77,25 @@ export default function ChatroomView({
       showNavigation();
     };
   }, [hideNavigation, showNavigation]);
+
+  // Forcer l'affichage de la bottom nav sur blur (retour Android)
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("blur", () => {
+      showNavigation();
+    });
+    return unsubscribe;
+  }, [navigation, showNavigation]);
+
+  // Forcer l'affichage de la bottom nav sur retour Android (hardware)
+  useEffect(() => {
+    const handler = () => {
+      showNavigation();
+      onBack();
+      return true;
+    };
+    const sub = BackHandler.addEventListener("hardwareBackPress", handler);
+    return () => sub.remove();
+  }, [showNavigation, onBack]);
 
   // Marquer la conversation comme lue quand l'utilisateur entre
   useEffect(() => {
@@ -130,20 +154,26 @@ export default function ChatroomView({
     }
   }, [historicalMessages]);
 
-  // Gérer l'apparition du clavier pour faire défiler vers le bas
+  // Gérer l'apparition/disparition du clavier pour ajuster l'offset
   useEffect(() => {
-    const keyboardDidShowListener = Keyboard.addListener(
-      "keyboardDidShow",
-      () => {
-        // Délai pour laisser le temps au clavier d'apparaître
-        setTimeout(() => {
-          scrollViewRef.current?.scrollToEnd({ animated: true });
-        }, 100);
-      }
+    const showSub = Keyboard.addListener("keyboardDidShow", () => {
+      setIsKeyboardOpen(true);
+      // Scroll smooth après l'ouverture du clavier
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+        InteractionManager.runAfterInteractions(() => {
+          setTimeout(() => {
+            scrollViewRef.current?.scrollToEnd({ animated: true });
+          }, 60);
+        });
+      }, 80);
+    });
+    const hideSub = Keyboard.addListener("keyboardDidHide", () =>
+      setIsKeyboardOpen(false)
     );
-
     return () => {
-      keyboardDidShowListener?.remove();
+      showSub.remove();
+      hideSub.remove();
     };
   }, []);
 
@@ -167,8 +197,10 @@ export default function ChatroomView({
   return (
     <ScreenWrapper>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "padding"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={
+          Platform.OS === "ios" ? 90 : isKeyboardOpen ? 30 : 0
+        }
         style={{ flex: 1 }}
       >
         {/* Header moderne avec gradient */}
