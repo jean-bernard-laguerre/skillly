@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Platform,
   Dimensions,
+  Keyboard,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { ArrowLeft, MessageCircle } from "lucide-react-native";
@@ -18,6 +19,7 @@ import MessageBox from "./MessageBox";
 import { Message } from "@/types/interfaces";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigationVisibility } from "@/context/NavigationVisibilityContext";
+import { useUnreadMessages } from "@/context/UnreadMessagesContext";
 import { useMessages } from "@/lib/hooks/useMessages";
 import { useChatWS } from "@/hooks/useChatWS";
 
@@ -57,7 +59,9 @@ export default function ChatroomView({
   const [newMessage, setNewMessage] = useState("");
   const { user, role } = useAuth();
   const { hideNavigation, showNavigation } = useNavigationVisibility();
+  const { markRoomAsRead, incrementUnreadCount } = useUnreadMessages();
   const adaptive = getAdaptiveStyles();
+  const scrollViewRef = useRef<ScrollView>(null);
 
   // Masquer la navigation quand le composant se monte
   useEffect(() => {
@@ -68,6 +72,11 @@ export default function ChatroomView({
       showNavigation();
     };
   }, [hideNavigation, showNavigation]);
+
+  // Marquer la conversation comme lue quand l'utilisateur entre
+  useEffect(() => {
+    markRoomAsRead(chatroomId);
+  }, [chatroomId, markRoomAsRead]);
 
   // Couleurs selon le rôle
   const roleColors = {
@@ -89,6 +98,12 @@ export default function ChatroomView({
       setMessages((prevMessages) => [...prevMessages, message]);
       // Ajouter aussi au cache React Query
       addMessageToCache(chatroomId, message);
+
+      // Si le message ne vient pas de l'utilisateur actuel, incrémenter le compteur
+      // NOTE: Ceci ne s'applique que si l'utilisateur n'est PAS dans cette conversation
+      // Comme nous sommes dans la conversation, on marque directement comme lu
+      // L'incrémentation se fera via les autres composants/contextes quand l'utilisateur
+      // n'est pas dans cette conversation spécifique
     },
     [chatroomId, addMessageToCache]
   );
@@ -115,6 +130,23 @@ export default function ChatroomView({
     }
   }, [historicalMessages]);
 
+  // Gérer l'apparition du clavier pour faire défiler vers le bas
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      "keyboardDidShow",
+      () => {
+        // Délai pour laisser le temps au clavier d'apparaître
+        setTimeout(() => {
+          scrollViewRef.current?.scrollToEnd({ animated: true });
+        }, 100);
+      }
+    );
+
+    return () => {
+      keyboardDidShowListener?.remove();
+    };
+  }, []);
+
   const handleSendMessage = () => {
     if (!newMessage.trim() || !user?.id) return;
 
@@ -132,100 +164,107 @@ export default function ChatroomView({
     }
   };
 
-  console.log("CHATROOM", chatroom);
-
   return (
     <ScreenWrapper>
-      {/* Header moderne avec gradient */}
-      <View style={styles.headerContainer}>
-        <LinearGradient
-          colors={colors}
-          style={styles.headerGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-        >
-          <View
-            style={[styles.headerContent, { padding: adaptive.headerPadding }]}
-          >
-            <TouchableOpacity
-              onPress={onBack}
-              style={styles.backButton}
-              activeOpacity={0.8}
-            >
-              <ArrowLeft size={adaptive.iconSize} color="white" />
-            </TouchableOpacity>
-
-            <View style={styles.titleContainer}>
-              <Text
-                style={[styles.headerTitle, { fontSize: adaptive.titleSize }]}
-                numberOfLines={1}
-              >
-                {chatroomName || "Conversation"}
-              </Text>
-              <View style={styles.headerSubtitle}>
-                <MessageCircle size={14} color="rgba(255, 255, 255, 0.8)" />
-                <Text
-                  style={[
-                    styles.headerSubtitleText,
-                    { fontSize: adaptive.subtitleSize },
-                  ]}
-                >
-                  Discussion en cours
-                </Text>
-              </View>
-            </View>
-
-            <View style={styles.spacer} />
-          </View>
-        </LinearGradient>
-      </View>
-
-      {/* Zone des messages */}
-      <View style={styles.messagesContainer}>
-        {messages.length > 0 ? (
-          <ScrollView
-            style={styles.messagesScrollView}
-            contentContainerStyle={[
-              styles.messagesContent,
-              { padding: adaptive.messagePadding },
-            ]}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
-            {messages.map((message, index) => (
-              <MessageBox
-                key={`message-${message.sender}-${message.sent_at}-${index}`}
-                message={message}
-                isSender={message.sender === user?.id.toString()}
-                userRole={role || "candidate"}
-              />
-            ))}
-          </ScrollView>
-        ) : (
-          <View style={styles.emptyMessagesContainer}>
-            <View style={styles.emptyIconContainer}>
-              <LinearGradient
-                colors={colors}
-                style={styles.emptyIconGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
-                <MessageCircle size={32} color="white" />
-              </LinearGradient>
-            </View>
-            <Text style={styles.emptyTitle}>Commencez la conversation</Text>
-            <Text style={styles.emptySubtitle}>
-              Écrivez votre premier message pour démarrer la discussion
-            </Text>
-          </View>
-        )}
-      </View>
-
-      {/* Zone de saisie */}
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : "padding"}
         keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+        style={{ flex: 1 }}
       >
+        {/* Header moderne avec gradient */}
+        <View style={styles.headerContainer}>
+          <LinearGradient
+            colors={colors}
+            style={styles.headerGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            <View
+              style={[
+                styles.headerContent,
+                { padding: adaptive.headerPadding },
+              ]}
+            >
+              <TouchableOpacity
+                onPress={onBack}
+                style={styles.backButton}
+                activeOpacity={0.8}
+              >
+                <ArrowLeft size={adaptive.iconSize} color="white" />
+              </TouchableOpacity>
+
+              <View style={styles.titleContainer}>
+                <Text
+                  style={[styles.headerTitle, { fontSize: adaptive.titleSize }]}
+                  numberOfLines={1}
+                >
+                  {chatroomName || "Conversation"}
+                </Text>
+                <View style={styles.headerSubtitle}>
+                  <MessageCircle size={14} color="rgba(255, 255, 255, 0.8)" />
+                  <Text
+                    style={[
+                      styles.headerSubtitleText,
+                      { fontSize: adaptive.subtitleSize },
+                    ]}
+                  >
+                    Discussion en cours
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.spacer} />
+            </View>
+          </LinearGradient>
+        </View>
+
+        {/* Zone des messages */}
+        <View style={styles.messagesContainer}>
+          {messages.length > 0 ? (
+            <ScrollView
+              ref={scrollViewRef}
+              style={styles.messagesScrollView}
+              contentContainerStyle={[
+                styles.messagesContent,
+                { padding: adaptive.messagePadding },
+              ]}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              onContentSizeChange={() => {
+                // Faire défiler vers le bas quand de nouveaux messages arrivent
+                scrollViewRef.current?.scrollToEnd({ animated: true });
+              }}
+            >
+              {messages.map((message, index) => (
+                <MessageBox
+                  key={`message-${message.sender}-${message.sent_at}-${index}`}
+                  message={message}
+                  isSender={message.sender === user?.id.toString()}
+                  userRole={role || "candidate"}
+                />
+              ))}
+            </ScrollView>
+          ) : (
+            <View style={styles.emptyMessagesContainer}>
+              <View style={styles.emptyIconContainer}>
+                <LinearGradient
+                  colors={colors}
+                  style={styles.emptyIconGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  <MessageCircle size={32} color="white" />
+                </LinearGradient>
+              </View>
+              <Text style={styles.emptyTitle}>Commencez la conversation</Text>
+              <Text style={styles.emptySubtitle}>
+                Écrivez votre premier message pour démarrer la discussion
+              </Text>
+            </View>
+          )}
+        </View>
+
+        {/* Zone de saisie */}
         {role === "candidate" && messages.length === 0 ? (
           <View
             style={{

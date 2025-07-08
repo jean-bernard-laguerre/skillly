@@ -10,21 +10,8 @@ interface CreateMessagePayload {
 
 export const getMessagesByRoom = async (roomId: string): Promise<Message[]> => {
   try {
-    console.log(`🔍 [FRONT] Fetching messages for room: ${roomId}`);
-
     const url = `/messages/room/${roomId}`;
-    console.log(`🔍 [FRONT] Calling URL: ${url}`);
-
-    // Appel à l'API REST pour récupérer les vrais messages
     const response = await instance.get<Message[]>(url);
-
-    console.log(`📡 [FRONT] Response status: ${response.status}`);
-    console.log(`📡 [FRONT] Response data:`, response.data);
-    console.log(`📡 [FRONT] Response data type:`, typeof response.data);
-    console.log(
-      `📡 [FRONT] Response data is array:`,
-      Array.isArray(response.data)
-    );
 
     // Vérification de la réponse avant d'accéder aux propriétés
     if (!response || response.data === null || response.data === undefined) {
@@ -48,10 +35,6 @@ export const getMessagesByRoom = async (roomId: string): Promise<Message[]> => {
       sent_at: msg.CreatedAt || msg.created_at || msg.sent_at,
     }));
 
-    console.log(
-      `✅ [FRONT] Retrieved ${mappedMessages.length} messages for room ${roomId}`,
-      mappedMessages
-    );
     return mappedMessages;
   } catch (error) {
     console.error("❌ [FRONT] Error fetching messages:", error);
@@ -93,12 +76,8 @@ export const getMessagesByRoom = async (roomId: string): Promise<Message[]> => {
 
 export const getChatrooms = async (): Promise<Chatroom[]> => {
   try {
-    console.log("Fetching chatrooms from /match/rooms...");
-
-    // Utiliser la nouvelle route enrichie
     const response = await instance.get("/match/rooms");
     const rooms = response.data;
-    console.log(`Found ${rooms.length} rooms`);
 
     // Transformer les rooms en conversations enrichies
     const chatrooms: Chatroom[] = rooms.map((room: any) => ({
@@ -116,10 +95,6 @@ export const getChatrooms = async (): Promise<Chatroom[]> => {
         : undefined,
     }));
 
-    console.log(
-      `Transformed ${chatrooms.length} rooms into chatrooms`,
-      chatrooms
-    );
     return chatrooms;
   } catch (error) {
     console.error("Error fetching chatrooms from /match/rooms:", error);

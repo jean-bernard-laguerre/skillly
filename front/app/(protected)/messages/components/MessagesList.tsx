@@ -77,7 +77,7 @@ export default function MessagesList({ userRole }: MessagesListProps) {
     try {
       await refetchChatrooms();
     } catch (error) {
-      console.error("Erreur lors du refresh:", error);
+      // console.error("Erreur lors du refresh:", error); // SUPPRIMÉ
     } finally {
       setRefreshing(false);
     }
@@ -293,6 +293,30 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F7F7F7",
+  },
+  devToolsContainer: {
+    backgroundColor: "#FFF7ED",
+    borderBottomWidth: 1,
+    borderBottomColor: "#FED7AA",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  devButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFFBEB",
+    borderWidth: 1,
+    borderColor: "#FED7AA",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    gap: 6,
+  },
+  devButtonText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#D97706",
   },
   emptyContainer: {
     flex: 1,

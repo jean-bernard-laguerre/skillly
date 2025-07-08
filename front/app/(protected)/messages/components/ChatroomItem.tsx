@@ -9,6 +9,7 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { MessageCircle, Clock, User } from "lucide-react-native";
 import { Chatroom } from "@/types/interfaces";
+import { useUnreadMessages } from "@/context/UnreadMessagesContext";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -30,7 +31,6 @@ const getAdaptiveStyles = () => {
 interface ChatroomItemProps {
   chatroom: Chatroom;
   lastMessage?: string;
-  unreadCount?: number;
   onPress: (chatroom: Chatroom) => void;
   userRole?: "candidate" | "recruiter";
 }
@@ -38,10 +38,11 @@ interface ChatroomItemProps {
 export default function ChatroomItem({
   chatroom,
   lastMessage = "Commencez une conversation...",
-  unreadCount = 0,
   onPress,
   userRole = "candidate",
 }: ChatroomItemProps) {
+  const { unreadCountByRoom } = useUnreadMessages();
+  const unreadCount = unreadCountByRoom[chatroom.id] || 0;
   const adaptive = getAdaptiveStyles();
 
   // Couleurs selon le rôle
@@ -77,13 +78,27 @@ export default function ChatroomItem({
 
   return (
     <TouchableOpacity
-      style={styles.container}
+      style={[
+        styles.container,
+        unreadCount > 0 && {
+          backgroundColor: "#F3F0FF",
+          shadowColor: "#7C3AED",
+          shadowOpacity: 0.18,
+          shadowRadius: 12,
+          elevation: 5,
+          borderColor: "#B794F4",
+        },
+      ]}
       onPress={() => onPress(chatroom)}
       activeOpacity={0.7}
     >
       <LinearGradient
         colors={["#FFFFFF", "#F8FAFC"]}
-        style={[styles.cardGradient, { padding: adaptive.cardPadding }]}
+        style={[
+          styles.cardGradient,
+          { padding: adaptive.cardPadding },
+          unreadCount > 0 && { backgroundColor: "#F3F0FF" },
+        ]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       >
@@ -98,6 +113,14 @@ export default function ChatroomItem({
                   width: adaptive.avatarSize,
                   height: adaptive.avatarSize,
                   borderRadius: adaptive.avatarSize / 2,
+                  shadowColor: unreadCount > 0 ? "#7C3AED" : "#000000",
+                  shadowOpacity: unreadCount > 0 ? 0.35 : 0.15,
+                  shadowRadius: unreadCount > 0 ? 10 : 4,
+                  elevation: unreadCount > 0 ? 7 : 3,
+                },
+                unreadCount > 0 && {
+                  borderWidth: 2,
+                  borderColor: "#B794F4",
                 },
               ]}
               start={{ x: 0, y: 0 }}
@@ -108,7 +131,7 @@ export default function ChatroomItem({
             {unreadCount > 0 && (
               <View style={styles.unreadBadge}>
                 <Text style={styles.unreadText}>
-                  {unreadCount > 99 ? "99+" : unreadCount}
+                  {unreadCount > 99 ? "99+" : String(unreadCount)}
                 </Text>
               </View>
             )}
@@ -118,7 +141,11 @@ export default function ChatroomItem({
           <View style={styles.contentSection}>
             <View style={styles.headerRow}>
               <Text
-                style={[styles.name, { fontSize: adaptive.titleSize }]}
+                style={[
+                  styles.name,
+                  { fontSize: adaptive.titleSize },
+                  unreadCount > 0 && { color: "#2D1A6C", fontWeight: "800" },
+                ]}
                 numberOfLines={1}
               >
                 {chatroom.name}
@@ -150,7 +177,15 @@ export default function ChatroomItem({
           <View style={styles.activeIndicator}>
             <LinearGradient
               colors={roleColors[userRole]}
-              style={styles.activeIndicatorGradient}
+              style={[
+                styles.activeIndicatorGradient,
+                unreadCount > 0 && {
+                  width: 8,
+                  borderTopRightRadius: 16,
+                  borderBottomRightRadius: 16,
+                  backgroundColor: roleColors[userRole][1],
+                },
+              ]}
               start={{ x: 0, y: 0 }}
               end={{ x: 0, y: 1 }}
             />

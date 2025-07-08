@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { Message } from "@/types/interfaces";
 import { useAuth } from "@/context/AuthContext";
 import { getWebSocketUrl } from "@/services/message.service";
+import GlobalNotificationsService from "@/services/globalNotifications.service";
 
 interface WebSocketState {
   isConnected: boolean;
@@ -135,6 +136,20 @@ export function useChatWS(
 
         try {
           ws.send(JSON.stringify(messageWithTimestamp));
+
+          // SIMULATION: Émettre un événement global pour notifier les autres utilisateurs
+          GlobalNotificationsService.emitGlobalMessage({
+            senderId: message.sender,
+            roomId: message.room,
+            content: message.content,
+            timestamp: Date.now(),
+          }).catch((globalError) => {
+            console.error(
+              "Erreur lors de l'émission de l'événement global:",
+              globalError
+            );
+          });
+
           return true;
         } catch (error) {
           console.error("Error sending message:", error);

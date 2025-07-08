@@ -91,6 +91,16 @@ func main() {
 		chat.ServeWs(hub, roomId, c.Writer, c.Request)
 	})
 
+	// @Summary Global WebSocket Connection
+	// @Description Établit une connexion WebSocket globale pour recevoir tous les messages de l'utilisateur
+	// @Tags websocket
+	// @Param userId path string true "ID de l'utilisateur"
+	// @Router /ws/user/{userId} [get]
+	r.GET("/ws/user/:userId", func(c *gin.Context) {
+		userID := c.Param("userId")
+		chat.ServeGlobalWs(userID, c.Writer, c.Request)
+	})
+
 	r.Run(":8080")
 
 	// Create a new websocket connection
