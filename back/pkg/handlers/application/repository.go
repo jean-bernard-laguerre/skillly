@@ -27,7 +27,7 @@ func NewApplicationRepository(db *gorm.DB) ApplicationRepository {
 
 func (r *applicationRepository) CreateApplication(dto applicationDto.CreateApplicationDTO, tx *gorm.DB) (models.Application, error) {
 	application := models.Application{
-		CoverLetterID: dto.CoverLetterID,
+		CoverLetterID: &dto.CoverLetterID,
 		CandidateID:   dto.CandidateID,
 		JobPostID:     dto.JobPostID,
 		Score:         dto.Score,

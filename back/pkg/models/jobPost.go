@@ -21,7 +21,7 @@ type JobPost struct {
 	Salary_range    string             `json:"salary_range"`
 	Expiration_Date time.Time          `json:"expiration_date"`
 	CreatedAt       time.Time          `json:"created_at"`
-	FileID          uint               `json:"file_id" gorm:"default:null"`
+	FileID          *uint              `json:"file_id" gorm:"default:null"`
 	File            File               `json:"file" gorm:"foreignKey:FileID;references:ID"`
 	CompanyID       uint               `json:"company_id"`
 	Company         Company            `json:"company" gorm:"foreignKey:CompanyID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`

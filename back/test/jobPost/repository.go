@@ -2,7 +2,9 @@ package jobPost_test
 
 import (
 	"skillly/pkg/config"
+	"skillly/pkg/models"
 	"testing"
+	"time"
 
 	jobPostDto "skillly/pkg/handlers/jobPost/dto"
 	"skillly/pkg/utils"
@@ -15,9 +17,13 @@ import (
 func CreateJobPost(t *testing.T) {
 	// Create a new job post
 	newJobPost := jobPostDto.CreateJobPostDTO{
-		Title:       "Software Engineer",
-		Description: "Develop and maintain software applications.",
-		CompanyID:   1, // Assuming company with ID 1 exists
+		Title:           "Software Engineer",
+		Description:     "Develop and maintain software applications.",
+		Location:        "Paris, France",
+		Contract_type:   models.CDIContract,
+		Salary_range:    "50,000 - 70,000 EUR",
+		Expiration_Date: time.Date(2024, 12, 31, 0, 0, 0, 0, time.UTC),
+		CompanyID:       1, // Assuming company with ID 1 exists
 	}
 
 	jobPost, err := testUtils.JobPostRepo.CreateJobPost(newJobPost, config.DB)

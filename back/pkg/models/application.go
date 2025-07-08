@@ -25,6 +25,6 @@ type Application struct {
 	CandidateID uint             `json:"candidate_id"`
 	Candidate   ProfileCandidate `json:"candidate" gorm:"foreignKey:CandidateID;references:ID"`
 
-	CoverLetterID uint `json:"cover_id"  gorm:"default:null"`
-	CoverLetter   File `json:"cover" gorm:"foreignKey:CoverLetterID;references:ID"`
+	CoverLetterID *uint `json:"cover_id"  gorm:"default:null"`
+	CoverLetter   File  `json:"cover" gorm:"foreignKey:CoverLetterID;references:ID"`
 }
