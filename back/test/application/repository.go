@@ -62,6 +62,7 @@ func DeleteApplication(t *testing.T) {
 	context := testUtils.CreateTestContext()
 	params := utils.GetUrlParams(context)
 
+	// Get applications for deletion
 	applications, err := testUtils.ApplicationRepo.GetAll(params)
 	require.NoError(t, err, "Failed to get applications for deletion")
 	assert.NotEmpty(t, applications, "Expected applications to exist for deletion")

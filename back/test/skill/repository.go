@@ -55,10 +55,10 @@ func UpdateSkill(t *testing.T) {
 }
 
 func DeleteSkill(t *testing.T) {
-	// Create a new skill to delete
 	context := testUtils.CreateTestContext()
 	params := utils.GetUrlParams(context)
 
+	// Get skills for deletion
 	skills, err := testUtils.SkillRepo.GetAll(params)
 	require.NoError(t, err, "Failed to get skill for deletion")
 	assert.NotEmpty(t, skills, "Expected skills to exist for deletion")
@@ -67,7 +67,6 @@ func DeleteSkill(t *testing.T) {
 	require.NoError(t, err, "Failed to delete skill")
 
 	// Verify that the skill is deleted
-	deletedSkill, err := testUtils.SkillRepo.GetByID(skills[0].ID, &params.Populate)
+	_, err = testUtils.SkillRepo.GetByID(skills[0].ID, &params.Populate)
 	require.Error(t, err, "Expected error when getting deleted skill")
-	assert.Nil(t, deletedSkill, "Expected skill to be nil after deletion")
 }

@@ -64,10 +64,10 @@ func UpdateJobPost(t *testing.T) {
 }
 
 func DeleteJobPost(t *testing.T) {
-	// Create a new job post to delete
 	context := testUtils.CreateTestContext()
 	params := utils.GetUrlParams(context)
 
+	// Get job posts for deletion
 	jobPosts, err := testUtils.JobPostRepo.GetAll(params)
 	require.NoError(t, err, "Failed to get job post for deletion")
 	assert.NotEmpty(t, jobPosts, "Expected job post to exist for deletion")

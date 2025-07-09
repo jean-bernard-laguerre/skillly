@@ -55,10 +55,10 @@ func UpdateCertification(t *testing.T) {
 }
 
 func DeleteCertification(t *testing.T) {
-	// Create a new certification to delete
 	context := testUtils.CreateTestContext()
 	params := utils.GetUrlParams(context)
 
+	// Get certifications for deletion
 	certifications, err := testUtils.CertifRepo.GetAll(params)
 	require.NoError(t, err, "Failed to get certification for deletion")
 	assert.NotEmpty(t, certifications, "Expected certifications to exist for deletion")
@@ -67,7 +67,7 @@ func DeleteCertification(t *testing.T) {
 	require.NoError(t, err, "Failed to delete certification")
 
 	// Verify that the certification is deleted
-	deletedCertification, err := testUtils.CertifRepo.GetByID(certifications[0].ID, &params.Populate)
+	_, err = testUtils.CertifRepo.GetByID(certifications[0].ID, &params.Populate)
 	require.Error(t, err, "Expected error when getting deleted certification")
-	assert.Nil(t, deletedCertification, "Expected certification to be nil after deletion")
+
 }

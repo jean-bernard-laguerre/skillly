@@ -67,7 +67,7 @@ func TestDelete(t *testing.T) {
 	t.Run("DeleteMatch", match_test.DeleteMatch)
 	t.Run("DeleteApplication", application_test.DeleteApplication)
 	t.Run("DeleteJobPost", jobpost_test.DeleteJobPost)
+	t.Run("DeleteUser", user_test.DeleteUser)
 	t.Run("DeleteSkill", skill_test.DeleteSkill)
 	t.Run("DeleteCertification", certification_test.DeleteCertification)
-	t.Run("DeleteUser", user_test.DeleteUser)
 }
