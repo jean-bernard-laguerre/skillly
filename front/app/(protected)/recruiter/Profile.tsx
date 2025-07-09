@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  RefreshControl,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useAuth } from "@/context/AuthContext";
@@ -34,7 +35,11 @@ export default function Profile() {
     isLoadingApplications,
     matches,
     isLoadingMatches,
+    refetchJobPosts,
+    refetchApplications,
+    refetchMatches,
   } = useJobPost();
+  const [refreshing, setRefreshing] = useState(false);
 
   // Calcul des statistiques
   const stats = useMemo(() => {
@@ -84,6 +89,21 @@ export default function Profile() {
     };
   }, [jobPosts, applications, matches]);
 
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        refetchJobPosts(),
+        refetchApplications(),
+        refetchMatches(),
+      ]);
+    } catch (error) {
+      console.error("Erreur lors du refresh:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   const recruiterProfile = user?.profile_recruiter;
   const company = recruiterProfile?.company;
 
@@ -107,6 +127,15 @@ export default function Profile() {
       <ScrollView
         className="flex-1 px-4"
         style={{ backgroundColor: "#F7F7F7" }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor="#7C3AED"
+            colors={["#7C3AED"]}
+            progressBackgroundColor="#ffffff"
+          />
+        }
       >
         {/* Section Profil Principal */}
         <View style={styles.profileSection}>

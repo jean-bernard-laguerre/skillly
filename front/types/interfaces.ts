@@ -46,6 +46,8 @@ export interface JobSelectorProps {
   selectedJobId: string | null;
   onSelectJob: (jobId: string) => void;
   type: "applications" | "matches";
+  refreshing?: boolean;
+  onRefresh?: () => Promise<void>;
 }
 
 export interface ApplicationsListProps {
@@ -238,6 +240,16 @@ export interface Chatroom {
   id: string;
   name: string;
   created_at: string;
+  participants?: {
+    candidate: any;
+    recruiter: any;
+  };
+  jobPost?: any;
+  lastMessage?: {
+    content: string;
+    sender: string;
+    sent_at: string;
+  };
 }
 
 export interface Message {

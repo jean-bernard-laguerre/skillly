@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from "react";
 import ScreenWrapper from "@/navigation/ScreenWrapper";
 import Header from "@/components/Header";
-import { View, Text, Pressable, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  Pressable,
+  StyleSheet,
+  RefreshControl,
+} from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useJobPost } from "@/lib/hooks/useJobPost";
 import { useRoute, RouteProp } from "@react-navigation/native";
@@ -27,8 +33,15 @@ export default function Applications() {
   const route = useRoute<ApplicationsRouteProp>();
   const [selectedTab, setSelectedTab] = useState<Tab>("applications");
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
-  const { applications, matches, isLoadingApplications, isLoadingMatches } =
-    useJobPost();
+  const [refreshing, setRefreshing] = useState(false);
+  const {
+    applications,
+    matches,
+    isLoadingApplications,
+    isLoadingMatches,
+    refetchApplications,
+    refetchMatches,
+  } = useJobPost();
 
   // Initialiser l'onglet selon le paramètre de route
   useEffect(() => {
@@ -36,6 +49,21 @@ export default function Applications() {
       setSelectedTab(route.params.tab);
     }
   }, [route.params?.tab]);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      if (selectedTab === "applications") {
+        await refetchApplications();
+      } else {
+        await refetchMatches();
+      }
+    } catch (error) {
+      console.error("Erreur lors du refresh:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const renderTabContent = () => {
     if (selectedJobId) {
@@ -68,6 +96,8 @@ export default function Applications() {
         selectedJobId={selectedJobId}
         onSelectJob={setSelectedJobId}
         type={selectedTab}
+        refreshing={refreshing}
+        onRefresh={handleRefresh}
       />
     );
   };

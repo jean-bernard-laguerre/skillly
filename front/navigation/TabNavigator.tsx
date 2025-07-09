@@ -1,4 +1,5 @@
 import { useAuth } from "@/context/AuthContext";
+import { NavigationVisibilityProvider } from "@/context/NavigationVisibilityContext";
 import CustomTabBar from "@/navigation/CustomTabBar";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import {
@@ -36,68 +37,142 @@ export default function TabNavigator() {
 
   if (role === "candidate") {
     return (
-      <Tab.Navigator
-        screenOptions={{
-          headerShown: false,
-          tabBarActiveTintColor: "#6366f1",
-          tabBarInactiveTintColor: "#94a3b8",
-        }}
-        tabBar={(props) => <CustomTabBar {...props} />}
-        initialRouteName="CandidateHome"
-      >
-        <Tab.Screen
-          name="CandidateHome"
-          component={CandidateHome}
-          options={{
-            tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
-            title: "Accueil",
+      <NavigationVisibilityProvider>
+        <Tab.Navigator
+          screenOptions={{
+            headerShown: false,
+            tabBarActiveTintColor: "#6366f1",
+            tabBarInactiveTintColor: "#94a3b8",
           }}
-        />
-        <Tab.Screen
-          name="MyApplications"
-          component={MyApplications}
-          options={{
-            tabBarIcon: ({ color, size }) => (
-              <Users size={size} color={color} />
-            ),
-            title: "Candidatures",
-          }}
-        />
-        <Tab.Screen
-          name="JobOffers"
-          component={JobOffers}
-          options={{
-            tabBarIcon: ({ color, size }) => (
-              <Briefcase size={size} color={color} />
-            ),
-            title: "Offres",
-          }}
-        />
-        <Tab.Screen
-          name="Messages"
-          component={Messages}
-          options={{
-            tabBarIcon: ({ color, size }) => (
-              <MessageSquare size={size} color={color} />
-            ),
-            tabBarBadge: 1,
-            title: "Messages",
-          }}
-        />
-        <Tab.Screen
-          name="Profile"
-          component={Profile}
-          options={{
-            tabBarIcon: ({ color, size }) => <User size={size} color={color} />,
-            title: "Profil",
-          }}
-        />
-      </Tab.Navigator>
+          tabBar={(props) => <CustomTabBar {...props} />}
+          initialRouteName="CandidateHome"
+        >
+          <Tab.Screen
+            name="CandidateHome"
+            component={CandidateHome}
+            options={{
+              tabBarIcon: ({ color, size }) => (
+                <Home size={size} color={color} />
+              ),
+              title: "Accueil",
+            }}
+          />
+          <Tab.Screen
+            name="MyApplications"
+            component={MyApplications}
+            options={{
+              tabBarIcon: ({ color, size }) => (
+                <Users size={size} color={color} />
+              ),
+              title: "Candidatures",
+            }}
+          />
+          <Tab.Screen
+            name="JobOffers"
+            component={JobOffers}
+            options={{
+              tabBarIcon: ({ color, size }) => (
+                <Briefcase size={size} color={color} />
+              ),
+              title: "Offres",
+            }}
+          />
+          <Tab.Screen
+            name="Messages"
+            component={Messages}
+            options={{
+              tabBarIcon: ({ color, size }) => (
+                <MessageSquare size={size} color={color} />
+              ),
+              tabBarBadge: 1,
+              title: "Messages",
+            }}
+          />
+          <Tab.Screen
+            name="Profile"
+            component={Profile}
+            options={{
+              tabBarIcon: ({ color, size }) => (
+                <User size={size} color={color} />
+              ),
+              title: "Profil",
+            }}
+          />
+        </Tab.Navigator>
+      </NavigationVisibilityProvider>
     );
   }
 
   if (role === "recruiter") {
     return (
+      <NavigationVisibilityProvider>
+        <Tab.Navigator
+          screenOptions={{
+            headerShown: false,
+            tabBarActiveTintColor: "#6366f1",
+            tabBarInactiveTintColor: "#94a3b8",
+          }}
+          tabBar={(props) => <CustomTabBar {...props} />}
+          initialRouteName="RecruiterHome"
+        >
+          <Tab.Screen
+            name="RecruiterHome"
+            component={RecruiterHome}
+            options={{
+              tabBarIcon: ({ color, size }) => (
+                <Home size={size} color={color} />
+              ),
+              title: "Accueil",
+            }}
+          />
+          <Tab.Screen
+            name="Jobs"
+            component={Jobs}
+            options={{
+              tabBarIcon: ({ color, size }) => (
+                <Briefcase size={size} color={color} />
+              ),
+              title: "Offres",
+            }}
+          />
+          <Tab.Screen
+            name="Applications"
+            component={Applications}
+            options={{
+              tabBarIcon: ({ color, size }) => (
+                <Users size={size} color={color} />
+              ),
+              title: "Candidatures",
+            }}
+          />
+          <Tab.Screen
+            name="Messages"
+            component={Messages}
+            options={{
+              tabBarIcon: ({ color, size }) => (
+                <MessageSquare size={size} color={color} />
+              ),
+              tabBarBadge: 1,
+              title: "Messages",
+            }}
+          />
+          <Tab.Screen
+            name="Profile"
+            component={Profile}
+            options={{
+              tabBarIcon: ({ color, size }) => (
+                <User size={size} color={color} />
+              ),
+              title: "Profil",
+            }}
+          />
+        </Tab.Navigator>
+      </NavigationVisibilityProvider>
+    );
+  }
+
+  return (
+    <NavigationVisibilityProvider>
       <Tab.Navigator
         screenOptions={{
           headerShown: false,
@@ -105,95 +180,37 @@ export default function TabNavigator() {
           tabBarInactiveTintColor: "#94a3b8",
         }}
         tabBar={(props) => <CustomTabBar {...props} />}
-        initialRouteName="RecruiterHome"
+        initialRouteName="HomePage"
       >
         <Tab.Screen
-          name="RecruiterHome"
-          component={RecruiterHome}
+          name="HomePage"
+          component={HomePage}
           options={{
             tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
             title: "Accueil",
           }}
         />
         <Tab.Screen
-          name="Jobs"
-          component={Jobs}
+          name="Login"
+          component={Login}
           options={{
             tabBarIcon: ({ color, size }) => (
-              <Briefcase size={size} color={color} />
+              <LogIn size={size} color={color} />
             ),
-            title: "Offres",
+            title: "Connexion",
           }}
         />
         <Tab.Screen
-          name="Applications"
-          component={Applications}
+          name="Register"
+          component={Register}
           options={{
             tabBarIcon: ({ color, size }) => (
-              <Users size={size} color={color} />
+              <UserPlus size={size} color={color} />
             ),
-            title: "Candidatures",
-          }}
-        />
-        <Tab.Screen
-          name="Messages"
-          component={Messages}
-          options={{
-            tabBarIcon: ({ color, size }) => (
-              <MessageSquare size={size} color={color} />
-            ),
-            tabBarBadge: 1,
-            title: "Messages",
-          }}
-        />
-        <Tab.Screen
-          name="Profile"
-          component={Profile}
-          options={{
-            tabBarIcon: ({ color, size }) => <User size={size} color={color} />,
-            title: "Profil",
+            title: "Inscription",
           }}
         />
       </Tab.Navigator>
-    );
-  }
-
-  return (
-    <Tab.Navigator
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: "#6366f1",
-        tabBarInactiveTintColor: "#94a3b8",
-      }}
-      tabBar={(props) => <CustomTabBar {...props} />}
-      initialRouteName="HomePage"
-    >
-      <Tab.Screen
-        name="HomePage"
-        component={HomePage}
-        options={{
-          tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
-          title: "Accueil",
-        }}
-      />
-      <Tab.Screen
-        name="Login"
-        component={Login}
-        options={{
-          tabBarIcon: ({ color, size }) => <LogIn size={size} color={color} />,
-          title: "Connexion",
-        }}
-      />
-      <Tab.Screen
-        name="Register"
-        component={Register}
-        options={{
-          tabBarIcon: ({ color, size }) => (
-            <UserPlus size={size} color={color} />
-          ),
-          title: "Inscription",
-        }}
-      />
-    </Tab.Navigator>
+    </NavigationVisibilityProvider>
   );
 }
