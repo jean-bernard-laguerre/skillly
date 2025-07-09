@@ -20,7 +20,7 @@ func TestRoleMiddleware(t *testing.T) {
 	r := gin.Default()
 
 	// Apply the RoleMiddleware to a test route
-	r.GET("/test", middleware.RoleMiddleware(models.RoleRecruiter), func(c *gin.Context) {
+	r.GET("/test", middleware.AuthMiddleware(), middleware.RoleMiddleware(models.RoleRecruiter), func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "success"})
 	})
 
