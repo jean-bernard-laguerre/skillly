@@ -64,10 +64,10 @@ func TestCertification(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	t.Run("DeleteUser", user_test.DeleteUser)
-	t.Run("DeleteJobPost", jobpost_test.DeleteJobPost)
-	t.Run("DeleteApplication", application_test.DeleteApplication)
 	t.Run("DeleteMatch", match_test.DeleteMatch)
+	t.Run("DeleteApplication", application_test.DeleteApplication)
+	t.Run("DeleteJobPost", jobpost_test.DeleteJobPost)
 	t.Run("DeleteSkill", skill_test.DeleteSkill)
 	t.Run("DeleteCertification", certification_test.DeleteCertification)
+	t.Run("DeleteUser", user_test.DeleteUser)
 }
