@@ -82,13 +82,18 @@ func GetAllUsers(t *testing.T) {
 }
 
 func DeleteUser(t *testing.T) {
-	err := testUtils.UserRepo.Delete(uint(1))
+	context := testUtils.CreateTestContext()
+	params := utils.GetUrlParams(context)
+
+	users, err := testUtils.UserRepo.GetAll(params)
+	require.NoError(t, err, "Failed to get users for deletion")
+	assert.NotEmpty(t, users, "Expected users to exist for deletion")
+
+	err = testUtils.UserRepo.Delete(users[0].ID)
 	require.NoError(t, err, "Failed to delete user")
 	// Check if the user is deleted
 
-	context := testUtils.CreateTestContext()
-	params := utils.GetUrlParams(context)
-	_, err = testUtils.UserRepo.GetByID(1, &params.Populate)
+	_, err = testUtils.UserRepo.GetByID(users[0].ID, &params.Populate)
 	assert.NotNil(t, err, "Expected error when getting deleted user")
 	assert.Equal(t, "record not found", err.Error(), "Expected 'record not found' error")
 }
