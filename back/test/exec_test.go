@@ -5,8 +5,11 @@ import (
 
 	application_test "skillly/test/application"
 	auth_test "skillly/test/auth"
+	certification_test "skillly/test/certification"
 	db_test "skillly/test/db"
 	jobpost_test "skillly/test/jobPost"
+	match_test "skillly/test/match"
+	skill_test "skillly/test/skill"
 	user_test "skillly/test/user"
 )
 
@@ -43,8 +46,28 @@ func TestApplication(t *testing.T) {
 	t.Run("UpdateApplication", application_test.UpdateApplication)
 }
 
-func DeleteEverything(t *testing.T) {
+func TestMatch(t *testing.T) {
+	t.Run("CreateMatch", match_test.CreateMatch)
+	t.Run("GetMatchById", match_test.GetMatchById)
+	t.Run("DeleteMatch", match_test.DeleteMatch)
+}
+
+func TestSkill(t *testing.T) {
+	t.Run("CreateSkill", skill_test.CreateSkill)
+	t.Run("GetSkillById", skill_test.GetSkillById)
+	t.Run("UpdateSkill", skill_test.UpdateSkill)
+}
+
+func TestCertification(t *testing.T) {
+	t.Run("CreateCertification", certification_test.CreateCertification)
+	t.Run("GetCertificationById", certification_test.GetCertificationById)
+	t.Run("UpdateCertification", certification_test.UpdateCertification)
+}
+
+func TestDelete(t *testing.T) {
 	t.Run("DeleteUser", user_test.DeleteUser)
 	t.Run("DeleteJobPost", jobpost_test.DeleteJobPost)
 	t.Run("DeleteApplication", application_test.DeleteApplication)
+	t.Run("DeleteSkill", skill_test.DeleteSkill)
+	t.Run("DeleteCertification", certification_test.DeleteCertification)
 }
