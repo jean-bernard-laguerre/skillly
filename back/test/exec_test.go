@@ -49,7 +49,6 @@ func TestApplication(t *testing.T) {
 func TestMatch(t *testing.T) {
 	t.Run("CreateMatch", match_test.CreateMatch)
 	t.Run("GetMatchById", match_test.GetMatchById)
-	t.Run("DeleteMatch", match_test.DeleteMatch)
 }
 
 func TestSkill(t *testing.T) {
@@ -68,6 +67,7 @@ func TestDelete(t *testing.T) {
 	t.Run("DeleteUser", user_test.DeleteUser)
 	t.Run("DeleteJobPost", jobpost_test.DeleteJobPost)
 	t.Run("DeleteApplication", application_test.DeleteApplication)
+	t.Run("DeleteMatch", match_test.DeleteMatch)
 	t.Run("DeleteSkill", skill_test.DeleteSkill)
 	t.Run("DeleteCertification", certification_test.DeleteCertification)
 }
