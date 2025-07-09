@@ -236,7 +236,7 @@ func (s *authService) Login(c *gin.Context) {
 		"id":        user.ID,
 		"firstName": user.FirstName,
 		"lastName":  user.LastName,
-		/* "exp":       "24h", */
+		"exp":       "24h",
 	})
 
 	if user.Role == models.RoleRecruiter {

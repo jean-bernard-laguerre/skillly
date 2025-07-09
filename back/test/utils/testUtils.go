@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 
+	"github.com/golang-jwt/jwt/v5"
+
 	"github.com/gin-gonic/gin"
 
 	"net/url"
@@ -96,3 +98,25 @@ var TestLogin = authDto.LoginDto{
 	Email:    "TestCandidate@test.com",
 	Password: "password123",
 }
+
+var CandidateToken = jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+	"email":       TestCandidate.Email,
+	"role":        models.RoleCandidate,
+	"id":          1,
+	"candidateID": 1,
+	"firstName":   TestCandidate.FirstName,
+	"lastName":    TestCandidate.LastName,
+	"exp":         "24h",
+})
+
+var RecruiterToken = jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+	"email":       TestRecruiter.Email,
+	"role":        models.RoleRecruiter,
+	"id":          1,
+	"recruiterID": 1,
+	"firstName":   TestRecruiter.FirstName,
+	"lastName":    TestRecruiter.LastName,
+	"exp":         "24h",
+	"companyID":   1,
+	"authRole":    models.RecruiterRole,
+})

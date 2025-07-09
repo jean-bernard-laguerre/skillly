@@ -9,6 +9,7 @@ import (
 	db_test "skillly/test/db"
 	jobpost_test "skillly/test/jobPost"
 	match_test "skillly/test/match"
+	middleware_test "skillly/test/middleware"
 	skill_test "skillly/test/skill"
 	user_test "skillly/test/user"
 )
@@ -62,6 +63,13 @@ func TestCertification(t *testing.T) {
 	t.Run("CreateCertification", certification_test.CreateCertification)
 	t.Run("GetCertificationById", certification_test.GetCertificationById)
 	t.Run("UpdateCertification", certification_test.UpdateCertification)
+}
+
+func TestMiddlewares(t *testing.T) {
+	t.Run("AuthMiddleware", middleware_test.TestAuthMiddleware)
+	t.Run("AuthMiddlewareUnauthaurized", middleware_test.TestAuthMiddlewareUnauthorized)
+	t.Run("RoleMiddleware", middleware_test.TestRoleMiddleware)
+	t.Run("RoleMiddlewareForbidden", middleware_test.TestRoleMiddlewareForbidden)
 }
 
 func TestDelete(t *testing.T) {
