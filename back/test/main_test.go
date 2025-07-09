@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"skillly/test/setup"
+	testUtils "skillly/test/utils"
 )
 
 func TestMain(m *testing.M) {
@@ -12,6 +13,8 @@ func TestMain(m *testing.M) {
 	// Setup the tests databases
 	setup.SetupTestPostgres()
 	setup.SetupTestMongo()
+
+	testUtils.InitTestRepositories()
 
 	// Run the tests
 	code := m.Run()

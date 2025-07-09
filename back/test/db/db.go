@@ -2,28 +2,27 @@ package db_test
 
 import (
 	"context"
+	"fmt"
 	chatConfig "skillly/chat/config"
 	"skillly/pkg/config"
-	"slices"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func PostgresDatabaseConnection(t *testing.T) {
 	_, err := config.DB.DB()
-	if err != nil {
-		t.Fatalf("Error getting DB connection: %v", err)
-	}
+	require.NoError(t, err, "Failed to get Postgres DB connection")
 }
 
 func MongoDatabaseConnection(t *testing.T) {
-	if chatConfig.DBMongo == nil {
-		t.Fatal("MongoDB connection is nil")
-	}
+	assert.NotNil(t, chatConfig.DBMongo, "MongoDB connection should not be nil")
 
 	err := chatConfig.DBMongo.Client().Ping(context.TODO(), nil)
-	if err != nil {
-		t.Fatalf("Error pinging MongoDB: %v", err)
-	}
+	require.NoError(t, err, "Failed to ping MongoDB")
 }
 
 func PostgresTableCheck(t *testing.T) {
@@ -34,11 +33,7 @@ func PostgresTableCheck(t *testing.T) {
 	}
 	for _, table := range tables {
 		check := config.DB.Migrator().HasTable(table)
-		if !check {
-			t.Fatalf("Table %v not found", table)
-		} else {
-			t.Logf("Table %v found", table)
-		}
+		assert.True(t, check, fmt.Sprintf("Table %v should exist", table))
 	}
 }
 
@@ -47,17 +42,18 @@ func MongoCollectionCheck(t *testing.T) {
 		"room", "message",
 	}
 
-	dbCollections, err := chatConfig.DBMongo.ListCollectionNames(context.TODO(), nil)
+	dbCollections, err := chatConfig.DBMongo.ListCollectionNames(context.TODO(), bson.D{})
+	fmt.Printf("MongoDB Collections: %v\n", dbCollections)
 
-	if err != nil {
-		t.Fatalf("Error listing collections: %v", err)
-	}
+	require.NoError(t, err, "Failed to list MongoDB collections")
+	assert.NotEmpty(t, dbCollections, "MongoDB collections should not be empty")
 
 	for _, collection := range collections {
-		if !slices.Contains(dbCollections, collection) {
+		assert.Contains(t, dbCollections, collection, fmt.Sprintf("Collection %v should exist in MongoDB", collection))
+		/* if !slices.Contains(dbCollections, collection) {
 			t.Fatalf("Collection %v not found in MongoDB", collection)
 		} else {
 			t.Logf("Collection %v found in MongoDB", collection)
-		}
+		} */
 	}
 }
