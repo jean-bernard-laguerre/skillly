@@ -68,13 +68,14 @@ func DeleteJobPost(t *testing.T) {
 	context := testUtils.CreateTestContext()
 	params := utils.GetUrlParams(context)
 
-	jobPost, err := testUtils.JobPostRepo.GetByID(uint(1), &params.Populate)
+	jobPosts, err := testUtils.JobPostRepo.GetAll(params)
 	require.NoError(t, err, "Failed to get job post for deletion")
+	assert.NotEmpty(t, jobPosts, "Expected job post to exist for deletion")
 
-	err = testUtils.JobPostRepo.Delete(jobPost.ID)
+	err = testUtils.JobPostRepo.Delete(jobPosts[0].ID)
 	require.NoError(t, err, "Failed to delete job post")
 
 	// Try to fetch the deleted job post
-	_, err = testUtils.JobPostRepo.GetByID(jobPost.ID, &params.Populate)
+	_, err = testUtils.JobPostRepo.GetByID(jobPosts[0].ID, &params.Populate)
 	assert.Error(t, err, "Expected error when fetching deleted job post")
 }

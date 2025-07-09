@@ -59,11 +59,18 @@ func UpdateApplication(t *testing.T) {
 }
 
 func DeleteApplication(t *testing.T) {
+	context := testUtils.CreateTestContext()
+	params := utils.GetUrlParams(context)
+
+	applications, err := testUtils.ApplicationRepo.GetAll(params)
+	require.NoError(t, err, "Failed to get applications for deletion")
+	assert.NotEmpty(t, applications, "Expected applications to exist for deletion")
+
 	// Delete an application
-	err := testUtils.ApplicationRepo.Delete(uint(1))
+	err = testUtils.ApplicationRepo.Delete(applications[0].ID)
 	require.NoError(t, err, "Failed to delete application")
 
 	// Verify deletion
-	_, err = testUtils.ApplicationRepo.GetByID(uint(1), nil)
+	_, err = testUtils.ApplicationRepo.GetByID(applications[0].ID, &params.Populate)
 	assert.Error(t, err, "Expected error when getting deleted application")
 }

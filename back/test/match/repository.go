@@ -43,14 +43,15 @@ func DeleteMatch(t *testing.T) {
 	context := testUtils.CreateTestContext()
 	params := utils.GetUrlParams(context)
 
-	match, err := testUtils.MatchRepo.GetByID(uint(1), &params.Populate)
+	match, err := testUtils.MatchRepo.GetAll(params)
 	require.NoError(t, err, "Failed to get match for deletion")
+	assert.NotEmpty(t, match, "Expected match to exist for deletion")
 
-	err = testUtils.MatchRepo.Delete(match.ID)
+	err = testUtils.MatchRepo.Delete(match[0].ID)
 	require.NoError(t, err, "Failed to delete match")
 
 	// Verify that the match is deleted
-	deletedMatch, err := testUtils.MatchRepo.GetByID(match.ID, &params.Populate)
+	deletedMatch, err := testUtils.MatchRepo.GetByID(match[0].ID, &params.Populate)
 	require.Error(t, err, "Expected error when getting deleted match")
 	assert.Nil(t, deletedMatch, "Expected match to be nil after deletion")
 }

@@ -59,14 +59,15 @@ func DeleteCertification(t *testing.T) {
 	context := testUtils.CreateTestContext()
 	params := utils.GetUrlParams(context)
 
-	certification, err := testUtils.CertifRepo.GetByID(uint(1), &params.Populate)
+	certifications, err := testUtils.CertifRepo.GetAll(params)
 	require.NoError(t, err, "Failed to get certification for deletion")
+	assert.NotEmpty(t, certifications, "Expected certifications to exist for deletion")
 
-	err = testUtils.CertifRepo.Delete(certification.ID)
+	err = testUtils.CertifRepo.Delete(certifications[0].ID)
 	require.NoError(t, err, "Failed to delete certification")
 
 	// Verify that the certification is deleted
-	deletedCertification, err := testUtils.CertifRepo.GetByID(certification.ID, &params.Populate)
+	deletedCertification, err := testUtils.CertifRepo.GetByID(certifications[0].ID, &params.Populate)
 	require.Error(t, err, "Expected error when getting deleted certification")
 	assert.Nil(t, deletedCertification, "Expected certification to be nil after deletion")
 }
