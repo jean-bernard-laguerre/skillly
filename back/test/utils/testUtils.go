@@ -91,3 +91,8 @@ var TestCandidate = authDto.CandidateRegisterDTO{
 	Certifications: []uint{1, 2},
 	Skills:         []uint{1, 2},
 }
+
+var TestLogin = authDto.LoginDto{
+	Email:    "TestCandidate@test.com",
+	Password: "password123",
+}

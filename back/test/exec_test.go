@@ -24,6 +24,7 @@ func TestDB(t *testing.T) {
 func TestAuth(t *testing.T) {
 	t.Run("RegisterCandidate", auth_test.RegisterCandidate)
 	t.Run("RegisterRecruiter", auth_test.RegisterRecruiter)
+	t.Run("Login", auth_test.Login)
 }
 
 func TestUser(t *testing.T) {

@@ -99,3 +99,43 @@ func RegisterRecruiter(t *testing.T) {
 	token := response["token"].(string)
 	assert.NotEmpty(t, token)
 }
+
+func Login(t *testing.T) {
+	jsonData, err := json.Marshal(testUtils.TestLogin)
+	require.NoError(t, err)
+
+	// Create HTTP request
+	req, err := http.NewRequest("POST", "/auth/login", bytes.NewBuffer(jsonData))
+	require.NoError(t, err)
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+
+	// Create Gin context
+	c, _ := gin.CreateTestContext(w)
+	c.Request = req
+
+	// Call the service method
+	authService.Login(c)
+
+	// Assert the response status code
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var response map[string]interface{}
+	err = json.Unmarshal(w.Body.Bytes(), &response)
+	require.NoError(t, err)
+
+	// Verify response contains user and token
+	assert.Contains(t, response, "user")
+	assert.Contains(t, response, "token")
+
+	// Verify user data
+	user := response["user"].(map[string]interface{})
+	assert.Equal(t, testUtils.TestLogin.Email, user["email"])
+	assert.Equal(t, "Test", user["first_name"])
+	assert.Equal(t, "Candidate", user["last_name"])
+	assert.Equal(t, string(models.RoleCandidate), user["role"])
+
+	token := response["token"].(string)
+	assert.NotEmpty(t, token)
+}
