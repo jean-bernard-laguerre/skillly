@@ -255,6 +255,9 @@ const styles = StyleSheet.create({
   blurredCircle: {
     position: "absolute",
     overflow: "hidden", // Important pour Android
+    // Ajout de propriétés pour garantir l'arrondi sur Android
+    borderWidth: 0,
+    borderStyle: "solid",
   },
   circle1: {
     width: width * 0.8,
@@ -263,11 +266,17 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(71, 23, 246, 0.15)",
     top: -width * 0.3,
     right: -width * 0.2,
-    shadowColor: "#4717F6",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 40,
-    elevation: 10,
+    // Optimisation shadow pour Android
+    ...(Platform.OS === "android"
+      ? {
+          elevation: 10,
+        }
+      : {
+          shadowColor: "#4717F6",
+          shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: 0.3,
+          shadowRadius: 40,
+        }),
   },
   circle2: {
     width: width * 0.6,
@@ -276,11 +285,17 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(99, 102, 241, 0.12)",
     top: height * 0.05,
     left: -width * 0.15,
-    shadowColor: "#6366f1",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.25,
-    shadowRadius: 35,
-    elevation: 8,
+    // Optimisation shadow pour Android
+    ...(Platform.OS === "android"
+      ? {
+          elevation: 8,
+        }
+      : {
+          shadowColor: "#6366f1",
+          shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: 0.25,
+          shadowRadius: 35,
+        }),
   },
   circle3: {
     width: width * 0.5,
@@ -289,11 +304,17 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(54, 233, 205, 0.1)",
     top: height * 0.15,
     right: width * 0.1,
-    shadowColor: "#36E9CD",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.2,
-    shadowRadius: 30,
-    elevation: 6,
+    // Optimisation shadow pour Android
+    ...(Platform.OS === "android"
+      ? {
+          elevation: 6,
+        }
+      : {
+          shadowColor: "#36E9CD",
+          shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: 0.2,
+          shadowRadius: 30,
+        }),
   },
   quickLoginContainer: {
     position: "absolute",
@@ -310,15 +331,18 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 12,
-    shadowColor: "#4717F6",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
     overflow: "hidden", // Pour Android
+    // Optimisation shadow selon la plateforme
+    ...(Platform.OS === "android"
+      ? {
+          elevation: 6,
+        }
+      : {
+          shadowColor: "#4717F6",
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 8,
+        }),
   },
   quickLoginButtons: {
     gap: 12,
@@ -329,15 +353,18 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 3,
     overflow: "hidden", // Pour Android
+    // Optimisation shadow selon la plateforme
+    ...(Platform.OS === "android"
+      ? {
+          elevation: 3,
+        }
+      : {
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.15,
+          shadowRadius: 4,
+        }),
   },
   candidateButton: {
     backgroundColor: "#36E9CD",
@@ -457,22 +484,25 @@ const styles = StyleSheet.create({
   },
   loginButton: {
     borderRadius: 28,
-    shadowColor: "#4717F6",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 6,
     overflow: "hidden", // Pour Android
+    // Optimisation shadow selon la plateforme
+    ...(Platform.OS === "android"
+      ? {
+          elevation: 6,
+        }
+      : {
+          shadowColor: "#4717F6",
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.25,
+          shadowRadius: 8,
+        }),
   },
   loginButtonDisabled: {
     opacity: 0.7,
   },
   loginButtonGradient: {
     paddingVertical: 18,
-    borderRadius: 12,
+    borderRadius: 28,
     alignItems: "center",
     justifyContent: "center",
   },
