@@ -46,14 +46,11 @@ jobs:
           -v ${{ github.workspace }}/back/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d:ro
 
     steps:
+      - name: Cleanup root-owned files
+        run: sudo rm -rf ${{ github.workspace }}/back/docker-entrypoint-initdb.d || true
 
       - name: Checkout code
         uses: actions/checkout@v2
-
-      - name: Copy Mongo init scripts
-        run: |
-          mkdir -p ${{ github.workspace }}/mongo-init
-          cp -r ${{ github.workspace }}/back/docker-entrypoint-initdb.d/* ${{ github.workspace }}/mongo-init/ || true
 
       - name: Set up Go
         uses: actions/setup-go@v2
