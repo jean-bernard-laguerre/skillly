@@ -18,7 +18,7 @@ func TestDB(t *testing.T) {
 	t.Run("PostgresDatabaseConnection", db_test.PostgresDatabaseConnection)
 	t.Run("MongoDatabaseConnection", db_test.MongoDatabaseConnection)
 	t.Run("PostgresTableCheck", db_test.PostgresTableCheck)
-	/* t.Run("MongoCollectionCheck", db_test.MongoCollectionCheck) */
+	t.Run("MongoCollectionCheck", db_test.MongoCollectionCheck)
 
 }
 
