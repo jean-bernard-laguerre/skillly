@@ -53,7 +53,7 @@ jobs:
       - name: Copy Mongo init scripts
         run: |
           mkdir -p ${{ github.workspace }}/mongo-init
-          cp -r ${{ github.workspace }}/back/docker-entrypoint-initdb.d/* /tmp/mongo-init/ || true
+          cp -r ${{ github.workspace }}/back/docker-entrypoint-initdb.d/* ${{ github.workspace }}/mongo-init/ || true
 
       - name: Set up Go
         uses: actions/setup-go@v2
