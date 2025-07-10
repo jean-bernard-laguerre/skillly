@@ -46,14 +46,15 @@ jobs:
           -v /tmp/mongo-init:/docker-entrypoint-initdb.d:ro
 
     steps:
-      - name: Copy Mongo init scripts
-        run: |
-          mkdir -p /tmp/mongo-init
-          cp -r ${{ github.workspace }}/back/docker-entrypoint-initdb.d/* /tmp/mongo-init/ || true
 
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Copy Mongo init scripts
+        run: |
+          mkdir -p /tmp/mongo-init
+          cp -r ${{ github.workspace }}/back/docker-entrypoint-initdb.d/* /tmp/mongo-init/ || true
+          
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
