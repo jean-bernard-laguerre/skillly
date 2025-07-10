@@ -43,7 +43,7 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=3
-          -v /tmp/mongo-init:/docker-entrypoint-initdb.d:ro
+          -v /${{ github.workspace }}/mongo-init:/docker-entrypoint-initdb.d:ro
 
     steps:
 
@@ -52,9 +52,9 @@ jobs:
 
       - name: Copy Mongo init scripts
         run: |
-          mkdir -p /tmp/mongo-init
+          mkdir -p ${{ github.workspace }}/mongo-init
           cp -r ${{ github.workspace }}/back/docker-entrypoint-initdb.d/* /tmp/mongo-init/ || true
-          
+
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
