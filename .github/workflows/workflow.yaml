@@ -75,7 +75,7 @@ jobs:
         working-directory: ./back
 
       - name: Fix permissions so runner can clean up
-        run: sudo chown -R $USER:$USER back/docker-entrypoint-initdb.d
+        run: sudo chown -R $USER:$USER ${{ github.workspace }}/back/docker-entrypoint-initdb.d
 
   # GET REPO NAME
   get-repo-name:
