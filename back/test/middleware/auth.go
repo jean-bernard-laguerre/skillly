@@ -26,7 +26,8 @@ func TestAuthMiddleware(t *testing.T) {
 
 	// Create a test request
 	req, _ := http.NewRequest("GET", "/test", nil)
-	req.Header.Set("Authorization", "Bearer "+testUtils.CandidateToken.Raw) // Use a valid token for testing
+	token, _ := testUtils.CandidateToken.SignedString([]byte("secret"))
+	req.Header.Set("Authorization", "Bearer "+token) // Use a valid token for testing
 
 	fmt.Println("req.Header", req.Header)
 	// Create a response recorder

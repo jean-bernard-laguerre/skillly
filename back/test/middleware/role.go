@@ -28,7 +28,8 @@ func TestRoleMiddleware(t *testing.T) {
 	fmt.Println("testUtils.RecruiterToken.Raw", testUtils.RecruiterToken.Raw)
 	// Create a test request with the correct role
 	req, _ := http.NewRequest("GET", "/test", nil)
-	req.Header.Set("Authorization", "Bearer "+testUtils.RecruiterToken.Raw) // Use a valid token for testing
+	token, _ := testUtils.RecruiterToken.SignedString([]byte("secret"))
+	req.Header.Set("Authorization", "Bearer "+token) // Use a valid token for testing
 
 	// Create a response recorder
 	w := httptest.NewRecorder()

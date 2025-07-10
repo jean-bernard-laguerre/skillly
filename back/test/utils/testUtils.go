@@ -103,20 +103,20 @@ var CandidateToken = jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 	"email":       TestCandidate.Email,
 	"role":        models.RoleCandidate,
 	"id":          1,
-	"candidateID": 1,
 	"firstName":   TestCandidate.FirstName,
 	"lastName":    TestCandidate.LastName,
 	"exp":         "24h",
+	"candidateID": 1,
 })
 
 var RecruiterToken = jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 	"email":       TestRecruiter.Email,
 	"role":        models.RoleRecruiter,
 	"id":          1,
-	"recruiterID": 1,
 	"firstName":   TestRecruiter.FirstName,
 	"lastName":    TestRecruiter.LastName,
 	"exp":         "24h",
+	"recruiterID": 1,
 	"companyID":   1,
 	"authRole":    models.RecruiterRole,
 })
