@@ -2,7 +2,6 @@ package middleware_test
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"skillly/pkg/middleware"
@@ -25,7 +24,6 @@ func TestRoleMiddleware(t *testing.T) {
 		c.JSON(http.StatusOK, gin.H{"message": "success"})
 	})
 
-	fmt.Println("testUtils.RecruiterToken.Raw", testUtils.RecruiterToken.Raw)
 	// Create a test request with the correct role
 	req, _ := http.NewRequest("GET", "/test", nil)
 	token, _ := testUtils.RecruiterToken.SignedString([]byte("secret"))

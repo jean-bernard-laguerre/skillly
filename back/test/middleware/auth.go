@@ -2,7 +2,6 @@ package middleware_test
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"skillly/pkg/middleware"
@@ -29,7 +28,6 @@ func TestAuthMiddleware(t *testing.T) {
 	token, _ := testUtils.CandidateToken.SignedString([]byte("secret"))
 	req.Header.Set("Authorization", "Bearer "+token) // Use a valid token for testing
 
-	fmt.Println("req.Header", req.Header)
 	// Create a response recorder
 	w := httptest.NewRecorder()
 
