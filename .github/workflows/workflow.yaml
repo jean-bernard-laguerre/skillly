@@ -46,6 +46,9 @@ jobs:
           -v ${{ github.workspace }}/back/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d:ro
 
     steps:
+      - name: Fix permissions so runner can clean up
+        run: sudo chown -R $USER:$USER ${{ github.workspace }}/back/docker-entrypoint-initdb.d || true
+
       - name: Checkout code
         uses: actions/checkout@v2
 
@@ -74,8 +77,6 @@ jobs:
         run: go test -v ./test
         working-directory: ./back
 
-      - name: Fix permissions so runner can clean up
-        run: sudo chown -R $USER:$USER ${{ github.workspace }}/back/docker-entrypoint-initdb.d
 
   # GET REPO NAME
   get-repo-name:
