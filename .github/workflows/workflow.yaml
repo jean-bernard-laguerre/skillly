@@ -61,6 +61,16 @@ jobs:
         run: go mod tidy
         working-directory: ./back
 
+      - name: Create MongoDB collections
+        run: |
+          docker exec $(docker ps -qf "ancestor=mongo:latest") mongosh -u root -p root --authenticationDatabase admin --eval "
+            db = db.getSiblingDB('skilly_test');
+            db.createCollection('room');
+            db.createCollection('message');
+            db.room.insertOne({ name: 'test_room', _init: true });
+            db.message.insertOne({ _init: true });
+          "
+
       - name: Create empty .env file
         run: touch .env
         working-directory: ./back
