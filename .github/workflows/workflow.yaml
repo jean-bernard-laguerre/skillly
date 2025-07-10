@@ -43,11 +43,13 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=3
-          -v ${{ github.workspace }}/back/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d:ro
+          -v /tmp/mongo-init:/docker-entrypoint-initdb.d:ro
 
     steps:
-      - name: Fix permissions so runner can clean up
-        run: sudo chown -R $USER:$USER ${{ github.workspace }}/back/docker-entrypoint-initdb.d || true
+      - name: Copy Mongo init scripts
+        run: |
+          mkdir -p /tmp/mongo-init
+          cp -r ${{ github.workspace }}/back/docker-entrypoint-initdb.d/* /tmp/mongo-init/ || true
 
       - name: Checkout code
         uses: actions/checkout@v2
