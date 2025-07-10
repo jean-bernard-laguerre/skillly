@@ -20,7 +20,6 @@ func AuthMiddleware() gin.HandlerFunc {
 		authHeader := c.GetHeader("Authorization")
 		// Check if the token is empty
 		if authHeader == "" {
-			fmt.Println("authHeader", authHeader)
 			c.JSON(401, gin.H{"error": "Unauthorized"})
 			c.Abort()
 			return
