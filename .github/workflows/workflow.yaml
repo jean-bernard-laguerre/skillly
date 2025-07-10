@@ -43,12 +43,8 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=3
-          -v ${{ github.workspace }}/back/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d:ro
 
     steps:
-      - name: Cleanup root-owned files
-        run: sudo rm -rf ${{ github.workspace }}/back/docker-entrypoint-initdb.d || true
-
       - name: Checkout code
         uses: actions/checkout@v2
 
