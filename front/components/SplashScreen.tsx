@@ -27,12 +27,16 @@ interface SplashScreenProps {
 export default function SplashScreen({ onFinish }: SplashScreenProps) {
   const [isVisible, setIsVisible] = useState(true);
 
-  // Animation values
+  // Animation values - séparées pour éviter les conflits
   const logoOpacity = useSharedValue(0);
   const logoScale = useSharedValue(1);
   const logoRotation = useSharedValue(0);
+
+  // Séparation : translation sur le conteneur externe, rotation/scale sur le conteneur interne
+  const logoContainerTranslateX = useSharedValue(0); // Translation du conteneur
   const backgroundOpacity = useSharedValue(0);
   const textOpacity = useSharedValue(0);
+  const textTranslateX = useSharedValue(200); // Texte commence hors écran à droite
   const containerOpacity = useSharedValue(1);
 
   useEffect(() => {
@@ -52,15 +56,17 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
       );
     }, 800);
 
-    // Phase 3 : Disparition du logo + Apparition du fond dégradé (2200ms-2800ms)
+    // Phase 3 : Apparition du fond dégradé (2200ms-2800ms)
     setTimeout(() => {
-      logoOpacity.value = withTiming(0, { duration: 300 }); // Logo disparaît
       backgroundOpacity.value = withTiming(1, { duration: 600 }); // Fond apparaît
     }, 2200);
 
-    // Phase 4 : Apparition du texte à la place du logo (2500ms-3100ms)
+    // Phase 4 : Effet de poussée - Logo + Texte (2500ms-3100ms)
     setTimeout(() => {
-      textOpacity.value = withTiming(1, { duration: 600 });
+      // Animation simultanée pour l'effet de poussée
+      logoContainerTranslateX.value = withTiming(-80, { duration: 600 }); // Conteneur logo pousse vers la gauche
+      textOpacity.value = withTiming(1, { duration: 400 }); // Texte apparaît
+      textTranslateX.value = withTiming(40, { duration: 600 }); // Texte pousse depuis la droite
     }, 2500);
 
     // Phase 5 : Disparition complète
@@ -74,10 +80,17 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
     }, 4500);
   }, []);
 
+  // Styles d'animation séparés
+  const logoContainerAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: logoContainerTranslateX.value }, // Seulement la translation sur le conteneur
+    ],
+  }));
+
   const logoAnimatedStyle = useAnimatedStyle(() => ({
     opacity: logoOpacity.value,
     transform: [
-      { scale: logoScale.value },
+      { scale: logoScale.value }, // Seulement scale et rotation sur le logo
       { rotate: `${logoRotation.value}deg` },
     ],
   }));
@@ -88,6 +101,7 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
 
   const textAnimatedStyle = useAnimatedStyle(() => ({
     opacity: textOpacity.value,
+    transform: [{ translateX: textTranslateX.value }],
   }));
 
   const containerAnimatedStyle = useAnimatedStyle(() => ({
@@ -114,12 +128,15 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
 
       {/* Contenu */}
       <View style={styles.content}>
-        {/* Logo qui disparaît */}
-        <Animated.View style={[styles.logoContainer, logoAnimatedStyle]}>
-          <SkilllyLogo width={80} height={80} />
+        {/* Conteneur externe pour la translation du logo */}
+        <Animated.View style={logoContainerAnimatedStyle}>
+          {/* Conteneur interne pour rotation/scale du logo */}
+          <Animated.View style={logoAnimatedStyle}>
+            <SkilllyLogo width={80} height={80} />
+          </Animated.View>
         </Animated.View>
 
-        {/* Texte qui apparaît à la place */}
+        {/* Texte */}
         <Animated.Text style={[styles.title, textAnimatedStyle]}>
           SKILLLY
         </Animated.Text>
@@ -152,18 +169,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  logoContainer: {
-    position: "absolute", // Position absolue pour que le texte prenne la même place
-  },
   title: {
     fontSize: 32,
     fontWeight: "bold",
-    // color: "white",
     color: "black",
     letterSpacing: 4,
     textAlign: "center",
     textShadowColor: "rgba(0, 0, 0, 0.3)",
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 4,
+    position: "absolute", // Position absolue pour éviter les conflits
   },
 });
