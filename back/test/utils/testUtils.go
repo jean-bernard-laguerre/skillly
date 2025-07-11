@@ -9,6 +9,9 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"net/url"
+	chatConf "skillly/chat/config"
+	"skillly/chat/handlers/message"
+	"skillly/chat/handlers/room"
 	"skillly/pkg/config"
 	"skillly/pkg/handlers/application"
 	authDto "skillly/pkg/handlers/auth/dto"
@@ -24,6 +27,7 @@ import (
 	"skillly/pkg/models"
 )
 
+// App repositories
 var UserRepo user.UserRepository
 var CandidateRepo candidate.CandidateRepository
 var RecruiterRepo recruiter.RecruiterRepository
@@ -33,6 +37,10 @@ var JobPostRepo jobPost.JobPostRepository
 var MatchRepo match.MatchRepository
 var SkillRepo skill.SkillRepository
 var CertifRepo certification.CertificationRepository
+
+// Chat repositories
+var MessageRepo message.MessageRepository
+var RoomRepo room.RoomRepository
 
 func InitTestRepositories() {
 	UserRepo = user.NewUserRepository(config.DB)
@@ -44,6 +52,9 @@ func InitTestRepositories() {
 	MatchRepo = match.NewMatchRepository(config.DB)
 	SkillRepo = skill.NewSkillRepository(config.DB)
 	CertifRepo = certification.NewCertificationRepository(config.DB)
+
+	MessageRepo = message.NewMessageRepository(chatConf.DBMongo)
+	RoomRepo = room.NewRoomRepository(chatConf.DBMongo)
 }
 
 func CreateTestContext() *gin.Context {
