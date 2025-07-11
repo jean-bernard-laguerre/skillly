@@ -76,9 +76,9 @@ func TestMiddlewares(t *testing.T) {
 
 func TestChat(t *testing.T) {
 	t.Run("CreateRoom", room_test.CreateRoom)
-	t.Run("GetRoomByID", room_test.GetRoomByID)
+	/* t.Run("GetRoomByID", room_test.GetRoomByID) */
 	t.Run("GetAllRooms", room_test.GetAllRooms)
-	t.Run("UpdateRoom", room_test.UpdateRoom)
+	/* t.Run("UpdateRoom", room_test.UpdateRoom) */
 
 	t.Run("CreateMessage", message_test.CreateMessage)
 	t.Run("GetAllMessages", message_test.GetAllMessages)

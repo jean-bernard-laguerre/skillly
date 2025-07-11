@@ -11,6 +11,10 @@ import (
 )
 
 func CreateMessage(t *testing.T) {
+
+	context := testUtils.CreateTestContext()
+	params := utils.GetUrlParams(context)
+
 	messageDto := messageDto.CreateMessageDTO{
 		Content: "Hello, World!",
 		Room:    "test_room",
@@ -19,9 +23,16 @@ func CreateMessage(t *testing.T) {
 	message, err := testUtils.MessageRepo.CreateMessage(messageDto)
 	require.NoError(t, err, "Failed to create message")
 
-	assert.NotEmpty(t, message.ID, "Expected message ID to be generated")
-	assert.Equal(t, "Hello, World!", message.Content, "Expected message content to match")
-	assert.Equal(t, "test_room", message.Room, "Expected room ID to match")
+	params.Filters = map[string]string{
+		"room": message.Room,
+	}
+	messages, _ := testUtils.MessageRepo.GetAll(params)
+
+	assert.NotEmpty(t, messages, "Expected to retrieve at least one message")
+	assert.Equal(t, message.Content, messages[0].Content, "Expected message content to match")
+	assert.Equal(t, message.Room, messages[0].Room, "Expected message room to match")
+	assert.Equal(t, message.SenderID, messages[0].SenderID, "Expected message sender ID to match")
+	assert.NotEmpty(t, messages[0].CreatedAt, "Expected message creation time to be set")
 }
 
 func GetAllMessages(t *testing.T) {

@@ -10,11 +10,22 @@ import (
 )
 
 func CreateRoom(t *testing.T) {
-	createdRoom, err := testUtils.RoomRepo.CreateRoom("test_room")
+	room, err := testUtils.RoomRepo.CreateRoom("test_room")
 	require.NoError(t, err, "Failed to create room")
 
-	assert.NotEmpty(t, createdRoom.ID, "Expected room ID to be generated")
-	assert.Equal(t, "test_room", createdRoom.Name, "Expected room name to match")
+	context := testUtils.CreateTestContext()
+	params := utils.GetUrlParams(context)
+
+	params.Filters = map[string]string{
+		"name": room.Name,
+	}
+	createdRoom, err := testUtils.RoomRepo.GetAll(params)
+	require.NoError(t, err, "Failed to get created room")
+	assert.NotEmpty(t, createdRoom, "Expected to retrieve at least one room")
+
+	assert.Equal(t, room.Name, createdRoom[0].Name, "Expected room name to match")
+	assert.NotEmpty(t, createdRoom[0].CreatedAt, "Expected room creation time to be set")
+	assert.NotEmpty(t, createdRoom[0].ID, "Expected room ID to be set")
 }
 
 func GetRoomByID(t *testing.T) {
