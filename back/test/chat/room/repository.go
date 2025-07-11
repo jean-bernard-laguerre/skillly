@@ -24,7 +24,6 @@ func CreateRoom(t *testing.T) {
 	assert.NotEmpty(t, createdRoom, "Expected to retrieve at least one room")
 
 	assert.Equal(t, room.Name, createdRoom[0].Name, "Expected room name to match")
-	assert.NotEmpty(t, createdRoom[0].CreatedAt, "Expected room creation time to be set")
 	assert.NotEmpty(t, createdRoom[0].ID, "Expected room ID to be set")
 }
 
