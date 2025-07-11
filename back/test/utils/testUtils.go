@@ -4,9 +4,14 @@ import (
 	"net/http"
 	"net/http/httptest"
 
+	"github.com/golang-jwt/jwt/v5"
+
 	"github.com/gin-gonic/gin"
 
 	"net/url"
+	chatConf "skillly/chat/config"
+	"skillly/chat/handlers/message"
+	"skillly/chat/handlers/room"
 	"skillly/pkg/config"
 	"skillly/pkg/handlers/application"
 	authDto "skillly/pkg/handlers/auth/dto"
@@ -22,6 +27,7 @@ import (
 	"skillly/pkg/models"
 )
 
+// App repositories
 var UserRepo user.UserRepository
 var CandidateRepo candidate.CandidateRepository
 var RecruiterRepo recruiter.RecruiterRepository
@@ -31,6 +37,10 @@ var JobPostRepo jobPost.JobPostRepository
 var MatchRepo match.MatchRepository
 var SkillRepo skill.SkillRepository
 var CertifRepo certification.CertificationRepository
+
+// Chat repositories
+var MessageRepo message.MessageRepository
+var RoomRepo room.RoomRepository
 
 func InitTestRepositories() {
 	UserRepo = user.NewUserRepository(config.DB)
@@ -42,6 +52,9 @@ func InitTestRepositories() {
 	MatchRepo = match.NewMatchRepository(config.DB)
 	SkillRepo = skill.NewSkillRepository(config.DB)
 	CertifRepo = certification.NewCertificationRepository(config.DB)
+
+	MessageRepo = message.NewMessageRepository(chatConf.DBMongo)
+	RoomRepo = room.NewRoomRepository(chatConf.DBMongo)
 }
 
 func CreateTestContext() *gin.Context {
@@ -96,3 +109,25 @@ var TestLogin = authDto.LoginDto{
 	Email:    "TestCandidate@test.com",
 	Password: "password123",
 }
+
+var CandidateToken = jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+	"email":     TestCandidate.Email,
+	"role":      models.RoleCandidate,
+	"id":        1,
+	"firstName": TestCandidate.FirstName,
+	"lastName":  TestCandidate.LastName,
+	/* "exp":         "24h", */
+	"candidateID": 1,
+})
+
+var RecruiterToken = jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+	"email":     TestRecruiter.Email,
+	"role":      models.RoleRecruiter,
+	"id":        1,
+	"firstName": TestRecruiter.FirstName,
+	"lastName":  TestRecruiter.LastName,
+	/* "exp":         "24h", */
+	"recruiterID": 1,
+	"companyID":   1,
+	"authRole":    models.RecruiterRole,
+})

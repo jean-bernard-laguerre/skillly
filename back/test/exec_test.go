@@ -6,9 +6,12 @@ import (
 	application_test "skillly/test/application"
 	auth_test "skillly/test/auth"
 	certification_test "skillly/test/certification"
+	message_test "skillly/test/chat/message"
+	room_test "skillly/test/chat/room"
 	db_test "skillly/test/db"
 	jobpost_test "skillly/test/jobPost"
 	match_test "skillly/test/match"
+	middleware_test "skillly/test/middleware"
 	skill_test "skillly/test/skill"
 	user_test "skillly/test/user"
 )
@@ -17,7 +20,7 @@ func TestDB(t *testing.T) {
 	t.Run("PostgresDatabaseConnection", db_test.PostgresDatabaseConnection)
 	t.Run("MongoDatabaseConnection", db_test.MongoDatabaseConnection)
 	t.Run("PostgresTableCheck", db_test.PostgresTableCheck)
-	/* t.Run("MongoCollectionCheck", db_test.MongoCollectionCheck) */
+	t.Run("MongoCollectionCheck", db_test.MongoCollectionCheck)
 
 }
 
@@ -64,6 +67,23 @@ func TestCertification(t *testing.T) {
 	t.Run("UpdateCertification", certification_test.UpdateCertification)
 }
 
+func TestMiddlewares(t *testing.T) {
+	t.Run("AuthMiddleware", middleware_test.TestAuthMiddleware)
+	t.Run("AuthMiddlewareUnauthaurized", middleware_test.TestAuthMiddlewareUnauthorized)
+	t.Run("RoleMiddleware", middleware_test.TestRoleMiddleware)
+	t.Run("RoleMiddlewareForbidden", middleware_test.TestRoleMiddlewareForbidden)
+}
+
+func TestChat(t *testing.T) {
+	t.Run("CreateRoom", room_test.CreateRoom)
+	/* t.Run("GetRoomByID", room_test.GetRoomByID) */
+	t.Run("GetAllRooms", room_test.GetAllRooms)
+	/* t.Run("UpdateRoom", room_test.UpdateRoom) */
+
+	t.Run("CreateMessage", message_test.CreateMessage)
+	t.Run("GetAllMessages", message_test.GetAllMessages)
+}
+
 func TestDelete(t *testing.T) {
 	t.Run("DeleteMatch", match_test.DeleteMatch)
 	t.Run("DeleteApplication", application_test.DeleteApplication)
@@ -71,4 +91,7 @@ func TestDelete(t *testing.T) {
 	t.Run("DeleteUser", user_test.DeleteUser)
 	t.Run("DeleteSkill", skill_test.DeleteSkill)
 	t.Run("DeleteCertification", certification_test.DeleteCertification)
+
+	t.Run("DeleteRoom", room_test.DeleteRoom)
+	t.Run("DeleteMessage", message_test.DeleteMessage)
 }
