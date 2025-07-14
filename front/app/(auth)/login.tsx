@@ -14,11 +14,12 @@ import {
 } from "react-native";
 import { useAuthMutation } from "@/lib/hooks/useAuthMutation";
 import { LoginCredentials } from "@/types/interfaces";
-import { Link, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
+import { TabNavigationProp } from "@/types/navigation";
+import { useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
 import { CheckCircle2, Eye, EyeOff, Zap } from "lucide-react-native";
 import { useNavigationVisibility } from "@/context/NavigationVisibilityContext";
-import { useNavigation } from "@react-navigation/native";
 
 const { width, height } = Dimensions.get("window");
 
@@ -31,7 +32,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [showQuickLogin, setShowQuickLogin] = useState(false);
   const { hideNavigation, showNavigation } = useNavigationVisibility();
-  const navigation = useNavigation();
+  const navigation = useNavigation<TabNavigationProp>();
   const router = useRouter();
 
   // Masquer la navigation au montage
@@ -205,7 +206,7 @@ export default function Login() {
               {/* Lien d'inscription */}
               <View style={styles.signupContainer}>
                 <Text style={styles.signupText}>Pas encore de compte ? </Text>
-                <Pressable onPress={() => router.push("/(auth)/register")}>
+                <Pressable onPress={() => navigation.navigate("Register")}>
                   <Text style={styles.signupLink}>Inscrivez vous</Text>
                 </Pressable>
               </View>
