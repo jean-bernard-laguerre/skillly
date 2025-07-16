@@ -290,12 +290,7 @@ const MyApplications = () => {
               style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
             >
               <View style={styles.applicationCard}>
-                <LinearGradient
-                  colors={["#8464F9", "#F2F2F2"]}
-                  style={styles.cardGradient}
-                  start={{ x: 0, y: -3 }}
-                  end={{ x: 0, y: 0.9 }}
-                >
+                <View style={styles.cardContent}>
                   <View style={styles.cardHeader}>
                     <View style={styles.cardTopRow}>
                       <View style={styles.logoContainer}>
@@ -311,7 +306,7 @@ const MyApplications = () => {
                         </Text>
                         {application.job_post?.contract_type && (
                           <View style={styles.contractRow}>
-                            <Briefcase size={16} color="black" />
+                            <Briefcase size={16} color="#6B7280" />
                             <Text style={styles.contractText}>
                               {application.job_post.contract_type}
                             </Text>
@@ -326,7 +321,7 @@ const MyApplications = () => {
                     <View style={styles.footerLeft}>
                       {application.job_post?.salary_range && (
                         <View style={styles.infoRowNew}>
-                          <BadgeEuro size={18} color="black" />
+                          <BadgeEuro size={18} color="#22c55e" />
                           <Text style={styles.infoTextNew}>
                             {application.job_post.salary_range}
                           </Text>
@@ -336,7 +331,7 @@ const MyApplications = () => {
 
                     <View style={styles.footerRight}>
                       <View style={styles.infoRowNew}>
-                        <Clock size={18} color="black" />
+                        <Clock size={18} color="#6B7280" />
                         <Text style={styles.infoTextNew}>
                           Postulé le{" "}
                           {new Date(application.created_at).toLocaleDateString(
@@ -346,7 +341,7 @@ const MyApplications = () => {
                       </View>
                     </View>
                   </View>
-                </LinearGradient>
+                </View>
               </View>
             </Pressable>
           ))}
@@ -435,10 +430,12 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     // shadow for android
     elevation: 1.8,
+    backgroundColor: "#FFFFFF",
   },
-  cardGradient: {
+  cardContent: {
     borderRadius: 12,
     padding: 16,
+    backgroundColor: "#FFFFFF",
   },
   cardHeader: {
     marginBottom: 0,
@@ -465,13 +462,13 @@ const styles = StyleSheet.create({
   companyName: {
     fontSize: 14,
     fontWeight: "600",
-    color: "black",
+    color: "#374151",
     marginBottom: 2,
   },
   jobTitle: {
     fontSize: 18,
     fontWeight: "900",
-    color: "black",
+    color: "#374151",
     lineHeight: 24,
     textTransform: "uppercase",
   },
@@ -483,7 +480,7 @@ const styles = StyleSheet.create({
   },
   infoTextNew: {
     fontSize: 14,
-    color: "black",
+    color: "#6B7280",
     fontWeight: "500",
   },
   contractRow: {
@@ -494,7 +491,7 @@ const styles = StyleSheet.create({
   },
   contractText: {
     fontSize: 12,
-    color: "black",
+    color: "#6B7280",
     fontWeight: "500",
   },
   cardFooter: {

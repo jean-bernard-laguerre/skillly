@@ -2,6 +2,7 @@ package auth
 
 import (
 	"errors"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -97,6 +98,7 @@ func (s *authService) RegisterCandidate(c *gin.Context) {
 			"firstName":   savedUser.FirstName,
 			"lastName":    savedUser.LastName,
 			"candidateID": candidateProfile.ID,
+			"exp":         time.Now().Add(24 * time.Hour).Unix(),
 		})
 
 		tokenString, err := token.SignedString([]byte("secret"))
@@ -169,14 +171,15 @@ func (s *authService) RegisterRecruiter(c *gin.Context) {
 
 		// Create the token
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-			"email":        savedUser.Email,
-			"role":         savedUser.Role,
-			"id":           savedUser.ID,
-			"firstName":    savedUser.FirstName,
-			"lastName":     savedUser.LastName,
-			"companyID":    recruiterProfile.CompanyID,
-			"companyRole:": recruiterProfile.Role,
-			"recruiterID":  recruiterProfile.ID,
+			"email":       savedUser.Email,
+			"role":        savedUser.Role,
+			"id":          savedUser.ID,
+			"firstName":   savedUser.FirstName,
+			"lastName":    savedUser.LastName,
+			"companyID":   recruiterProfile.CompanyID,
+			"companyRole": recruiterProfile.Role,
+			"recruiterID": recruiterProfile.ID,
+			"exp":         time.Now().Add(24 * time.Hour).Unix(),
 		})
 
 		tokenString, err := token.SignedString([]byte("secret"))
@@ -236,7 +239,7 @@ func (s *authService) Login(c *gin.Context) {
 		"id":        user.ID,
 		"firstName": user.FirstName,
 		"lastName":  user.LastName,
-		"exp":       "24h",
+		"exp":       time.Now().Add(24 * time.Hour).Unix(),
 	})
 
 	if user.Role == models.RoleRecruiter {
