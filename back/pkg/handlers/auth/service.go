@@ -270,7 +270,7 @@ func (s *authService) GetCurrentUser(c *gin.Context) {
 	if utils.RoleType(userRole.(string)) == models.RoleCandidate {
 		populate = &[]string{"ProfileCandidate", "ProfileCandidate.Skills", "ProfileCandidate.Certifications"}
 	} else {
-		populate = &[]string{"ProfileRecruiter"}
+		populate = &[]string{"ProfileRecruiter", "ProfileRecruiter.Company"}
 	}
 
 	currentUser, err := s.userRepository.GetByID(userID.(uint), populate)

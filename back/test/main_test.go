@@ -4,25 +4,24 @@ import (
 	"os"
 	"testing"
 
-	"skillly/pkg/db"
+	"skillly/test/setup"
+	testUtils "skillly/test/utils"
 )
 
 func TestMain(m *testing.M) {
 
-	// Setup the test database
-	dbUser := os.Getenv("TEST_DB_USER")
-	dbPassword := os.Getenv("TEST_DB_PASSWORD")
-	dbName := os.Getenv("TEST_DB_NAME")
-	host := os.Getenv("TEST_DB_HOST")
-	port := os.Getenv("TEST_DB_PORT")
+	// Setup the tests databases
+	setup.SetupTestPostgres()
+	setup.SetupTestMongo()
 
-	db.Init(
-		dbUser, dbPassword, dbName, host, port,
-	)
+	testUtils.InitTestRepositories()
+
 	// Run the tests
 	code := m.Run()
 
 	// Clean up
+	setup.CleanupTestPostgres()
+	setup.CleanupTestMongo()
 
 	// Exit with the test code
 	os.Exit(code)

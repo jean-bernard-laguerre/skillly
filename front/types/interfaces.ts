@@ -46,6 +46,8 @@ export interface JobSelectorProps {
   selectedJobId: string | null;
   onSelectJob: (jobId: string) => void;
   type: "applications" | "matches";
+  refreshing?: boolean;
+  onRefresh?: () => Promise<void>;
 }
 
 export interface ApplicationsListProps {
@@ -120,6 +122,17 @@ export interface User {
     title: string;
     companyID: number;
     role: "admin" | "member";
+    company?: {
+      id: number;
+      company_name: string;
+      description?: string;
+      industry?: string;
+      web_site?: string;
+      location?: string;
+      logo?: string;
+      size?: string;
+      siret?: string;
+    };
   };
 }
 
@@ -221,4 +234,27 @@ export interface CreateJobPostDTO {
   expiration_date: string;
   skills: number[];
   certifications: number[];
+}
+
+export interface Chatroom {
+  id: string;
+  name: string;
+  created_at: string;
+  participants?: {
+    candidate: any;
+    recruiter: any;
+  };
+  jobPost?: any;
+  lastMessage?: {
+    content: string;
+    sender: string;
+    sent_at: string;
+  };
+}
+
+export interface Message {
+  sender: string;
+  content: string;
+  sent_at: string;
+  room: string;
 }

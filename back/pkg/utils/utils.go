@@ -26,7 +26,7 @@ func GetUrlParams(c *gin.Context) QueryParams {
 	return QueryParams{
 		Page:     page,
 		PageSize: pageSize,
-		Sort:     c.DefaultQuery("sort", "created_at"),
+		Sort:     c.DefaultQuery("sort", "id"),
 		Order:    c.DefaultQuery("order", "desc"),
 		Populate: c.QueryArray("populate"),
 		Filters:  c.QueryMap("filters"),

@@ -1,4 +1,5 @@
 import { AuthProvider } from "@/context/AuthContext";
+import { UnreadMessagesProvider } from "@/context/UnreadMessagesContext";
 import { queryClient } from "@/lib/queryClient";
 import TabNavigator from "@/navigation/TabNavigator";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -7,6 +8,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import SplashScreen from "@/components/SplashScreen";
+import GlobalNotifications from "@/components/GlobalNotifications";
 import { useState } from "react";
 import "../global.css";
 import { Host } from "react-native-portalize";
@@ -45,14 +47,18 @@ export default function RootLayout() {
     <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom"]}>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <GestureHandlerRootView style={{ flex: 1 }}>
-            <Host>
-              <TabNavigator />
-              {showSplashScreen && (
-                <SplashScreen onFinish={handleSplashFinish} />
-              )}
-            </Host>
-          </GestureHandlerRootView>
+          <UnreadMessagesProvider>
+            {/* Composant invisible pour gérer les notifications globales */}
+            <GlobalNotifications />
+            <GestureHandlerRootView style={{ flex: 1 }}>
+              <Host>
+                <TabNavigator />
+                {showSplashScreen && (
+                  <SplashScreen onFinish={handleSplashFinish} />
+                )}
+              </Host>
+            </GestureHandlerRootView>
+          </UnreadMessagesProvider>
         </AuthProvider>
       </QueryClientProvider>
     </SafeAreaView>

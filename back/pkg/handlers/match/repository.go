@@ -13,6 +13,7 @@ type MatchRepository interface {
 	models.Repository[models.Match]
 	CreateMatch(dto matchDto.CreateMatchDTO, tx *gorm.DB) (models.Match, error)
 	GetCandidateMatches(candidateID uint) ([]models.Match, error)
+	GetRecruiterMatches(recruiterID uint) ([]models.Match, error)
 }
 
 type matchRepository struct {
@@ -58,6 +59,32 @@ func (r *matchRepository) GetCandidateMatches(candidateID uint) ([]models.Match,
 	var matches []models.Match
 
 	result := r.db.Where("candidate_id = ?", candidateID).
+		Preload("Candidate.User").
+		Preload("Candidate.Skills").
+		Preload("Candidate.Certifications").
+		Preload("JobPost.Company").
+		Preload("JobPost.Skills").
+		Preload("JobPost.Certifications").
+		Preload("Application").
+		Find(&matches)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return matches, nil
+}
+
+// GetRecruiterMatches retrieves all matches for job posts from the recruiter's company
+func (r *matchRepository) GetRecruiterMatches(recruiterID uint) ([]models.Match, error) {
+	var matches []models.Match
+
+	// Get the recruiter's company ID and then find all matches for job posts from that company
+	result := r.db.Table("matches").
+		Select("matches.*").
+		Joins("JOIN job_posts ON matches.job_post_id = job_posts.id").
+		Joins("JOIN profile_recruiters ON job_posts.company_id = profile_recruiters.company_id").
+		Where("profile_recruiters.id = ?", recruiterID).
 		Preload("Candidate.User").
 		Preload("Candidate.Skills").
 		Preload("Candidate.Certifications").

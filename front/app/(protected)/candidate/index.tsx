@@ -8,19 +8,28 @@ import {
   ScrollView,
   Image,
   StyleSheet,
+  RefreshControl,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { AlarmClock } from "lucide-react-native";
 import { useApplication } from "@/lib/hooks/useApplication";
 import { useJobPost } from "@/lib/hooks/useJobPost";
-import { useMemo } from "react";
+import { useResponsive } from "@/lib/hooks/useResponsive";
+import { useMemo, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 
 export default function CandidateHome() {
   const { handleLogOut, user } = useAuth();
-  const { applications, isLoadingApplications } = useApplication();
-  const { candidateJobPosts, isLoadingCandidateJobPosts } = useJobPost();
+  const { applications, isLoadingApplications, refetchApplications } =
+    useApplication();
+  const {
+    candidateJobPosts,
+    isLoadingCandidateJobPosts,
+    refetchCandidateJobPosts,
+  } = useJobPost();
   const navigation = useNavigation();
+  const responsive = useResponsive();
+  const [refreshing, setRefreshing] = useState(false);
 
   // Calcul des statistiques réelles
   const stats = useMemo(() => {
@@ -58,6 +67,20 @@ export default function CandidateHome() {
     };
   }, [user, applications, candidateJobPosts]);
 
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([refetchApplications(), refetchCandidateJobPosts()]);
+    } catch (error) {
+      console.error("Erreur lors du refresh:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  // Styles adaptatifs
+  const styles = createStyles(responsive);
+
   return (
     <ScreenWrapper>
       <Header
@@ -65,7 +88,19 @@ export default function CandidateHome() {
         showNotification={true}
         onNotificationPress={() => console.log("Notification pressed")}
       />
-      <ScrollView className="flex-1 p-3" style={{ backgroundColor: "#F7F7F7" }}>
+      <ScrollView
+        className="flex-1 p-3"
+        style={{ backgroundColor: "#F7F7F7" }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor="#4717F6"
+            colors={["#4717F6"]}
+            progressBackgroundColor="#ffffff"
+          />
+        }
+      >
         {/* Welcome Section */}
         <View className="mb-4">
           {/* Greeting Section */}
@@ -230,154 +265,155 @@ export default function CandidateHome() {
   );
 }
 
-const styles = StyleSheet.create({
-  gridContainer: {
-    gap: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#E5E5E5",
-    padding: 12,
-    marginBottom: 16,
-  },
-  candidaturesEnCours: {
-    height: 89,
-    borderRadius: 12,
-    marginBottom: 12,
-  },
-  candidaturesEnCoursOverlay: {
-    height: 89,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    gap: 24,
-  },
-  candidaturesEnCoursText: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: "white",
-  },
-  rowContainer: {
-    flexDirection: "row",
-    gap: 12,
-    marginBottom: 12,
-  },
-  leftColumn: {
-    flexBasis: "50%",
-    gap: 12,
-  },
-  rightColumn: {
-    flexBasis: "50%",
-  },
-  newMatches: {
-    height: 89,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 8,
-    borderWidth: 1,
-    borderColor: "#4717F6",
-    borderRadius: 8,
-    gap: 8,
-  },
-  matchesEmoji: {
-    fontSize: 20,
-  },
-  matchesMainText: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#4A4A4A",
-    textAlign: "left",
-    lineHeight: 16,
-    flex: 1,
-    flexWrap: "wrap",
-  },
-  newOpportunities: {
-    height: 190,
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 12,
-    backgroundColor: "white",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    gap: 12,
-  },
-  opportunitiesTextContainer: {
-    flexDirection: "column",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: 8,
-    marginBottom: 12,
-  },
-  opportunitiesNumber: {
-    fontSize: 36,
-    fontWeight: "bold",
-    color: "#6366f1",
-  },
-  opportunitiesEmoji: {
-    fontSize: 18,
-  },
-  opportunitiesText: {
-    fontSize: 14,
-    color: "#6b7280",
-    textAlign: "center",
-  },
-  quickStats: {
-    height: 89,
-    borderRadius: 12,
-  },
-  quickStatsOverlay: {
-    height: 89,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 12,
-    borderRadius: 12,
-  },
-  statsEmoji: {
-    fontSize: 16,
-    marginRight: 8,
-  },
-  statsNumberContainer: {
-    flexDirection: "column",
-    alignItems: "flex-start",
-    justifyContent: "center",
-  },
-  statsText: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#270D87",
-  },
-  statsNumber: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#270D87",
-  },
-  callToAction: {
-    borderRadius: 12,
-    marginBottom: 24,
-    // Shadow for iOS
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 9,
-    // Shadow for Android
-    elevation: 4,
-  },
-  callToActionOverlay: {
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  callToActionText: {
-    fontSize: 18,
-    fontWeight: "800",
-    textAlign: "center",
-    color: "#000000",
-  },
-});
+const createStyles = (responsive: any) =>
+  StyleSheet.create({
+    gridContainer: {
+      gap: responsive.config.spacing.md,
+      borderRadius: responsive.config.card.borderRadius,
+      borderWidth: 1,
+      borderColor: "#E5E5E5",
+      padding: responsive.config.card.padding,
+      marginBottom: responsive.config.spacing.lg,
+    },
+    candidaturesEnCours: {
+      height: responsive.config.compactMode ? 70 : 89,
+      borderRadius: responsive.config.card.borderRadius,
+      marginBottom: responsive.config.spacing.md,
+    },
+    candidaturesEnCoursOverlay: {
+      height: responsive.config.compactMode ? 70 : 89,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: responsive.config.spacing.lg,
+      borderRadius: responsive.config.card.borderRadius,
+      gap: responsive.config.spacing.lg,
+    },
+    candidaturesEnCoursText: {
+      fontSize: responsive.config.fontSize.lg,
+      fontWeight: "500",
+      color: "white",
+    },
+    rowContainer: {
+      flexDirection: "row",
+      gap: 12,
+      marginBottom: 12,
+    },
+    leftColumn: {
+      flexBasis: "50%",
+      gap: 12,
+    },
+    rightColumn: {
+      flexBasis: "50%",
+    },
+    newMatches: {
+      height: responsive.config.compactMode ? 70 : 89,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: responsive.config.spacing.sm,
+      borderWidth: 1,
+      borderColor: "#4717F6",
+      borderRadius: responsive.config.card.borderRadius,
+      gap: responsive.config.spacing.sm,
+    },
+    matchesEmoji: {
+      fontSize: responsive.config.fontSize.lg,
+    },
+    matchesMainText: {
+      fontSize: responsive.config.fontSize.sm,
+      fontWeight: "600",
+      color: "#4A4A4A",
+      textAlign: "left",
+      lineHeight: responsive.config.fontSize.lg,
+      flex: 1,
+      flexWrap: "wrap",
+    },
+    newOpportunities: {
+      height: responsive.config.compactMode ? 150 : 190,
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: responsive.config.spacing.md,
+      backgroundColor: "white",
+      borderRadius: responsive.config.card.borderRadius,
+      borderWidth: 1,
+      borderColor: "#e5e7eb",
+      gap: responsive.config.spacing.md,
+    },
+    opportunitiesTextContainer: {
+      flexDirection: "column",
+      justifyContent: "space-between",
+      alignItems: "center",
+      gap: 8,
+      marginBottom: 12,
+    },
+    opportunitiesNumber: {
+      fontSize: 36,
+      fontWeight: "bold",
+      color: "#6366f1",
+    },
+    opportunitiesEmoji: {
+      fontSize: 18,
+    },
+    opportunitiesText: {
+      fontSize: 14,
+      color: "#6b7280",
+      textAlign: "center",
+    },
+    quickStats: {
+      height: 89,
+      borderRadius: 12,
+    },
+    quickStatsOverlay: {
+      height: 89,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: 12,
+      borderRadius: 12,
+    },
+    statsEmoji: {
+      fontSize: 16,
+      marginRight: 8,
+    },
+    statsNumberContainer: {
+      flexDirection: "column",
+      alignItems: "flex-start",
+      justifyContent: "center",
+    },
+    statsText: {
+      fontSize: 14,
+      fontWeight: "500",
+      color: "#270D87",
+    },
+    statsNumber: {
+      fontSize: 14,
+      fontWeight: "700",
+      color: "#270D87",
+    },
+    callToAction: {
+      borderRadius: 12,
+      marginBottom: 24,
+      // Shadow for iOS
+      shadowColor: "#000000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.25,
+      shadowRadius: 9,
+      // Shadow for Android
+      elevation: 4,
+    },
+    callToActionOverlay: {
+      paddingVertical: 16,
+      paddingHorizontal: 16,
+      borderRadius: 12,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    callToActionText: {
+      fontSize: responsive.config.fontSize.xl,
+      fontWeight: "800",
+      textAlign: "center",
+      color: "#000000",
+    },
+  });
