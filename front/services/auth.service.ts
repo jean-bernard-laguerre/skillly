@@ -157,6 +157,10 @@ export const getCurrentUser = async (): Promise<AuthResponse["user"]> => {
   try {
     const token = await AsyncStorage.getItem("token");
 
+    if (!token) {
+      throw new Error("Aucun token trouvé");
+    }
+
     const response = await instance.get<AuthResponse["user"]>("/auth/me");
 
     return response.data;
