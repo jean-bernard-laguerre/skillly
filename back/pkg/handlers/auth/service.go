@@ -2,6 +2,7 @@ package auth
 
 import (
 	"errors"
+	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -101,7 +102,7 @@ func (s *authService) RegisterCandidate(c *gin.Context) {
 			"exp":         time.Now().Add(24 * time.Hour).Unix(),
 		})
 
-		tokenString, err := token.SignedString([]byte("secret"))
+		tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 		}
@@ -182,7 +183,8 @@ func (s *authService) RegisterRecruiter(c *gin.Context) {
 			"exp":         time.Now().Add(24 * time.Hour).Unix(),
 		})
 
-		tokenString, err := token.SignedString([]byte("secret"))
+		// Sign the token with a secret key
+		tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 
@@ -250,7 +252,7 @@ func (s *authService) Login(c *gin.Context) {
 		token.Claims.(jwt.MapClaims)["candidateID"] = user.ProfileCandidate.ID
 	}
 
-	tokenString, err := token.SignedString([]byte("secret"))
+	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
