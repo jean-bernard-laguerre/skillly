@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -33,7 +34,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 			}
-			return []byte("secret"), nil
+			return []byte(os.Getenv("JWT_SECRET")), nil
 		})
 
 		// Check if there is an error
