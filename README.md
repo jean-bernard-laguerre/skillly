@@ -83,11 +83,7 @@ skillly/
    - Copy `.env.example` to `.env` and fill in your configuration.
 4. **Start databases (MongoDB & PostgreSQL):**
    ```bash
-   docker-compose up -d
-   ```
-5. **Run the backend server:**
-   ```bash
-   go run main.go
+   docker compose up
    ```
 
 ---
@@ -127,7 +123,7 @@ skillly/
 - To run backend tests:
   ```bash
   cd back
-  go test ./...
+  go test -v .\test
   ```
 
 ---
