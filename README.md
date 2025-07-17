@@ -12,7 +12,6 @@ Skillly is a full-stack application designed to connect candidates and recruiter
 - [Frontend Setup](#frontend-setup)
 - [Testing](#testing)
 - [API Documentation](#api-documentation)
-- [Contributing](#contributing)
 
 ---
 
