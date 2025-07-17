@@ -1,6 +1,6 @@
 # Skillly
 
-Skillly is a full-stack application designed to connect candidates and recruiters, manage job postings, applications, messaging, and more. The project is organized into a backend (Go) and a frontend (React/React Native), supporting a modern recruitment workflow with real-time chat, user authentication, and skill management.
+Skillly is a full-stack application designed to connect candidates and recruiters, manage job postings, applications, messaging, and more. The project is organized into a backend (Go) and a frontend (React Native), supporting a modern recruitment workflow with real-time chat, user authentication, and skill management.
 
 ---
 
@@ -115,8 +115,6 @@ skillly/
    ```
 3. **Start the development server:**
    ```bash
-   npm run dev
-   # or for Expo
    npx expo start
    ```
 
