@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"skillly/pkg/middleware"
 	"skillly/pkg/models"
 	testUtils "skillly/test/utils"
@@ -26,7 +27,7 @@ func TestRoleMiddleware(t *testing.T) {
 
 	// Create a test request with the correct role
 	req, _ := http.NewRequest("GET", "/test", nil)
-	token, _ := testUtils.RecruiterToken.SignedString([]byte("secret"))
+	token, _ := testUtils.RecruiterToken.SignedString([]byte(os.Getenv("JWT_SECRET")))
 	req.Header.Set("Authorization", "Bearer "+token) // Use a valid token for testing
 
 	// Create a response recorder
