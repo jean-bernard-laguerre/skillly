@@ -2,6 +2,7 @@ package auth
 
 import (
 	"errors"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -179,7 +180,8 @@ func (s *authService) RegisterRecruiter(c *gin.Context) {
 			"recruiterID":  recruiterProfile.ID,
 		})
 
-		tokenString, err := token.SignedString([]byte("secret"))
+		// Sign the token with a secret key
+		tokenString, err := token.SignedString([]byte(os.Getenv("secret")))
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 

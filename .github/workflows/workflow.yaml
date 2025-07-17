@@ -1,4 +1,4 @@
-name: Pipeline CI/CD
+name: Pipeline SKILLLY CI/CD
 on:
   pull_request:
     branches:
@@ -64,8 +64,7 @@ jobs:
             db.createCollection('room');
             db.createCollection('message');
             db.room.insertOne({ name: 'test_room', _init: true });
-            db.message.insertOne({ _init: true });
-          "
+            db.message.insertOne({ _init: true });"
 
       - name: Create empty .env file
         run: touch .env

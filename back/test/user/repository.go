@@ -15,7 +15,6 @@ import (
 
 func CreateUser(t *testing.T) {
 
-	// Create a new user
 	newUser := userDto.CreateUserDTO{
 		Email:     "test@test.com",
 		Password:  "password123",
