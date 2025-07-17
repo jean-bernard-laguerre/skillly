@@ -72,7 +72,7 @@ skillly/
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/<yourusername>/skillly.git
+   git clone https://github.com/jean-bernard-laguerre/skillly.git
    cd skillly/back
    ```
 2. **Install dependencies:**
