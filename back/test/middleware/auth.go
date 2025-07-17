@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"skillly/pkg/middleware"
 	testUtils "skillly/test/utils"
 	"testing"
@@ -25,7 +26,7 @@ func TestAuthMiddleware(t *testing.T) {
 
 	// Create a test request
 	req, _ := http.NewRequest("GET", "/test", nil)
-	token, _ := testUtils.CandidateToken.SignedString([]byte("secret"))
+	token, _ := testUtils.CandidateToken.SignedString([]byte(os.Getenv("JWT_SECRET")))
 	req.Header.Set("Authorization", "Bearer "+token) // Use a valid token for testing
 
 	// Create a response recorder
