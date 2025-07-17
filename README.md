@@ -146,10 +146,3 @@ skillly/
 - Access the Swagger UI at `/docs` endpoint when the backend is running.
 
 ---
-
-## Contributing
-
-1. Fork the repository and create your branch from `main`.
-2. Commit your changes with clear messages.
-3. Ensure all tests pass.
-4. Submit a pull request.
