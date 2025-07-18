@@ -64,7 +64,7 @@ skillly/
 
 ### Prerequisites
 
-- Go (1.18+)
+- Go (1.24+)
 - Docker & Docker Compose (for local DB)
 - MongoDB & PostgreSQL (used in tests and production)
 
@@ -72,7 +72,7 @@ skillly/
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/<yourusername>/skillly.git
+   git clone https://github.com/jean-bernard-laguerre/skillly.git
    cd skillly/back
    ```
 2. **Install dependencies:**
@@ -136,6 +136,6 @@ skillly/
   cd back
   ./generate-swagger.sh
   ```
-- Access the Swagger UI at `/docs` endpoint when the backend is running.
+- Access the Swagger UI at `/swagger/index.html` endpoint when the backend is running.
 
 ---

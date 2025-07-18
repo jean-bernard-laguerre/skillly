@@ -270,18 +270,26 @@ export default function MessagesList({ userRole }: MessagesListProps) {
               />
             }
           >
-            {chatrooms.map((chatroom) => (
-              <ChatroomItem
-                key={chatroom.id}
-                chatroom={chatroom}
-                onPress={handlePress}
-                userRole={userRole}
-                lastMessage={
-                  chatroom.lastMessage?.content ||
-                  "Commencez une conversation..."
-                }
-              />
-            ))}
+            {chatrooms && Array.isArray(chatrooms) ? (
+              chatrooms.map((chatroom) => (
+                <ChatroomItem
+                  key={chatroom.id}
+                  chatroom={chatroom}
+                  onPress={handlePress}
+                  userRole={userRole}
+                  lastMessage={
+                    chatroom.lastMessage?.content ||
+                    "Commencez une conversation..."
+                  }
+                />
+              ))
+            ) : (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptySubtitle}>
+                  Chargement des conversations...
+                </Text>
+              </View>
+            )}
           </ScrollView>
         )}
       </View>

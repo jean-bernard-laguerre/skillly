@@ -15,9 +15,6 @@ export const getMessagesByRoom = async (roomId: string): Promise<Message[]> => {
 
     // Vérification de la réponse avant d'accéder aux propriétés
     if (!response || response.data === null || response.data === undefined) {
-      console.log(
-        `📝 [FRONT] Aucun message trouvé pour la room ${roomId}, retour d'un tableau vide`
-      );
       return [];
     }
 
@@ -79,6 +76,11 @@ export const getChatrooms = async (): Promise<Chatroom[]> => {
     const response = await instance.get("/match/rooms");
     const rooms = response.data;
 
+    // Vérifier que rooms existe et est un tableau
+    if (!rooms || !Array.isArray(rooms)) {
+      return [];
+    }
+
     // Transformer les rooms en conversations enrichies
     const chatrooms: Chatroom[] = rooms.map((room: any) => ({
       id: room.id.toString(),
@@ -97,6 +99,13 @@ export const getChatrooms = async (): Promise<Chatroom[]> => {
 
     return chatrooms;
   } catch (error) {
+    const axiosError = error as AxiosError;
+
+    // Si c'est une erreur 401, retourner un tableau vide au lieu de propager l'erreur
+    if (axiosError.response?.status === 401) {
+      return [];
+    }
+
     console.error("Error fetching chatrooms from /match/rooms:", error);
     throw new Error("Impossible de récupérer les conversations");
   }
