@@ -9,7 +9,6 @@ on:
       - main
 
 jobs:
-
   # GET USER INFOS
   get-user-infos:
     # récupérer les infos de l'utilisateur venant du repo
