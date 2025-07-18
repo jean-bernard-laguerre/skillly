@@ -82,7 +82,21 @@ jobs:
           JWT_SECRET: test_secret
         run: go test -v ./test
         working-directory: ./back
+    
+  # GET USER INFOS
+  get-user-infos:
+    # récupérer les infos de l'utilisateur venant du repo
+    needs: get-repo-name
+    runs-on: ubuntu-latest
+    outputs:
+      user: ${{ github.actor }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
 
+      - name: Get user infos
+        run: echo "User infos are ${{ github.actor }}"
+        id: get-user-infos
 
   # GET REPO NAME
   get-repo-name:
@@ -99,3 +113,68 @@ jobs:
         id: get-repo-name
         # This is the output variable
         # We can access this variable in other jobs using `needs.get-repo-name.outputs.repo-name`
+
+  # BUILD AND PUSH DOCKER IMAGES
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout du code
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # 2. Setup Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      # 3. Connexion à Docker Hub
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # 4. Build et push de l'image back
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v3
+        with:
+          context: ./back
+          file: ./back/Dockerfile.prod
+          push: true
+          tags: ghcr.io/${{ github.repository }}/back:latest
+        
+      # 5. Build et push de l'image client
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v3
+        with:
+          context: ./back
+          file: ./client/Dockerfile.prod
+          push: true
+          tags: ghcr.io/${{ github.repository }}/client:latest
+
+  # SEND MESSAGE
+  send-chat:
+    needs: [get-repo-name, get-user-infos, run-go-test]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        env:
+          CHAT_LINK: ${{ secrets.CHAT_LINK }}
+
+      - name: Google Chat Notification Action
+        uses: SimonScholz/google-chat-action@v1.1.0
+        with:
+          webhookUrl: "${{ secrets.CHAT_LINK }}"
+          jobStatus: ${{ needs.run-go-test.outputs.outcome }}
+          title: "${{ needs.get-user-infos.outputs.user }} a créé une pull request"
+          subtitle: "Pull Request sur le main || repo: ${{ needs.get-repo-name.outputs.repo-name }}"
+          imageUrl: "https://github.com/${{ needs.get-user-infos.outputs.user }}.png?size=200"
+          imageType: Circle
+          # additionalSections: '[{"header": "Additional Section", "collapsible": true, "widgets": [{"decoratedText": {"startIcon": {"knownIcon": "STAR"},"text": "Additional Section"}}] }]'
+          additionalSections: '[{"header": "Information", "collapsible": true, "widgets": [{"decoratedText": {"text": "Pull Request sur le main"}}]},{"header": "Action", "collapsible": false, "widgets": [{"decoratedText": {"text": "TEST"}}]}]'
+
+
+
