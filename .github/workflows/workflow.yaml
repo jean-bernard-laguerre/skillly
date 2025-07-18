@@ -117,7 +117,7 @@ jobs:
   # BUILD AND PUSH DOCKER IMAGES
   build-and-push:
     runs-on: ubuntu-latest
-    depends-on: run-go-test
+    needs: [run-go-test]
     if: success() # Only run this job if the previous job was successful
 
     steps:
