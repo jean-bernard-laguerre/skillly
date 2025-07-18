@@ -9,6 +9,38 @@ on:
       - main
 
 jobs:
+
+  # GET USER INFOS
+  get-user-infos:
+    # récupérer les infos de l'utilisateur venant du repo
+    needs: get-repo-name
+    runs-on: ubuntu-latest
+    outputs:
+      user: ${{ github.actor }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Get user infos
+        run: echo "User infos are ${{ github.actor }}"
+        id: get-user-infos
+
+  # GET REPO NAME
+  get-repo-name:
+    runs-on: ubuntu-latest
+    outputs:
+      repo-name: ${{ github.repository }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Get repo name
+        run: echo "Repo name is ${{ github.repository }}"
+
+        id: get-repo-name
+        # This is the output variable
+        # We can access this variable in other jobs using `needs.get-repo-name.outputs.repo-name`
+
   #  RUN GO TEST
   run-go-test:
     outputs:
@@ -83,37 +115,6 @@ jobs:
         run: go test -v ./test
         working-directory: ./back
     
-  # GET USER INFOS
-  get-user-infos:
-    # récupérer les infos de l'utilisateur venant du repo
-    needs: get-repo-name
-    runs-on: ubuntu-latest
-    outputs:
-      user: ${{ github.actor }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Get user infos
-        run: echo "User infos are ${{ github.actor }}"
-        id: get-user-infos
-
-  # GET REPO NAME
-  get-repo-name:
-    runs-on: ubuntu-latest
-    outputs:
-      repo-name: ${{ github.repository }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Get repo name
-        run: echo "Repo name is ${{ github.repository }}"
-
-        id: get-repo-name
-        # This is the output variable
-        # We can access this variable in other jobs using `needs.get-repo-name.outputs.repo-name`
-
   # BUILD AND PUSH DOCKER IMAGES
   build-and-push:
     runs-on: ubuntu-latest
@@ -143,15 +144,6 @@ jobs:
           file: ./back/Dockerfile.prod
           push: true
           tags: ghcr.io/${{ github.repository }}/back:latest
-        
-      # 5. Build et push de l'image client
-      - name: Build and Push Docker Image
-        uses: docker/build-push-action@v3
-        with:
-          context: ./back
-          file: ./client/Dockerfile.prod
-          push: true
-          tags: ghcr.io/${{ github.repository }}/client:latest
 
   # SEND MESSAGE
   send-chat:
