@@ -7,9 +7,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"skillly/chat"
 	chatDB "skillly/chat/db"
-	messageHandler "skillly/chat/handlers/message"
+	chatHandler "skillly/chat/handlers"
 	chatModels "skillly/chat/models"
 
 	"skillly/pkg/db"
@@ -57,12 +56,12 @@ func main() {
 	go hub.RunHub()
 
 	r.Use(cors.New(cors.Config{
-		AllowOrigins: []string{"*"},
+		AllowOrigins: []string{"http://localhost:8081"},
 	}))
 
 	// Add routes
 	handlers.AddRoutes(r)
-	messageHandler.AddRoutes(r)
+	chatHandler.AddRoutes(r, hub)
 
 	// Swagger route
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
@@ -78,27 +77,6 @@ func main() {
 		c.JSON(200, gin.H{
 			"message": "Hello, World!",
 		})
-	})
-
-	// @Summary WebSocket Connection
-	// @Description Établit une connexion WebSocket pour le chat en temps réel
-	// @Tags websocket
-	// @Param roomId path string true "ID de la room de chat"
-	// @Router /ws/{roomId} [get]
-	r.GET("/ws/:roomId", func(c *gin.Context) {
-		roomId := c.Param("roomId")
-
-		chat.ServeWs(hub, roomId, c.Writer, c.Request)
-	})
-
-	// @Summary Global WebSocket Connection
-	// @Description Établit une connexion WebSocket globale pour recevoir tous les messages de l'utilisateur
-	// @Tags websocket
-	// @Param userId path string true "ID de l'utilisateur"
-	// @Router /ws/user/{userId} [get]
-	r.GET("/ws/user/:userId", func(c *gin.Context) {
-		userID := c.Param("userId")
-		chat.ServeGlobalWs(userID, c.Writer, c.Request)
 	})
 
 	r.Run(":8080")
