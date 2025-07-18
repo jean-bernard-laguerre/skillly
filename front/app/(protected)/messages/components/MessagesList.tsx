@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -47,6 +47,16 @@ export default function MessagesList({ userRole }: MessagesListProps) {
   // Utiliser le hook pour récupérer les conversations
   const { chatrooms, isLoadingChatrooms, chatroomsError, refetchChatrooms } =
     useMessages();
+
+  // Refetch automatique des conversations quand l'utilisateur revient sur cette page
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("focus", () => {
+      console.log("🔄 MessagesList: Refetching chatrooms on focus");
+      refetchChatrooms();
+    });
+
+    return unsubscribe;
+  }, [navigation, refetchChatrooms]);
 
   // Configuration selon le rôle
   const roleConfig = {
@@ -106,6 +116,7 @@ export default function MessagesList({ userRole }: MessagesListProps) {
     const chatroom = chatrooms?.find((c) => c.id === selectedChatroom);
     return (
       <ChatroomView
+        key={`chatroom-${selectedChatroom}`} // Clé unique pour forcer le démontage/remontage
         onBack={onBack}
         chatroomId={selectedChatroom}
         chatroomName={chatroom?.name || "Conversation"}
@@ -301,30 +312,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F7F7F7",
-  },
-  devToolsContainer: {
-    backgroundColor: "#FFF7ED",
-    borderBottomWidth: 1,
-    borderBottomColor: "#FED7AA",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  devButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#FFFBEB",
-    borderWidth: 1,
-    borderColor: "#FED7AA",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    gap: 6,
-  },
-  devButtonText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#D97706",
   },
   emptyContainer: {
     flex: 1,

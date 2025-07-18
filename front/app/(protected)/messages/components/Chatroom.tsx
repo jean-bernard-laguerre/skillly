@@ -122,23 +122,20 @@ export default function ChatroomView({
       setMessages((prevMessages) => [...prevMessages, message]);
       // Ajouter aussi au cache React Query
       addMessageToCache(chatroomId, message);
-
-      // Si le message ne vient pas de l'utilisateur actuel, incrémenter le compteur
-      // NOTE: Ceci ne s'applique que si l'utilisateur n'est PAS dans cette conversation
-      // Comme nous sommes dans la conversation, on marque directement comme lu
-      // L'incrémentation se fera via les autres composants/contextes quand l'utilisateur
-      // n'est pas dans cette conversation spécifique
     },
     [chatroomId, addMessageToCache]
   );
 
   const handleConnect = useCallback(() => {
-    console.log("WebSocket connecté");
-  }, []);
+    console.log("WebSocket connecté pour room:", chatroomId);
+  }, [chatroomId]);
 
   const handleDisconnect = useCallback(() => {
-    console.log("WebSocket déconnecté");
-  }, []);
+    console.log("WebSocket déconnecté pour room:", chatroomId);
+  }, [chatroomId]);
+
+  // Utiliser une clé stable pour éviter les remontages multiples du hook
+  const wsKey = `chatroom-${chatroomId}-${user?.id}`;
 
   const {
     sendMessage,

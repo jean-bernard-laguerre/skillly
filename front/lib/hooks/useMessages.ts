@@ -16,6 +16,9 @@ export const useMessages = () => {
     queryKey: ["chatrooms", user?.id],
     queryFn: MessageService.getChatrooms,
     enabled: !!user,
+    staleTime: 10000, // 10 secondes - les conversations peuvent changer rapidement
+    refetchOnWindowFocus: true, // Refetch quand l'app revient au premier plan
+    refetchOnMount: true, // Refetch à chaque montage
   });
 
   // Hook pour récupérer les messages d'une conversation spécifique
@@ -25,6 +28,7 @@ export const useMessages = () => {
       queryFn: () => MessageService.getMessagesByRoom(roomId),
       enabled: !!roomId,
       staleTime: 30000, // 30 secondes - les messages en temps réel viennent du WebSocket
+      refetchOnWindowFocus: true, // Refetch quand l'app revient au premier plan
     });
   };
 
@@ -47,6 +51,9 @@ export const useMessages = () => {
       ["messages", roomId],
       (oldMessages: any[] = []) => [...oldMessages, message]
     );
+
+    // Invalider aussi les conversations pour mettre à jour le dernier message
+    queryClient.invalidateQueries({ queryKey: ["chatrooms"] });
   };
 
   // Fonction pour marquer une conversation comme lue

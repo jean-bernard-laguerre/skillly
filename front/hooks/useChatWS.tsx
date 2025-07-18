@@ -10,62 +10,131 @@ interface WebSocketState {
   error: string | null;
 }
 
+// Map globale pour stocker les connexions WebSocket uniques par room
+const globalConnections = new Map<string, WebSocket>();
+
+// Map pour stocker les messages déjà traités (déduplication)
+const processedMessages = new Map<string, Set<string>>();
+
 export function useChatWS(
   chatroomId: string,
   onMessage: (message: Message) => void,
   onConnect?: () => void,
   onDisconnect?: () => void
 ) {
-  const [ws, setWs] = useState<WebSocket | null>(null);
+  const { user } = useAuth();
   const [state, setState] = useState<WebSocketState>({
     isConnected: false,
     isConnecting: false,
     error: null,
   });
 
-  const { user } = useAuth();
-  const reconnectTimeoutRef = useRef<number | null>(null);
-  const reconnectAttemptsRef = useRef(0);
-  const isConnectingRef = useRef(false);
-  const maxReconnectAttempts = 3;
+  // Références pour les callbacks pour éviter les re-renders
+  const onMessageRef = useRef(onMessage);
+  const onConnectRef = useRef(onConnect);
+  const onDisconnectRef = useRef(onDisconnect);
+
+  // Mettre à jour les références quand les callbacks changent
+  useEffect(() => {
+    onMessageRef.current = onMessage;
+    onConnectRef.current = onConnect;
+    onDisconnectRef.current = onDisconnect;
+  }, [onMessage, onConnect, onDisconnect]);
 
   const connect = useCallback(() => {
-    if (!chatroomId || !user?.id || isConnectingRef.current) return;
+    if (!chatroomId || !user?.id) return;
 
-    isConnectingRef.current = true;
+    const connectionKey = `room-${chatroomId}`;
+
+    // Vérifier s'il y a déjà une connexion active pour cette room
+    const existingConnection = globalConnections.get(connectionKey);
+    if (
+      existingConnection &&
+      existingConnection.readyState === WebSocket.OPEN
+    ) {
+      console.log(
+        "Réutilisation de la connexion existante pour room:",
+        chatroomId
+      );
+      setState({
+        isConnected: true,
+        isConnecting: false,
+        error: null,
+      });
+      onConnectRef.current?.();
+      return;
+    }
+
+    // Fermer la connexion existante si elle existe mais n'est pas ouverte
+    if (existingConnection) {
+      console.log("Fermeture de la connexion existante pour room:", chatroomId);
+      existingConnection.close(1000, "Replacing connection");
+      globalConnections.delete(connectionKey);
+    }
+
     setState((prev) => ({ ...prev, isConnecting: true, error: null }));
 
     try {
       const wsUrl = getWebSocketUrl(chatroomId, user.id.toString());
-      console.log("Connecting to WebSocket:", wsUrl);
+      console.log(
+        "Création d'une nouvelle connexion WebSocket pour room:",
+        chatroomId
+      );
 
       const socket = new WebSocket(wsUrl);
+      globalConnections.set(connectionKey, socket);
 
       socket.onopen = () => {
-        console.log("WebSocket connection established");
-        isConnectingRef.current = false;
+        console.log("WebSocket connection established for room:", chatroomId);
         setState({
           isConnected: true,
           isConnecting: false,
           error: null,
         });
-        reconnectAttemptsRef.current = 0;
-        onConnect?.();
+        onConnectRef.current?.();
       };
 
       socket.onmessage = (event) => {
         try {
-          console.log("WebSocket message received:", event.data);
           const message: Message = JSON.parse(event.data);
-          onMessage(message);
+
+          // Créer une clé unique pour ce message pour la déduplication
+          const messageKey = `${message.content}-${message.sender}-${message.sent_at}`;
+          const roomMessageKey = `${connectionKey}-${messageKey}`;
+
+          // Vérifier si ce message a déjà été traité
+          if (!processedMessages.has(connectionKey)) {
+            processedMessages.set(connectionKey, new Set());
+          }
+
+          const roomProcessedMessages = processedMessages.get(connectionKey)!;
+
+          if (roomProcessedMessages.has(messageKey)) {
+            console.log("Message dupliqué ignoré:", message.content);
+            return;
+          }
+
+          // Marquer le message comme traité
+          roomProcessedMessages.add(messageKey);
+
+          // Nettoyer les anciens messages (garder seulement les 100 derniers)
+          if (roomProcessedMessages.size > 100) {
+            const messagesArray = Array.from(roomProcessedMessages);
+            roomProcessedMessages.clear();
+            messagesArray
+              .slice(-50)
+              .forEach((msg) => roomProcessedMessages.add(msg));
+          }
+
+          console.log("Nouveau message traité:", message.content);
+          onMessageRef.current(message);
         } catch (error) {
           console.error("Error parsing WebSocket message:", error);
         }
       };
 
       socket.onerror = (error) => {
-        console.error("WebSocket error:", error);
-        isConnectingRef.current = false;
+        console.error("WebSocket error for room:", chatroomId, error);
         setState((prev) => ({
           ...prev,
           isConnecting: false,
@@ -74,8 +143,9 @@ export function useChatWS(
       };
 
       socket.onclose = (event) => {
-        console.log("WebSocket connection closed:", event.code, event.reason);
-        isConnectingRef.current = false;
+        console.log("WebSocket connection closed for room:", chatroomId);
+        globalConnections.delete(connectionKey);
+        processedMessages.delete(connectionKey);
         setState({
           isConnected: false,
           isConnecting: false,
@@ -84,58 +154,40 @@ export function useChatWS(
               ? "Connexion fermée de manière inattendue"
               : null,
         });
-
-        onDisconnect?.();
-
-        // Tentative de reconnexion automatique seulement si pas fermé volontairement
-        if (
-          event.code !== 1000 &&
-          reconnectAttemptsRef.current < maxReconnectAttempts
-        ) {
-          reconnectAttemptsRef.current++;
-          console.log(
-            `Tentative de reconnexion ${reconnectAttemptsRef.current}/${maxReconnectAttempts}`
-          );
-
-          reconnectTimeoutRef.current = setTimeout(() => {
-            connect();
-          }, 2000 * reconnectAttemptsRef.current) as unknown as number;
-        }
+        onDisconnectRef.current?.();
       };
-
-      setWs(socket);
     } catch (error) {
       console.error("Error creating WebSocket:", error);
-      isConnectingRef.current = false;
       setState({
         isConnected: false,
         isConnecting: false,
         error: "Impossible de créer la connexion WebSocket",
       });
     }
-  }, [chatroomId, user?.id, onMessage, onConnect, onDisconnect]);
+  }, [chatroomId, user?.id]);
 
   const disconnect = useCallback(() => {
-    if (reconnectTimeoutRef.current) {
-      clearTimeout(reconnectTimeoutRef.current);
-      reconnectTimeoutRef.current = null;
+    const connectionKey = `room-${chatroomId}`;
+    const socket = globalConnections.get(connectionKey);
+    if (socket) {
+      socket.close(1000, "User disconnect");
+      globalConnections.delete(connectionKey);
     }
-    if (ws) {
-      ws.close(1000, "User disconnect");
-      setWs(null);
-    }
-  }, [ws]);
+  }, [chatroomId]);
 
   const sendMessage = useCallback(
     (message: Omit<Message, "sent_at">) => {
-      if (ws && state.isConnected) {
+      const connectionKey = `room-${chatroomId}`;
+      const socket = globalConnections.get(connectionKey);
+
+      if (socket && socket.readyState === WebSocket.OPEN) {
         const messageWithTimestamp = {
           ...message,
           sent_at: new Date().toISOString(),
         };
 
         try {
-          ws.send(JSON.stringify(messageWithTimestamp));
+          socket.send(JSON.stringify(messageWithTimestamp));
 
           // SIMULATION: Émettre un événement global pour notifier les autres utilisateurs
           GlobalNotificationsService.emitGlobalMessage({
@@ -158,20 +210,21 @@ export function useChatWS(
       }
       return false;
     },
-    [ws, state.isConnected]
+    [chatroomId]
   );
 
-  // useEffect avec dépendances stables
+  // useEffect avec nettoyage amélioré
   useEffect(() => {
     connect();
 
     return () => {
-      disconnect();
+      // Ne pas fermer la connexion lors du démontage, juste nettoyer les listeners
+      // La connexion sera fermée automatiquement quand plus de composants l'utilisent
     };
-  }, [chatroomId, user?.id]); // Dépendances minimales et stables
+  }, [chatroomId, user?.id]);
 
   return {
-    ws,
+    ws: globalConnections.get(`room-${chatroomId}`) || null,
     sendMessage,
     connect,
     disconnect,
