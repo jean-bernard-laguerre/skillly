@@ -19,6 +19,10 @@ LogBox.ignoreLogs([
   "[Reanimated] Reading from `value` during component render",
   "[Reanimated]",
   "Reanimated",
+  // Ignorer les erreurs Axios pour éviter l'affichage dans l'UI
+  "Error fetching current user:",
+  "AxiosError:",
+  "Request failed with status code 401",
 ]);
 
 // Désactiver complètement les warnings Reanimated
@@ -28,7 +32,9 @@ if (__DEV__) {
     if (
       args[0] &&
       typeof args[0] === "string" &&
-      args[0].includes("[Reanimated]")
+      (args[0].includes("[Reanimated]") ||
+        args[0].includes("AxiosError") ||
+        args[0].includes("Request failed with status code 401"))
     ) {
       return;
     }

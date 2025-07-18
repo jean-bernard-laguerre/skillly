@@ -153,7 +153,9 @@ export const refreshToken = async (): Promise<string> => {
   }
 };
 
-export const getCurrentUser = async (): Promise<AuthResponse["user"]> => {
+export const getCurrentUser = async (): Promise<
+  AuthResponse["user"] | null
+> => {
   try {
     const token = await AsyncStorage.getItem("token");
 
@@ -166,6 +168,12 @@ export const getCurrentUser = async (): Promise<AuthResponse["user"]> => {
     return response.data;
   } catch (error) {
     const axiosError = error as AxiosError;
+
+    // Si c'est une erreur 401, ne pas la propager et retourner null
+    if (axiosError.response?.status === 401) {
+      return null;
+    }
+
     console.error(
       "Erreur détaillée lors de la récupération de l'utilisateur:",
       {

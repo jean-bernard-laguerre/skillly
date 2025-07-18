@@ -40,7 +40,10 @@ export const useAuthMutation = () => {
     mutationFn: AuthService.login,
     onSuccess: async (data) => {
       try {
+        // Forcer le refetch de la query currentUser pour mettre à jour le contexte
         await queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+        await queryClient.refetchQueries({ queryKey: ["currentUser"] });
+
         // La navigation sera gérée par le TabNavigator automatiquement
         // quand le rôle changera dans AuthProvider
       } catch (error) {
