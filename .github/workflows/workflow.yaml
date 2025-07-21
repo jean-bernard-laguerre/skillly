@@ -9,7 +9,6 @@ on:
       - main
 
 jobs:
-
   # GET USER INFOS
   get-user-infos:
     # récupérer les infos de l'utilisateur venant du repo
@@ -114,11 +113,11 @@ jobs:
           JWT_SECRET: test_secret
         run: go test -v ./test
         working-directory: ./back
-    
+
   # BUILD AND PUSH DOCKER IMAGES
   build-and-push:
+    needs: run-go-test
     runs-on: ubuntu-latest
-    depends-on: run-go-test
     if: success() # Only run this job if the previous job was successful
 
     steps:
@@ -169,6 +168,3 @@ jobs:
           imageType: Circle
           # additionalSections: '[{"header": "Additional Section", "collapsible": true, "widgets": [{"decoratedText": {"startIcon": {"knownIcon": "STAR"},"text": "Additional Section"}}] }]'
           additionalSections: '[{"header": "Information", "collapsible": true, "widgets": [{"decoratedText": {"text": "Pull Request sur le main"}}]},{"header": "Action", "collapsible": false, "widgets": [{"decoratedText": {"text": "TEST"}}]}]'
-
-
-
