@@ -75,6 +75,7 @@ func GetJobPostByIdHandler(c *gin.Context) {
 
 func AddRoutes(r *gin.Engine) {
 	jp := r.Group("/jobpost")
+	jp.POST("", middleware.AuthMiddleware(), middleware.RoleMiddleware(models.RoleRecruiter), CreateJobPostHandler)
 	jp.POST("/", middleware.AuthMiddleware(), middleware.RoleMiddleware(models.RoleRecruiter), CreateJobPostHandler)
 	jp.GET("/candidate", middleware.AuthMiddleware(), middleware.RoleMiddleware(models.RoleCandidate), GetAllJobPostsHandler)
 	jp.GET("/company", middleware.AuthMiddleware(), middleware.RoleMiddleware(models.RoleRecruiter), GetJobPostsByCompanyHandler)
