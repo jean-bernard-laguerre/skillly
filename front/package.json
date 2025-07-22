@@ -9,6 +9,7 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "test": "jest --watchAll",
+    "test:e2e": "detox test --configuration android.emu.debug",
     "lint": "expo lint",
     "check-expo-53": "node ./scripts/check-expo-53.js"
   },
@@ -34,6 +35,7 @@
     "expo-haptics": "~14.1.4",
     "expo-linear-gradient": "^14.1.5",
     "expo-linking": "~7.1.5",
+    "expo-navigation-bar": "~4.2.7",
     "expo-router": "~5.0.7",
     "expo-splash-screen": "~0.30.8",
     "expo-status-bar": "~2.2.3",
@@ -55,8 +57,7 @@
     "react-native-toast-message": "^2.3.0",
     "react-native-web": "^0.20.0",
     "react-native-webview": "13.13.5",
-    "tailwindcss": "^3.4.17",
-    "expo-navigation-bar": "~4.2.7"
+    "tailwindcss": "^3.4.17"
   },
   "devDependencies": {
     "@babel/cli": "^7.27.2",
@@ -66,6 +67,7 @@
     "@types/jest": "^29.5.14",
     "@types/react": "~19.1.5",
     "@types/react-test-renderer": "^19.0.0",
+    "detox": "^20.40.2",
     "jest": "^29.7.0",
     "jest-expo": "~53.0.5",
     "metro-react-native-babel-preset": "^0.77.0",
