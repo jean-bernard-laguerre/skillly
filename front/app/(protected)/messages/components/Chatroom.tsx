@@ -25,6 +25,7 @@ import { useUnreadMessages } from "@/context/UnreadMessagesContext";
 import { useMessages } from "@/lib/hooks/useMessages";
 import { useChatWS } from "@/hooks/useChatWS";
 import { useNavigation } from "@react-navigation/native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const { height: screenHeight } = Dimensions.get("window");
 
@@ -195,9 +196,9 @@ export default function ChatroomView({
     <ScreenWrapper>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={
-          Platform.OS === "ios" ? 90 : isKeyboardOpen ? 30 : 0
-        }
+        /* keyboardVerticalOffset={
+          Platform.OS === "ios" ? 90 :  0
+        } */
         style={{ flex: 1 }}
       >
         {/* Header moderne avec gradient */}
@@ -314,14 +315,16 @@ export default function ChatroomView({
           </View>
         ) : (
           <View style={styles.inputContainer}>
-            <InputBox
-              value={newMessage}
-              onChange={setNewMessage}
-              onSend={handleSendMessage}
-              placeholder="Tapez votre message..."
-              disabled={false}
-              userRole={role || "candidate"}
-            />
+            <SafeAreaView edges={isKeyboardOpen ? [] : ["bottom"]}>
+              <InputBox
+                value={newMessage}
+                onChange={setNewMessage}
+                onSend={handleSendMessage}
+                placeholder="Tapez votre message..."
+                disabled={false}
+                userRole={role || "candidate"}
+              />
+            </SafeAreaView>
           </View>
         )}
       </KeyboardAvoidingView>

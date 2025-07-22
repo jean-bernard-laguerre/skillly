@@ -14,14 +14,10 @@ export default function ScreenWrapper({ children, style }: ScreenWrapperProps) {
   return (
     <SafeAreaView
       style={[
-        {
-          flex: 1,
-          backgroundColor: "#F7F7F7",
-          paddingBottom: isNavigationVisible ? 64 : 0, // navbar (56) + bottom offset (8) quand visible
-        },
+        {flex: 1},
         style,
       ]}
-      edges={[]}
+       edges={["top"]}
     >
       {children}
     </SafeAreaView>
