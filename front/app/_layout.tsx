@@ -50,7 +50,6 @@ export default function RootLayout() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom"]}>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <UnreadMessagesProvider>
@@ -67,6 +66,5 @@ export default function RootLayout() {
           </UnreadMessagesProvider>
         </AuthProvider>
       </QueryClientProvider>
-    </SafeAreaView>
   );
 }

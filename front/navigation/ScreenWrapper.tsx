@@ -16,12 +16,11 @@ export default function ScreenWrapper({ children, style }: ScreenWrapperProps) {
       style={[
         {
           flex: 1,
-          backgroundColor: "#F7F7F7",
-          paddingBottom: isNavigationVisible ? 64 : 0, // navbar (56) + bottom offset (8) quand visible
+          paddingBottom: isNavigationVisible ? 64 : 0, // naavbar (56) + bottom offset (8) quand visible
         },
         style,
       ]}
-      edges={[]}
+       edges={["top", "bottom"]}
     >
       {children}
     </SafeAreaView>
