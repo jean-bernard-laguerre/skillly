@@ -16,7 +16,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.anonymous.skillly"
     },
     "web": {
       "bundler": "metro",
@@ -28,12 +29,13 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/skillly_logo.svg",
+          "image": "./assets/images/splash-icon.png",
           "imageWidth": 120,
           "resizeMode": "contain",
           "backgroundColor": "#4A90F4"
         }
-      ]
+      ],
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true
