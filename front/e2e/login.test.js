@@ -51,7 +51,7 @@ describe('Login', () => {
 function Login(email, password) {
   return element(by.id('emailInput')).typeText(email)
     .then(() => element(by.id('passwordInput')).typeText(password))
-    .then(() => device.dismissKeyboard())
+    .then(() => element(by.id('loginScreen')).tap())
     .then(() => element(by.id('submitLoginButton')).tap());
 }
 
