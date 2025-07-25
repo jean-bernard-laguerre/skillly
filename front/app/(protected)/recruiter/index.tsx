@@ -155,7 +155,10 @@ export default function RecruiterHome() {
               <Building2 size={32} color="#4717F6" />
             </View>
             <View className="flex-1">
-              <Text className="mb-1 text-[24px] font-bold text-black">
+              <Text
+                className="mb-1 text-[24px] font-bold text-black"
+                testID="homeGreeting"
+              >
                 Bonjour {stats.userName} ! 👋
               </Text>
               <Text className="text-[14px] font-[400] text-[#6A6A6A]">

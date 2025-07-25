@@ -49,20 +49,20 @@ describe("Login", () => {
       title: "Login successful recruteur",
       email: "recruiter@mail.com",
       password: "test1234",
-      contains: "Hello",
+      contains: "Bonjour Jane ! 👋",
     },
     {
       title: "Login successful candidat",
       email: "candidate@mail.com",
       password: "test1234",
-      contains: "Hello",
+      contains: "Hello John, 👋",
     },
   ];
 
   describe("Login fail Tests", () => {
     afterEach(async () => {
-        await ClearLoginFields();
-      });
+      await ClearLoginFields();
+    });
 
     failTests.forEach(({ title, email, password, contains }) => {
       it(title, async () => {
@@ -111,7 +111,7 @@ function LogOut() {
   return element(by.id("Profile"))
     .tap()
     .then(async () => {
-      await element(by.id("profileScrollView")).scrollTo('bottom')
+      await element(by.id("profileScrollView")).scrollTo("bottom");
       await waitFor(element(by.id("logoutButton")))
         .toBeVisible()
         .withTimeout(10000);
