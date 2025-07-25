@@ -132,7 +132,7 @@ export default function Login() {
             {/* Message d'erreur */}
             {loginError && (
               <View style={styles.errorContainer}>
-                <Text style={styles.errorText}>{loginError.message}</Text>
+                <Text testID="loginError" style={styles.errorText}>{loginError.message}</Text>
               </View>
             )}
 
@@ -143,6 +143,7 @@ export default function Login() {
                 <Text style={styles.inputLabel}>Adresse mail</Text>
                 <View style={styles.inputWrapper}>
                   <TextInput
+                    testID="emailInput"
                     style={styles.input}
                     value={formData.email}
                     onChangeText={(text) =>
@@ -168,6 +169,7 @@ export default function Login() {
                 <Text style={styles.inputLabel}>Mot de passe</Text>
                 <View style={styles.inputWrapper}>
                   <TextInput
+                    testID="passwordInput"
                     style={[styles.input, styles.passwordInput]}
                     value={formData.password}
                     onChangeText={(text) =>
@@ -213,6 +215,7 @@ export default function Login() {
 
               {/* Bouton de connexion */}
               <Pressable
+                testID="submitLoginButton"
                 style={[
                   styles.loginButton,
                   isLoggingIn && styles.loginButtonDisabled,

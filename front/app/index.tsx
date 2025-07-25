@@ -20,7 +20,7 @@ export default function HomePage() {
   return (
     <ScreenWrapper>
       <View className="flex-1 justify-center items-center">
-        <Text className="mb-5 text-2xl font-bold">
+        <Text className="mb-5 text-2xl font-bold" testID="welcome">
           Bienvenue sur Skillly 🚀
         </Text>
         <Text className="mb-10 text-base text-center">
@@ -29,6 +29,7 @@ export default function HomePage() {
         <Pressable
           className="px-5 py-3 mb-3 bg-blue-500 rounded-lg active:bg-blue-700"
           onPress={() => navigation.navigate("Login")}
+          testID="loginButton"
         >
           <Text className="text-base font-semibold text-white">
             Se connecter
