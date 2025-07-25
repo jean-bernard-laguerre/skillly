@@ -28,7 +28,7 @@ describe('Login', () => {
   const failTests = [
     {title: 'Missing email', email: '', password: 'test$jdsfmlk1234!!', contains: 'Please enter a valid email address'},
     {title: 'Invalid email', email: 'test3@tessdqfjlkt.qsdflksdjm', password: 'test$jdsfmlk1234!!', contains: 'Login Failed - User Not Found'},
-    {title: 'Invalid password', email: 'test3@test.tst', password : '', contains: 'Login Failed - Password Incorrect'},
+    {title: 'Invalid password', email: 'candidate@mail.com', password : '', contains: 'Login Failed - Password Incorrect'},
   ]
 
   const successTests = [
@@ -51,7 +51,7 @@ describe('Login', () => {
 function Login(email, password) {
   return element(by.id('emailInput')).typeText(email)
     .then(() => element(by.id('passwordInput')).typeText(password))
-    .then(() => element(by.id('loginScreen')).tap())
+    .then(() => element(by.id('backgroundCircles')).tap())
     .then(() => element(by.id('submitLoginButton')).tap());
 }
 

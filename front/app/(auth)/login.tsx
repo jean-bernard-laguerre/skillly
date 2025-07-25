@@ -77,7 +77,7 @@ export default function Login() {
   return (
     <View style={styles.container} testID="loginScreen">
       {/* Background avec cercles blurrés selon Figma */}
-      <View style={styles.backgroundContainer}>
+      <View style={styles.backgroundContainer} testID="backgroundCircles">
         {/* Cercle 1 - violet */}
         <View style={[styles.blurredCircle, styles.circle1]} />
         {/* Cercle 2 - bleu */}
