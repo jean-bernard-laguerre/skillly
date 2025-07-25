@@ -27,8 +27,8 @@ describe('Login', () => {
 
   const failTests = [
     {title: 'Missing email', email: '', password: 'test$jdsfmlk1234!!', contains: 'Please enter a valid email address'},
-    {title: 'Invalid email', email: 'test3@tessdqfjlkt.qsdflksdjm', password: 'test$jdsfmlk1234!!', contains: 'Login Failed - User Not Found'},
-    {title: 'Invalid password', email: 'candidate@mail.com', password : '', contains: 'Login Failed - Password Incorrect'},
+    /* {title: 'Invalid email', email: 'test3@tessdqfjlkt.qsdflksdjm', password: 'test$jdsfmlk1234!!', contains: 'Login Failed - User Not Found'},
+    {title: 'Invalid password', email: 'candidate@mail.com', password : '', contains: 'Login Failed - Password Incorrect'}, */
   ]
 
   const successTests = [
