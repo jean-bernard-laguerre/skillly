@@ -1,5 +1,4 @@
 const { log } = require("detox");
-const { LogOut } = require("lucide-react-native");
 
 describe("Login", () => {
   beforeAll(async () => {
