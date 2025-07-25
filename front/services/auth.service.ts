@@ -11,25 +11,17 @@ export const login = async (
   credentials: LoginCredentials
 ): Promise<AuthResponse> => {
   try {
-    console.log("Tentative de connexion avec les identifiants:", {
-      email: credentials.email,
-      password: "***", // On ne log pas le mot de passe pour des raisons de sécurité
-    });
-
     const response = await instance.post<AuthResponse>(
       "/auth/login",
       credentials
     );
-    const { token, user } = response.data;
 
-    console.log("Connexion réussie, données reçues:", {
-      token: token ? "présent" : "absent",
-      user: {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-      },
-    });
+    // Vérifier que response.data existe et contient les données attendues
+    if (!response.data || !response.data.token || !response.data.user) {
+      throw new Error("Réponse invalide du serveur");
+    }
+
+    const { token, user } = response.data;
 
     // Stocker le token et les données utilisateur
     await AsyncStorage.multiSet([
@@ -41,24 +33,17 @@ export const login = async (
     return response.data;
   } catch (error) {
     const axiosError = error as AxiosError;
-    console.error("Erreur détaillée lors de la connexion:", {
-      message: axiosError.message,
-      response: axiosError.response
-        ? {
-            status: axiosError.response.status,
-            data: axiosError.response.data,
-          }
-        : "Pas de réponse du serveur",
-      request: axiosError.request
-        ? "Requête envoyée mais pas de réponse"
-        : "Pas de requête envoyée",
-      config: {
-        url: axiosError.config?.url,
-        method: axiosError.config?.method,
-        baseURL: axiosError.config?.baseURL,
-      },
-    });
-    throw error;
+
+    // Gestion simplifiée des erreurs
+    if (axiosError.response?.status === 401) {
+      throw new Error("Identifiants incorrects");
+    } else if (axiosError.response?.status === 400) {
+      throw new Error("Données invalides");
+    } else if (axiosError.response?.status === 500) {
+      throw new Error("Erreur serveur");
+    } else {
+      throw new Error("Erreur de connexion");
+    }
   }
 };
 
@@ -81,8 +66,15 @@ export const registerCandidate = async (
 
     return response.data;
   } catch (error) {
-    console.error("Erreur lors de l'inscription du candidat:", error);
-    throw error;
+    const axiosError = error as AxiosError;
+
+    if (axiosError.response?.status === 409) {
+      throw new Error("Email déjà utilisé");
+    } else if (axiosError.response?.status === 400) {
+      throw new Error("Données invalides");
+    } else {
+      throw new Error("Erreur lors de l'inscription");
+    }
   }
 };
 
@@ -105,26 +97,15 @@ export const registerRecruiter = async (
 
     return response.data;
   } catch (error) {
-    console.error("Erreur lors de l'inscription du recruteur:", error);
     const axiosError = error as AxiosError;
-    console.error("Erreur détaillée lors de l'inscription du recruteur:", {
-      message: axiosError.message,
-      response: axiosError.response
-        ? {
-            status: axiosError.response.status,
-            data: axiosError.response.data,
-          }
-        : "Pas de réponse du serveur",
-      request: axiosError.request
-        ? "Requête envoyée mais pas de réponse"
-        : "Pas de requête envoyée",
-      config: {
-        url: axiosError.config?.url,
-        method: axiosError.config?.method,
-        baseURL: axiosError.config?.baseURL,
-      },
-    });
-    throw error;
+
+    if (axiosError.response?.status === 409) {
+      throw new Error("Email déjà utilisé");
+    } else if (axiosError.response?.status === 400) {
+      throw new Error("Données invalides");
+    } else {
+      throw new Error("Erreur lors de l'inscription");
+    }
   }
 };
 
@@ -174,26 +155,7 @@ export const getCurrentUser = async (): Promise<
       return null;
     }
 
-    console.error(
-      "Erreur détaillée lors de la récupération de l'utilisateur:",
-      {
-        message: axiosError.message,
-        response: axiosError.response
-          ? {
-              status: axiosError.response.status,
-              data: axiosError.response.data,
-            }
-          : "Pas de réponse du serveur",
-        request: axiosError.request
-          ? "Requête envoyée mais pas de réponse"
-          : "Pas de requête envoyée",
-        config: {
-          url: axiosError.config?.url,
-          method: axiosError.config?.method,
-          baseURL: axiosError.config?.baseURL,
-        },
-      }
-    );
+    console.error("Erreur lors de la récupération de l'utilisateur:", error);
     throw error;
   }
 };
