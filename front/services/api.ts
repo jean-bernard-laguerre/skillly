@@ -24,13 +24,17 @@ instance.interceptors.response.use(
     return response;
   },
   async (error) => {
+    // Gestion des erreurs 401 (non autorisé)
     if (error.response?.status === 401) {
       // Supprimer le token et les données utilisateur
       await AsyncStorage.multiRemove(["token", "userData", "userRole"]);
 
-      // Pour les requêtes autres que /auth/me, on ne propage pas l'erreur
+      // Pour les requêtes autres que /auth/me et /auth/login, on ne propage pas l'erreur
       // pour éviter qu'elle apparaisse dans l'interface utilisateur
-      if (!error.config?.url?.includes("/auth/me")) {
+      if (
+        !error.config?.url?.includes("/auth/me") &&
+        !error.config?.url?.includes("/auth/login")
+      ) {
         // Retourner une réponse vide pour éviter l'erreur dans l'UI
         return Promise.resolve({
           data: null,
@@ -41,9 +45,9 @@ instance.interceptors.response.use(
           request: error.request,
         });
       }
-
-      // Pour /auth/me, on laisse l'erreur se propager pour que le contexte d'auth puisse la gérer
     }
+
+    // Pour toutes les autres erreurs, les propager normalement
     return Promise.reject(error);
   }
 );

@@ -110,7 +110,7 @@ export default function CandidateHome() {
               <Text className="text-2xl">👤</Text>
             </View>
             <View className="flex-1">
-              <Text className="mb-1 text-[24px] font-bold text-black">
+              <Text className="mb-1 text-[24px] font-bold text-black" testID="homeGreeting">
                 Hello {stats.userName}, 👋
               </Text>
               <Text className="text-[14px] font-[400] text-[#6A6A6A]">

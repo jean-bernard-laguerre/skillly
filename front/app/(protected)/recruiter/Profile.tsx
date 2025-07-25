@@ -125,6 +125,7 @@ export default function Profile() {
       <Header title="MON PROFIL" subtitle="Gérez votre profil recruteur 👤" />
 
       <ScrollView
+        testID="profileScrollView"
         className="flex-1 px-4"
         style={{ backgroundColor: "#F7F7F7" }}
         refreshControl={
@@ -392,7 +393,7 @@ export default function Profile() {
 
         {/* Bouton Déconnexion */}
         <View style={styles.logoutContainer}>
-          <Pressable style={styles.logoutButton} onPress={() => handleLogOut()}>
+          <Pressable testID="logoutButton" style={styles.logoutButton} onPress={() => handleLogOut()}>
             <LinearGradient
               colors={["#FF2056", "#FF4081"]}
               style={styles.logoutGradient}

@@ -218,12 +218,12 @@ func (s *authService) Login(c *gin.Context) {
 	user, err := s.userRepository.GetByEmail(userLogin.Email)
 
 	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
-		return
-	}
-
-	if user.ID == 0 {
-		c.JSON(404, gin.H{"error": "User not found"})
+		// Gérer spécifiquement le cas où l'utilisateur n'existe pas
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(401, gin.H{"error": "Invalid credentials"})
+		} else {
+			c.JSON(500, gin.H{"error": err.Error()})
+		}
 		return
 	}
 
