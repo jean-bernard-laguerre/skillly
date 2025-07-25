@@ -60,7 +60,7 @@ describe("Login", () => {
   ];
 
   describe("Login fail Tests", () => {
-    beforeEach(async () => {
+    afterEach(async () => {
       await ClearLoginFields();
     });
 
