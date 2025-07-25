@@ -43,6 +43,7 @@ describe('Login', () => {
         await expect(element(by.id('loginError'))).toBeVisible();
         await expect(element(by.id('loginError'))).toHaveText(contains);
       }
+      await ClearLoginFields();
     });
   });
 });
@@ -51,4 +52,9 @@ function Login(email, password) {
   return element(by.id('emailInput')).typeText(email)
     .then(() => element(by.id('passwordInput')).typeText(password))
     .then(() => element(by.id('submitLoginButton')).tap());
+}
+
+function ClearLoginFields() {
+  return element(by.id('emailInput')).clearText()
+    .then(() => element(by.id('passwordInput')).clearText());
 }
