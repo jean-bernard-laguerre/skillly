@@ -100,6 +100,7 @@ export default function CustomTabBar({
 
           return (
             <AnimatedTouchableOpacity
+              testID={route.name}
               layout={LinearTransition.springify().mass(0.5)}
               key={index}
               accessibilityRole="button"

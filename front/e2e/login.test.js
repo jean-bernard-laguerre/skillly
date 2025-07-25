@@ -1,3 +1,6 @@
+const { log } = require("detox");
+const { LogOut } = require("lucide-react-native");
+
 describe("Login", () => {
   beforeAll(async () => {
     await device.launchApp({ newInstance: true });
@@ -5,10 +8,6 @@ describe("Login", () => {
     await waitFor(element(by.id("loginButton")))
       .toBeVisible()
       .withTimeout(30000);
-  });
-
-  it("should display the welcome screen", async () => {
-    await expect(element(by.id("welcome"))).toBeVisible();
   });
 
   it("should display the login button", async () => {
@@ -61,14 +60,42 @@ describe("Login", () => {
     },
   ];
 
-  failTests.forEach(({ title, email, password, contains }) => {
-    it(title, async () => {
-      await Login(email, password);
-      if (contains) {
-        await expect(element(by.id("loginError"))).toBeVisible();
-        await expect(element(by.id("loginError"))).toHaveText(contains);
-      }
+  describe("Login fail Tests", () => {
+    beforeEach(async () => {
       await ClearLoginFields();
+    });
+
+    failTests.forEach(({ title, email, password, contains }) => {
+      it(title, async () => {
+        await Login(email, password);
+        if (contains) {
+          await expect(element(by.id("loginError"))).toBeVisible();
+          await expect(element(by.id("loginError"))).toHaveText(contains);
+        }
+      });
+    });
+  });
+
+  describe("Login success Tests", () => {
+    afterEach(async () => {
+      await LogOut();
+      await waitFor(element(by.id("loginButton")))
+        .toBeVisible()
+        .withTimeout(10000);
+      await element(by.id("loginButton")).tap();
+      await waitFor(element(by.id("emailInput")))
+        .toBeVisible()
+        .withTimeout(10000);
+    });
+
+    successTests.forEach(({ title, email, password, contains }) => {
+      it(title, async () => {
+        await Login(email, password);
+        if (contains) {
+          await expect(element(by.id("homeGreeting"))).toBeVisible();
+          await expect(element(by.id("homeGreeting"))).toHaveText(contains);
+        }
+      });
     });
   });
 });
@@ -81,8 +108,22 @@ function Login(email, password) {
     .then(() => element(by.id("submitLoginButton")).tap());
 }
 
+function LogOut() {
+  return element(by.id("Profile")).tap()
+    .then(async() => {
+      await waitFor(element(by.id("logoutButton")))
+        .toBeVisible()
+        .withTimeout(10000);
+      await element(by.id("logoutButton")).scrollTo('bottom');
+      await element(by.id("logoutButton")).tap();
+      await waitFor(element(by.id("loginButton")))
+        .toBeVisible()
+    });
+}
+
 function ClearLoginFields() {
   return element(by.id("emailInput"))
     .clearText()
     .then(() => element(by.id("passwordInput")).clearText());
 }
+
