@@ -111,11 +111,11 @@ function LogOut() {
   return element(by.id("Profile"))
     .tap()
     .then(async () => {
-      await element(by.id("profileScrollView")).scrollTo('bottom');
+      await element(by.id("profileScrollView")).scrollTo("bottom");
       await waitFor(element(by.id("logoutButton")))
         .toBeVisible()
         .withTimeout(10000);
-      await element(by.id("logoutButton")).scrollTo("bottom");
+      // await element(by.id("logoutButton")).scrollTo("bottom");
       await element(by.id("logoutButton")).tap();
       await waitFor(element(by.id("loginButton"))).toBeVisible();
     });
