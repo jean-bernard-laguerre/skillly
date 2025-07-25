@@ -49,31 +49,31 @@ describe("Login", () => {
       title: "Login successful recruteur",
       email: "recruiter@mail.com",
       password: "test1234",
-      contains: "Bienvenue, test",
+      contains: "Hello",
     },
     {
       title: "Login successful candidat",
       email: "candidate@mail.com",
       password: "test1234",
-      contains: "Bienvenue, test",
+      contains: "Hello",
     },
   ];
 
-  // describe("Login fail Tests", () => {
-  //   afterEach(async () => {
-  //     await ClearLoginFields();
-  //   });
+  describe("Login fail Tests", () => {
+    afterEach(async () => {
+        await ClearLoginFields();
+      });
 
-  //   failTests.forEach(({ title, email, password, contains }) => {
-  //     it(title, async () => {
-  //       await Login(email, password);
-  //       if (contains) {
-  //         await expect(element(by.id("loginError"))).toBeVisible();
-  //         await expect(element(by.id("loginError"))).toHaveText(contains);
-  //       }
-  //     });
-  //   });
-  // });
+    failTests.forEach(({ title, email, password, contains }) => {
+      it(title, async () => {
+        await Login(email, password);
+        if (contains) {
+          await expect(element(by.id("loginError"))).toBeVisible();
+          await expect(element(by.id("loginError"))).toHaveText(contains);
+        }
+      });
+    });
+  });
 
   describe("Login success Tests", () => {
     afterEach(async () => {
@@ -92,7 +92,7 @@ describe("Login", () => {
         await Login(email, password);
         if (contains) {
           await expect(element(by.id("homeGreeting"))).toBeVisible();
-          // await expect(element(by.id("homeGreeting"))).toHaveText(contains);
+          await expect(element(by.id("homeGreeting"))).toHaveText(contains);
         }
       });
     });
@@ -111,11 +111,10 @@ function LogOut() {
   return element(by.id("Profile"))
     .tap()
     .then(async () => {
-      await element(by.id("profileScrollView")).scrollTo("bottom");
+      await element(by.id("profileScrollView")).scrollTo('bottom')
       await waitFor(element(by.id("logoutButton")))
         .toBeVisible()
         .withTimeout(10000);
-      // await element(by.id("logoutButton")).scrollTo("bottom");
       await element(by.id("logoutButton")).tap();
       await waitFor(element(by.id("loginButton"))).toBeVisible();
     });
