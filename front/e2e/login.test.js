@@ -51,6 +51,7 @@ describe('Login', () => {
 function Login(email, password) {
   return element(by.id('emailInput')).typeText(email)
     .then(() => element(by.id('passwordInput')).typeText(password))
+    .then(() => element(by.id('submitLoginButton')).scrollTo('bottom'))
     .then(() => element(by.id('submitLoginButton')).tap());
 }
 
