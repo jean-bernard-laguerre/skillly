@@ -26,18 +26,23 @@ describe("Login", () => {
   });
 
   const failTests = [
-    // {title: 'Missing email', email: '', password: 'test$jdsfmlk1234!!', contains: 'Please enter a valid email address'},
-    // {
-    //   title: "Invalid email",
-    //   email: "test3@tessdqfjlkt.qsdflksdjm",
-    //   password: "test$jdsfmlk1234!!",
-    //   contains: "Login Failed - User Not Found",
-    // },
+    {
+      title: "Missing email",
+      email: "",
+      password: "test$jdsfmlk1234!!",
+      contains: "Données invalides",
+    },
+    {
+      title: "Invalid email",
+      email: "test3@tessdqfjlkt.qsdflksdjm",
+      password: "test$jdsfmlk1234!!",
+      contains: "Identifiants incorrects",
+    },
     {
       title: "Invalid password",
       email: "candidate@mail.com",
       password: "uyzgcuyeg",
-      contains: "Login Failed - Password Incorrect",
+      contains: "Identifiants incorrects",
     },
   ];
 
@@ -61,7 +66,7 @@ describe("Login", () => {
       await Login(email, password);
       if (contains) {
         await expect(element(by.id("loginError"))).toBeVisible();
-        /* await expect(element(by.id('loginError'))).toHaveText(contains); */
+        await expect(element(by.id("loginError"))).toHaveText(contains);
       }
       await ClearLoginFields();
     });
