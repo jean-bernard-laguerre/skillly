@@ -188,6 +188,7 @@ export default function Profile() {
       />
 
       <ScrollView
+        testID="profileScrollView"
         className="flex-1 px-4"
         style={{ backgroundColor: "#F7F7F7" }}
       >
