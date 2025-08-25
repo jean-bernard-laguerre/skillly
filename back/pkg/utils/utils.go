@@ -3,6 +3,9 @@ package utils
 import (
 	"strconv"
 
+	"errors"
+	"regexp"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -44,4 +47,23 @@ func GetId(c *gin.Context) (uint, error) {
 	}
 
 	return uint(id), nil
+}
+
+func ValidatePassword(password string) error {
+	if len(password) < 8 {
+		return errors.New("Le mot de passe doit contenir au moins 8 caractères")
+	}
+	if !regexp.MustCompile(`[A-Z]`).MatchString(password) {
+		return errors.New("Le mot de passe doit contenir au moins une majuscule")
+	}
+	if !regexp.MustCompile(`[a-z]`).MatchString(password) {
+		return errors.New("Le mot de passe doit contenir au moins une minuscule")
+	}
+	if !regexp.MustCompile(`[0-9]`).MatchString(password) {
+		return errors.New("Le mot de passe doit contenir au moins un chiffre")
+	}
+	if !regexp.MustCompile(`[!@#$%^&*]`).MatchString(password) {
+		return errors.New("Le mot de passe doit contenir au moins un caractère spécial")
+	}
+	return nil
 }
