@@ -160,25 +160,6 @@ export default function Login() {
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>Adresse mail</Text>
                 <View style={styles.inputWrapper}>
-                  {/* <TextInput
-                    testID="emailInput"
-                    style={styles.input}
-                    value={formData.email}
-                    onChangeText={(text) =>
-                      setFormData({ ...formData, email: text })
-                    }
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    placeholder="votre@mail.com"
-                    placeholderTextColor="#9CA3AF"
-                  />
-                  {formData.email.length > 0 && (
-                    <CheckCircle2
-                      size={20}
-                      color="#4717F6"
-                      style={styles.inputIcon}
-                    />
-                  )} */}
                   <Controller
                     control={control}
                     name="email"
@@ -213,17 +194,6 @@ export default function Login() {
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>Mot de passe</Text>
                 <View style={styles.inputWrapper}>
-                  {/* <TextInput
-                    testID="passwordInput"
-                    style={[styles.input, styles.passwordInput]}
-                    value={formData.password}
-                    onChangeText={(text) =>
-                      setFormData({ ...formData, password: text })
-                    }
-                    secureTextEntry={!showPassword}
-                    placeholder="••••••••••"
-                    placeholderTextColor="#9CA3AF"
-                  /> */}
                   <Controller
 
                     control={control}
