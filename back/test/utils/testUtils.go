@@ -107,7 +107,7 @@ var TestCandidate = authDto.CandidateRegisterDTO{
 
 var TestLogin = authDto.LoginDto{
 	Email:    "TestCandidate@test.com",
-	Password: "password123",
+	Password: "Password123!",
 }
 
 var CandidateToken = jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
