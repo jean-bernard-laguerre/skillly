@@ -24,7 +24,7 @@ const signupSchema = z.object({
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/,
     "Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial"
   ).min(8).nonempty("Le mot de passe est requis"),
-  confirmPassword: z.string().min(6).nonempty("La confirmation est requise"),
+  confirmPassword: z.string().nonempty("La confirmation est requise"),
 }).superRefine(({ password, confirmPassword }, ctx) => {
   if (password !== confirmPassword) {
     ctx.addIssue({
