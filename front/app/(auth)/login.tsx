@@ -20,20 +20,33 @@ import { useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
 import { CheckCircle2, Eye, EyeOff, Zap } from "lucide-react-native";
 import { useNavigationVisibility } from "@/context/NavigationVisibilityContext";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm, Controller } from "react-hook-form";
 
 const { width, height } = Dimensions.get("window");
 
+const loginSchema = z.object({
+  email: z.string().email(
+    { message: "L'adresse mail doit être valide." }
+  ),
+  password: z.string()
+});
+
 export default function Login() {
   const { login, isLoggingIn, loginError } = useAuthMutation();
-  const [formData, setFormData] = useState<LoginCredentials>({
+  /* const [formData, setFormData] = useState<LoginCredentials>({
     email: "",
     password: "",
-  });
+  }); */
   const [showPassword, setShowPassword] = useState(false);
   const [showQuickLogin, setShowQuickLogin] = useState(false);
   const { hideNavigation, showNavigation } = useNavigationVisibility();
   const navigation = useNavigation<TabNavigationProp>();
   const router = useRouter();
+  const { control, handleSubmit, formState: { errors, isSubmitted }} = useForm<LoginCredentials>({
+    resolver: zodResolver(loginSchema),
+  });
 
   // Masquer la navigation au montage
   useEffect(() => {
@@ -64,8 +77,13 @@ export default function Login() {
     return () => sub.remove();
   }, [showNavigation, router]);
 
-  const handleSubmit = () => {
-    login(formData);
+  const onSubmit = async (data: LoginCredentials) => {
+    console.log("Submitting", data);
+    try {
+      await login(data);
+    } catch (error) {
+      console.error("Login failed", error);
+    }
   };
 
   const handleQuickLogin = (role: "candidate" | "recruiter") => {
@@ -142,7 +160,7 @@ export default function Login() {
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>Adresse mail</Text>
                 <View style={styles.inputWrapper}>
-                  <TextInput
+                  {/* <TextInput
                     testID="emailInput"
                     style={styles.input}
                     value={formData.email}
@@ -160,6 +178,33 @@ export default function Login() {
                       color="#4717F6"
                       style={styles.inputIcon}
                     />
+                  )} */}
+                  <Controller
+                    control={control}
+                    name="email"
+                    render={({ field: { onChange, onBlur, value } }) => (
+                      <TextInput
+                        testID="emailInput"
+                        style={styles.input}
+                        onBlur={onBlur}
+                        onChangeText={onChange}
+                        value={value}
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                        placeholder="votre@mail.com"
+                        placeholderTextColor="#9CA3AF"
+                      />
+                    )}
+                  />
+                  {(errors.email && isSubmitted) && (
+                    <Text style={styles.errorText}>{errors.email.message}</Text>
+                  )}
+                  {errors.email === undefined && (
+                    <CheckCircle2
+                      size={20}
+                      color="#4717F6"
+                      style={styles.inputIcon}
+                    />
                   )}
                 </View>
               </View>
@@ -168,7 +213,7 @@ export default function Login() {
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>Mot de passe</Text>
                 <View style={styles.inputWrapper}>
-                  <TextInput
+                  {/* <TextInput
                     testID="passwordInput"
                     style={[styles.input, styles.passwordInput]}
                     value={formData.password}
@@ -178,7 +223,25 @@ export default function Login() {
                     secureTextEntry={!showPassword}
                     placeholder="••••••••••"
                     placeholderTextColor="#9CA3AF"
+                  /> */}
+                  <Controller
+
+                    control={control}
+                    name="password"
+                    render={({ field: { onChange, onBlur, value } }) => (
+                      <TextInput
+                        testID="passwordInput"
+                        style={[styles.input, styles.passwordInput]}
+                        onBlur={onBlur}
+                        onChangeText={onChange}
+                        value={value}
+                        secureTextEntry={!showPassword}
+                      />
+                    )}
                   />
+                  {(errors.password && isSubmitted) && (
+                    <Text style={styles.errorText}>{errors.password.message}</Text>
+                  )}
                   <Pressable
                     style={styles.eyeIcon}
                     onPress={() => setShowPassword(!showPassword)}
@@ -220,7 +283,7 @@ export default function Login() {
                   styles.loginButton,
                   isLoggingIn && styles.loginButtonDisabled,
                 ]}
-                onPress={handleSubmit}
+                onPress={handleSubmit(onSubmit)}
                 disabled={isLoggingIn}
               >
                 <LinearGradient

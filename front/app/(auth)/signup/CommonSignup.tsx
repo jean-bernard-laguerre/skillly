@@ -12,6 +12,28 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { CheckCircle2, Eye, EyeOff } from "lucide-react-native";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm, Controller } from "react-hook-form";
+
+const signupSchema = z.object({
+  firstName: z.string().nonempty("Le prénom est requis"),
+  lastName: z.string().nonempty("Le nom est requis"),
+  email: z.string().email("Email invalide").nonempty("L'email est requis"),
+  password: z.string().regex(
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/,
+    "Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial"
+  ).min(8).nonempty("Le mot de passe est requis"),
+  confirmPassword: z.string().min(6).nonempty("La confirmation est requise"),
+}).superRefine(({ password, confirmPassword }, ctx) => {
+  if (password !== confirmPassword) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Les mots de passes ne correspondent pas",
+      path: ["confirmPassword"],
+    });
+  }
+});
 
 const { height } = Dimensions.get("window");
 
@@ -37,52 +59,17 @@ export default function CommonSignup({
   const [formData, setFormData] = useState<CommonFormData>(initialData);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [errors, setErrors] = useState<Partial<CommonFormData>>({});
+  /* const [errors, setErrors] = useState<Partial<CommonFormData>>({}); */
+  const { control, handleSubmit, formState: { errors, isValid } } = useForm<CommonFormData>({
+    resolver: zodResolver(signupSchema),
+    defaultValues: formData,
+    mode: 'onChange',
+  });
 
-  const validateForm = (): boolean => {
-    const newErrors: Partial<CommonFormData> = {};
 
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = "Le prénom est requis";
-    }
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = "Le nom est requis";
-    }
-    if (!formData.email.trim()) {
-      newErrors.email = "L'email est requis";
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Email invalide";
-    }
-    if (!formData.password) {
-      newErrors.password = "Le mot de passe est requis";
-    } else if (formData.password.length < 6) {
-      newErrors.password =
-        "Le mot de passe doit contenir au moins 6 caractères";
-    }
-    if (!formData.confirmPassword) {
-      newErrors.confirmPassword = "La confirmation est requise";
-    } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Les mots de passe ne correspondent pas";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const onSubmit = (data: CommonFormData) => {
+    onComplete(data);
   };
-
-  const handleSubmit = () => {
-    if (validateForm()) {
-      onComplete(formData);
-    }
-  };
-
-  const isFormValid =
-    formData.firstName.trim() &&
-    formData.lastName.trim() &&
-    formData.email.trim() &&
-    formData.password &&
-    formData.confirmPassword &&
-    formData.password === formData.confirmPassword &&
-    /\S+@\S+\.\S+/.test(formData.email);
 
   return (
     <KeyboardAvoidingView
@@ -104,17 +91,19 @@ export default function CommonSignup({
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Nom</Text>
               <View style={styles.inputWrapper}>
-                <TextInput
-                  style={[styles.input, errors.lastName && styles.inputError]}
-                  value={formData.lastName}
-                  onChangeText={(text) => {
-                    setFormData({ ...formData, lastName: text });
-                    if (errors.lastName) {
-                      setErrors({ ...errors, lastName: undefined });
-                    }
-                  }}
-                  placeholder="Doe"
-                  placeholderTextColor="#9CA3AF"
+                <Controller
+                  control={control}
+                  name="lastName"
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <TextInput
+                      style={[styles.input, errors.lastName && styles.inputError]}
+                      value={value}
+                      onChangeText={onChange}
+                      onBlur={onBlur}
+                      placeholder="Doe"
+                      placeholderTextColor="#9CA3AF"
+                    />
+                  )}
                 />
                 {formData.lastName.length > 0 && !errors.lastName && (
                   <CheckCircle2
@@ -125,7 +114,7 @@ export default function CommonSignup({
                 )}
               </View>
               {errors.lastName && (
-                <Text style={styles.errorText}>{errors.lastName}</Text>
+                <Text style={styles.errorText}>{errors.lastName.message}</Text>
               )}
             </View>
 
@@ -133,17 +122,19 @@ export default function CommonSignup({
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Prénom</Text>
               <View style={styles.inputWrapper}>
-                <TextInput
-                  style={[styles.input, errors.firstName && styles.inputError]}
-                  value={formData.firstName}
-                  onChangeText={(text) => {
-                    setFormData({ ...formData, firstName: text });
-                    if (errors.firstName) {
-                      setErrors({ ...errors, firstName: undefined });
-                    }
-                  }}
-                  placeholder="John"
-                  placeholderTextColor="#9CA3AF"
+                <Controller
+                  control={control}
+                  name="firstName"
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <TextInput
+                      style={[styles.input, errors.firstName && styles.inputError]}
+                      value={value}
+                      onChangeText={onChange}
+                      onBlur={onBlur}
+                      placeholder="John"
+                      placeholderTextColor="#9CA3AF"
+                    />
+                  )}
                 />
                 {formData.firstName.length > 0 && !errors.firstName && (
                   <CheckCircle2
@@ -154,7 +145,7 @@ export default function CommonSignup({
                 )}
               </View>
               {errors.firstName && (
-                <Text style={styles.errorText}>{errors.firstName}</Text>
+                <Text style={styles.errorText}>{errors.firstName.message}</Text>
               )}
             </View>
 
@@ -162,19 +153,21 @@ export default function CommonSignup({
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Adresse mail</Text>
               <View style={styles.inputWrapper}>
-                <TextInput
-                  style={[styles.input, errors.email && styles.inputError]}
-                  value={formData.email}
-                  onChangeText={(text) => {
-                    setFormData({ ...formData, email: text });
-                    if (errors.email) {
-                      setErrors({ ...errors, email: undefined });
-                    }
-                  }}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  placeholder="votre@mail.com"
-                  placeholderTextColor="#9CA3AF"
+                <Controller
+                  control={control}
+                  name="email"
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <TextInput
+                      style={[styles.input, errors.email && styles.inputError]}
+                      value={value}
+                      onChangeText={onChange}
+                      onBlur={onBlur}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      placeholder="votre@mail.com"
+                      placeholderTextColor="#9CA3AF"
+                    />
+                  )}
                 />
                 {formData.email.length > 0 &&
                   !errors.email &&
@@ -187,7 +180,7 @@ export default function CommonSignup({
                   )}
               </View>
               {errors.email && (
-                <Text style={styles.errorText}>{errors.email}</Text>
+                <Text style={styles.errorText}>{errors.email.message}</Text>
               )}
             </View>
 
@@ -195,22 +188,24 @@ export default function CommonSignup({
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Mot de passe</Text>
               <View style={styles.inputWrapper}>
-                <TextInput
-                  style={[
-                    styles.input,
-                    styles.passwordInput,
-                    errors.password && styles.inputError,
-                  ]}
-                  value={formData.password}
-                  onChangeText={(text) => {
-                    setFormData({ ...formData, password: text });
-                    if (errors.password) {
-                      setErrors({ ...errors, password: undefined });
-                    }
-                  }}
-                  secureTextEntry={!showPassword}
-                  placeholder="••••••••••"
-                  placeholderTextColor="#9CA3AF"
+                <Controller
+                  control={control}
+                  name="password"
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <TextInput
+                      style={[
+                        styles.input,
+                        styles.passwordInput,
+                        errors.password && styles.inputError,
+                      ]}
+                      value={value}
+                      onChangeText={onChange}
+                      onBlur={onBlur}
+                      secureTextEntry={!showPassword}
+                      placeholder="••••••••••"
+                      placeholderTextColor="#9CA3AF"
+                    />
+                  )}
                 />
                 <Pressable
                   style={styles.eyeIcon}
@@ -224,7 +219,7 @@ export default function CommonSignup({
                 </Pressable>
               </View>
               {errors.password && (
-                <Text style={styles.errorText}>{errors.password}</Text>
+                <Text style={styles.errorText}>{errors.password.message}</Text>
               )}
             </View>
 
@@ -234,22 +229,24 @@ export default function CommonSignup({
                 Confirmation de mot de passe
               </Text>
               <View style={styles.inputWrapper}>
-                <TextInput
-                  style={[
-                    styles.input,
-                    styles.passwordInput,
-                    errors.confirmPassword && styles.inputError,
-                  ]}
-                  value={formData.confirmPassword}
-                  onChangeText={(text) => {
-                    setFormData({ ...formData, confirmPassword: text });
-                    if (errors.confirmPassword) {
-                      setErrors({ ...errors, confirmPassword: undefined });
-                    }
-                  }}
-                  secureTextEntry={!showConfirmPassword}
-                  placeholder="••••••••••"
-                  placeholderTextColor="#9CA3AF"
+                <Controller
+                  control={control}
+                  name="confirmPassword"
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <TextInput
+                      style={[
+                        styles.input,
+                        styles.passwordInput,
+                        errors.confirmPassword && styles.inputError,
+                      ]}
+                      value={value}
+                      onChangeText={onChange}
+                      onBlur={onBlur}
+                      secureTextEntry={!showConfirmPassword}
+                      placeholder="••••••••••"
+                      placeholderTextColor="#9CA3AF"
+                    />
+                  )}
                 />
                 <Pressable
                   style={styles.eyeIcon}
@@ -263,7 +260,7 @@ export default function CommonSignup({
                 </Pressable>
               </View>
               {errors.confirmPassword && (
-                <Text style={styles.errorText}>{errors.confirmPassword}</Text>
+                <Text style={styles.errorText}>{errors.confirmPassword.message}</Text>
               )}
             </View>
           </View>
@@ -285,14 +282,14 @@ export default function CommonSignup({
             <Pressable
               style={[
                 styles.continueButton,
-                !isFormValid && styles.continueButtonDisabled,
+                !isValid && styles.continueButtonDisabled,
               ]}
-              onPress={handleSubmit}
-              disabled={!isFormValid}
+              onPress={handleSubmit(onSubmit)}
+              disabled={!isValid}
             >
               <LinearGradient
                 colors={
-                  isFormValid ? ["#4717F6", "#6366f1"] : ["#9CA3AF", "#9CA3AF"]
+                  isValid ? ["#4717F6", "#6366f1"] : ["#9CA3AF", "#9CA3AF"]
                 }
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
