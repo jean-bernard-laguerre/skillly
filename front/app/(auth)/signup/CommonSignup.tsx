@@ -315,7 +315,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingTop: 32, // Titre plus haut
+    paddingTop: 14, // Titre plus haut
     justifyContent: "space-between",
   },
   title: {

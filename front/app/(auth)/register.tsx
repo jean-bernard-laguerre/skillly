@@ -20,6 +20,7 @@ import CommonSignup from "./signup/CommonSignup";
 import RoleChoice from "./signup/RoleChoice";
 import CandidateSteps from "./signup/CandidateSteps";
 import RecruiterSteps from "./signup/RecruiterSteps";
+import ScreenWrapper from "@/navigation/ScreenWrapper";
 
 const { width, height } = Dimensions.get("window");
 
@@ -168,44 +169,46 @@ export default function Register() {
   };
 
   return (
-    <View style={styles.container}>
-      {/* Background avec cercles blurrés identique au login */}
-      <View style={styles.backgroundContainer}>
-        <View style={[styles.blurredCircle, styles.circle1]} />
-        <View style={[styles.blurredCircle, styles.circle2]} />
-        <View style={[styles.blurredCircle, styles.circle3]} />
+    <ScreenWrapper>
+      <View style={styles.container}>
+        {/* Background avec cercles blurrés identique au login */}
+        <View style={styles.backgroundContainer}>
+          <View style={[styles.blurredCircle, styles.circle1]} />
+          <View style={[styles.blurredCircle, styles.circle2]} />
+          <View style={[styles.blurredCircle, styles.circle3]} />
+        </View>
+
+        {/* Boutons d'inscription rapide cachés */}
+        <View style={styles.quickSignupContainer}>
+          <Pressable
+            style={styles.quickSignupToggle}
+            onPress={() => setShowQuickSignup(!showQuickSignup)}
+          >
+            <Zap size={20} color="#FFFFFF" />
+          </Pressable>
+
+          {showQuickSignup && (
+            <View style={styles.quickSignupButtons}>
+              <Pressable
+                style={[styles.quickButton, styles.candidateButton]}
+                onPress={() => handleQuickSignup("candidate")}
+              >
+                <Text style={styles.quickButtonText}>C</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.quickButton, styles.recruiterButton]}
+                onPress={() => handleQuickSignup("recruiter")}
+              >
+                <Text style={styles.quickButtonText}>R</Text>
+              </Pressable>
+            </View>
+          )}
+        </View>
+
+        {/* Contenu de l'étape actuelle */}
+        {renderCurrentStep()}
       </View>
-
-      {/* Boutons d'inscription rapide cachés */}
-      <View style={styles.quickSignupContainer}>
-        <Pressable
-          style={styles.quickSignupToggle}
-          onPress={() => setShowQuickSignup(!showQuickSignup)}
-        >
-          <Zap size={20} color="#FFFFFF" />
-        </Pressable>
-
-        {showQuickSignup && (
-          <View style={styles.quickSignupButtons}>
-            <Pressable
-              style={[styles.quickButton, styles.candidateButton]}
-              onPress={() => handleQuickSignup("candidate")}
-            >
-              <Text style={styles.quickButtonText}>C</Text>
-            </Pressable>
-            <Pressable
-              style={[styles.quickButton, styles.recruiterButton]}
-              onPress={() => handleQuickSignup("recruiter")}
-            >
-              <Text style={styles.quickButtonText}>R</Text>
-            </Pressable>
-          </View>
-        )}
-      </View>
-
-      {/* Contenu de l'étape actuelle */}
-      {renderCurrentStep()}
-    </View>
+    </ScreenWrapper>
   );
 }
 
