@@ -75,7 +75,7 @@ var TestRecruiter = authDto.RecruterRegisterDTO{
 	FirstName: "Test",
 	LastName:  "Recruiter",
 	Email:     "TestRecruiter@test.com",
-	Password:  "password123",
+	Password:  "Password123!",
 	Title:     "Test Title",
 	NewCompany: &companyDto.CreateCompanyDTO{
 		CompanyName: "Test Company",
@@ -93,7 +93,7 @@ var TestCandidate = authDto.CandidateRegisterDTO{
 	FirstName:        "Test",
 	LastName:         "Candidate",
 	Email:            "TestCandidate@test.com",
-	Password:         "password123",
+	Password:         "Password123!",
 	Bio:              "Test Bio",
 	ExperienceYear:   5,
 	PreferedContract: models.CDIContract,
@@ -107,7 +107,7 @@ var TestCandidate = authDto.CandidateRegisterDTO{
 
 var TestLogin = authDto.LoginDto{
 	Email:    "TestCandidate@test.com",
-	Password: "password123",
+	Password: "Password123!",
 }
 
 var CandidateToken = jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{

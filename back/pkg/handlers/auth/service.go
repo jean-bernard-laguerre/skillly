@@ -56,6 +56,10 @@ func (s *authService) RegisterCandidate(c *gin.Context) {
 			return err
 		}
 
+		if err := utils.ValidatePassword(candidateRegister.Password); err != nil {
+			return err
+		}
+
 		newUser := userDto.CreateUserDTO{
 			FirstName: candidateRegister.FirstName,
 			LastName:  candidateRegister.LastName,
@@ -127,6 +131,10 @@ func (s *authService) RegisterRecruiter(c *gin.Context) {
 		err := c.BindJSON(&recruiterRegister)
 
 		if err != nil {
+			return err
+		}
+
+		if err := utils.ValidatePassword(recruiterRegister.Password); err != nil {
 			return err
 		}
 
