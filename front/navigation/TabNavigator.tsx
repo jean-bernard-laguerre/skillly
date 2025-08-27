@@ -16,7 +16,6 @@ import React from "react";
 // Public Components
 import Login from "@/app/(auth)/login";
 import Register from "@/app/(auth)/register";
-import HomePage from "@/app/index";
 // Components Profile
 import Profile from "@/app/(protected)/index";
 // Components Messages
@@ -171,6 +170,7 @@ export default function TabNavigator() {
     );
   }
 
+  // Navigation publique - rediriger directement vers la connexion
   return (
     <NavigationVisibilityProvider>
       <Tab.Navigator
@@ -180,16 +180,8 @@ export default function TabNavigator() {
           tabBarInactiveTintColor: "#94a3b8",
         }}
         tabBar={(props) => <CustomTabBar {...props} />}
-        initialRouteName="HomePage"
+        initialRouteName="Login"
       >
-        <Tab.Screen
-          name="HomePage"
-          component={HomePage}
-          options={{
-            tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
-            title: "Accueil",
-          }}
-        />
         <Tab.Screen
           name="Login"
           component={Login}

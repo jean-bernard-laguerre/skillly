@@ -27,10 +27,8 @@ import { useForm, Controller } from "react-hook-form";
 const { width, height } = Dimensions.get("window");
 
 const loginSchema = z.object({
-  email: z.string().email(
-    { message: "L'adresse mail doit être valide." }
-  ),
-  password: z.string()
+  email: z.string().email({ message: "L'adresse mail doit être valide." }),
+  password: z.string(),
 });
 
 export default function Login() {
@@ -44,7 +42,11 @@ export default function Login() {
   const { hideNavigation, showNavigation } = useNavigationVisibility();
   const navigation = useNavigation<TabNavigationProp>();
   const router = useRouter();
-  const { control, handleSubmit, formState: { errors, isSubmitted }} = useForm<LoginCredentials>({
+  const {
+    control,
+    handleSubmit,
+    formState: { errors, isSubmitted },
+  } = useForm<LoginCredentials>({
     resolver: zodResolver(loginSchema),
   });
 
@@ -144,13 +146,24 @@ export default function Login() {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.content}>
+            {/* Message de bienvenue */}
+            <View style={styles.welcomeContainer}>
+              <Text style={styles.welcomeTitle}>Bienvenue sur Skillly 🚀</Text>
+              <Text style={styles.welcomeSubtitle}>
+                La plateforme qui connecte candidats et recruteurs en un
+                instant.
+              </Text>
+            </View>
+
             {/* Titre */}
             <Text style={styles.title}>Connexion</Text>
 
             {/* Message d'erreur */}
             {loginError && (
               <View style={styles.errorContainer}>
-                <Text testID="loginError" style={styles.errorText}>{loginError.message}</Text>
+                <Text testID="loginError" style={styles.errorText}>
+                  {loginError.message}
+                </Text>
               </View>
             )}
 
@@ -177,7 +190,7 @@ export default function Login() {
                       />
                     )}
                   />
-                  {(errors.email && isSubmitted) && (
+                  {errors.email && isSubmitted && (
                     <Text style={styles.errorText}>{errors.email.message}</Text>
                   )}
                   {errors.email === undefined && (
@@ -195,7 +208,6 @@ export default function Login() {
                 <Text style={styles.inputLabel}>Mot de passe</Text>
                 <View style={styles.inputWrapper}>
                   <Controller
-
                     control={control}
                     name="password"
                     render={({ field: { onChange, onBlur, value } }) => (
@@ -209,8 +221,10 @@ export default function Login() {
                       />
                     )}
                   />
-                  {(errors.password && isSubmitted) && (
-                    <Text style={styles.errorText}>{errors.password.message}</Text>
+                  {errors.password && isSubmitted && (
+                    <Text style={styles.errorText}>
+                      {errors.password.message}
+                    </Text>
                   )}
                   <Pressable
                     style={styles.eyeIcon}
@@ -423,8 +437,25 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingTop: height * 0.25,
+    paddingTop: height * 0.15, // Réduire le padding top pour compenser le message de bienvenue
     justifyContent: "space-between", // Distribution espace entre le haut et le bas
+  },
+  welcomeContainer: {
+    alignItems: "center",
+    marginBottom: 40,
+  },
+  welcomeTitle: {
+    fontSize: 28,
+    fontWeight: "800",
+    color: "#1F2937",
+    textAlign: "center",
+    marginBottom: 8,
+  },
+  welcomeSubtitle: {
+    fontSize: 16,
+    color: "#6B7280",
+    textAlign: "center",
+    lineHeight: 24,
   },
   title: {
     fontSize: 32,
